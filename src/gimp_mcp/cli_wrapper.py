@@ -12,6 +12,7 @@ import platform
 import shlex
 import subprocess
 import tempfile
+import yaml
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
@@ -130,18 +131,18 @@ class GimpCliWrapper:
             except Exception as e:
                 self.logger.warning(f"Failed to clean up temp script {temp_script}: {e}")
     
-    async def load_image_info(self, image_path: str) -> Dict:
+    async def load_image_info(self, file_path: str) -> Dict:
         """
         Load basic image information using GIMP.
         
         Args:
-            image_path: Path to image file
+            file_path: Path to image file
             
         Returns:
             Dict: Image metadata
         """
         # Convert to absolute path for cross-platform compatibility
-        abs_path = str(Path(image_path).resolve())
+        abs_path = str(Path(file_path).resolve())
         
         script = f"""
 (let* ((image (car (gimp-file-load RUN-NONINTERACTIVE "{abs_path}" "{abs_path}")))
@@ -160,7 +161,7 @@ class GimpCliWrapper:
             output = await self.execute_script_fu(script)
             return self._parse_image_info(output)
         except Exception as e:
-            raise GimpExecutionError(f"Failed to load image info for {image_path}: {e}")
+            raise GimpExecutionError(f"Failed to load image info for {file_path}: {e}")
     
     async def convert_image(self, 
                            input_path: str, 
