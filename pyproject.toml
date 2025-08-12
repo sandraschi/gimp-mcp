@@ -1,0 +1,229 @@
+[build-system]
+requires = ["setuptools>=42.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gimp-mcp"
+version = "0.1.0"
+description = "FastMCP server for professional image editing using GIMP"
+readme = "README.md"
+authors = [
+    {name = "Sandra Schieder", email = "sandra@sandraschi.dev"},
+]
+requires-python = ">=3.10"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Content Creators",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Graphics",
+    "Topic :: Multimedia :: Graphics :: Graphics Conversion",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+dependencies = [
+    # Core dependencies
+    "fastmcp>=2.10.0,<3.0.0",
+    "fastapi>=0.95.0",
+    "uvicorn[standard]>=0.22.0",
+    "python-dotenv>=1.0.0",
+    "pydantic>=2.0.0,<3.0.0",
+    
+    # Image processing
+    "pillow>=10.0.0",
+    "numpy>=1.24.0",
+    
+    # Process management and system utilities
+    "psutil>=5.9.0",
+    "pathlib>=1.0.1",
+    
+    # File handling and validation
+    "python-magic>=0.4.27; platform_system!='Windows'",
+    "python-magic-bin>=0.4.14; platform_system=='Windows'",
+    
+    # Configuration and utilities
+    "typing-extensions>=4.5.0",
+    "python-dateutil>=2.8.2",
+    "httpx>=0.24.0",
+    "pyyaml>=6.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/sandraschi/gimp-mcp"
+Documentation = "https://github.com/sandraschi/gimp-mcp#readme"
+Issues = "https://github.com/sandraschi/gimp-mcp/issues"
+Source = "https://github.com/sandraschi/gimp-mcp"
+
+[project.scripts]
+gimp-mcp = "gimp_mcp.main:main"
+
+[project.optional-dependencies]
+dev = [
+    # Testing
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-mock>=3.11.0",
+    "pytest-xdist>=3.3.1",
+    "pytest-html>=4.0.0",
+    "pytest-timeout>=2.1.0",
+    
+    # Code quality
+    "black>=23.7.0",
+    "isort>=5.12.0",
+    "mypy>=1.4.0",
+    "ruff>=0.0.280",
+    "pre-commit>=3.3.0",
+    
+    # Documentation
+    "mkdocs>=1.4.3",
+    "mkdocs-material>=9.1.15",
+    "mkdocstrings[python]>=0.22.0",
+    "mkdocs-autorefs>=0.4.1",
+    "mkdocs-jupyter>=0.24.1",
+    "mkdocs-minify-plugin>=0.6.4",
+    "mkdocs-redirects>=1.1.2",
+    
+    # Type stubs
+    "types-python-dotenv>=1.0.0",
+    "types-psutil>=5.9.0",
+    "types-python-dateutil>=2.8.0",
+    "types-requests>=2.28.0",
+    "types-pyyaml>=6.0.0",
+]
+
+docs = [
+    "mkdocs>=1.4.3",
+    "mkdocs-material>=9.1.15",
+    "mkdocstrings[python]>=0.22.0",
+    "mkdocs-autorefs>=0.4.1",
+    "mkdocs-jupyter>=0.24.1",
+]
+
+[project.entry-points]
+"fastmcp.plugins" = { gimp = "gimp_mcp.plugins:setup_plugin" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+strict_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+
+# DXT Configuration
+[tool.dxt]
+name = "gimp-mcp"
+display_name = "GIMP MCP"
+version = "0.1.0"
+description = "MCP server for professional image editing using GIMP"
+entry_point = "gimp_mcp.main:app"
+
+# Core Image File Tools
+[[tool.dxt.tools]]
+name = "load_image"
+description = "Load an image file and return metadata"
+category = "files"
+
+[[tool.dxt.tools]]
+name = "save_image"
+description = "Save processed image to specified format"
+category = "files"
+
+[[tool.dxt.tools]]
+name = "get_image_info"
+description = "Extract comprehensive image metadata"
+category = "files"
+
+[[tool.dxt.tools]]
+name = "convert_format"
+description = "Convert image between different formats"
+category = "files"
+
+# Transform Tools
+[[tool.dxt.tools]]
+name = "resize_image"
+description = "Resize image with quality preservation"
+category = "transform"
+
+[[tool.dxt.tools]]
+name = "crop_image"
+description = "Crop image to specified rectangle"
+category = "transform"
+
+[[tool.dxt.tools]]
+name = "rotate_image"
+description = "Rotate image by specified degrees"
+category = "transform"
+
+# Color Adjustment Tools
+[[tool.dxt.tools]]
+name = "adjust_brightness_contrast"
+description = "Adjust brightness and contrast"
+category = "color"
+
+[[tool.dxt.tools]]
+name = "adjust_hue_saturation"
+description = "Adjust HSL color values"
+category = "color"
+
+[[tool.dxt.tools]]
+name = "color_balance"
+description = "Professional color balance adjustment"
+category = "color"
+
+# Filter Tools
+[[tool.dxt.tools]]
+name = "apply_blur"
+description = "Apply blur effect with specified method"
+category = "filters"
+
+[[tool.dxt.tools]]
+name = "apply_sharpen"
+description = "Unsharp mask sharpening"
+category = "filters"
+
+[[tool.dxt.tools]]
+name = "noise_reduction"
+description = "Intelligent noise reduction"
+category = "filters"
+
+# Batch Processing Tools
+[[tool.dxt.tools]]
+name = "batch_resize"
+description = "Resize multiple images"
+category = "batch"
+
+[[tool.dxt.tools]]
+name = "batch_convert"
+description = "Convert multiple images to target format"
+category = "batch"
+
+[tool.dxt.config]
+log_level = "INFO"
+max_workers = 4
+request_timeout = 60.0
+gimp_timeout = 30.0

@@ -1,0 +1,32 @@
+"""
+Requirements for GIMP MCP Server.
+
+Core dependencies for production use.
+"""
+
+# Core FastMCP and web framework
+fastmcp>=2.10.0,<3.0.0
+fastapi>=0.95.0
+uvicorn[standard]>=0.22.0
+
+# Configuration and validation
+pydantic>=2.0.0,<3.0.0
+python-dotenv>=1.0.0
+pyyaml>=6.0
+
+# Image processing support
+pillow>=10.0.0
+numpy>=1.24.0
+
+# System utilities
+psutil>=5.9.0
+python-dateutil>=2.8.2
+typing-extensions>=4.5.0
+httpx>=0.24.0
+
+# File type detection
+python-magic>=0.4.27; platform_system!='Windows'
+python-magic-bin>=0.4.14; platform_system=='Windows'
+
+# Path handling
+pathlib>=1.0.1
