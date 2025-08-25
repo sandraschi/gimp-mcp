@@ -19,324 +19,48 @@ Supported Formats:
 
 import asyncio
 import logging
-import os
 from pathlib import Path
-from typing import Any, Dict, Optional, List, Union, Tuple, Callable, Awaitable
+from typing import Any, Dict, Optional, List, Union, Tuple
 from datetime import datetime
-from dataclasses import dataclass
-from typing import List
 
 from fastmcp import FastMCP
 
-__all__ = ['FileOperationTools', 'FileOperationResult']
+from .base import BaseToolCategory, tool
+
+logger = logging.getLogger(__name__)
 
 # Type aliases for better readability
 FilePath = str
 ImageMetadata = Dict[str, Any]
 
-# Supported formats
-SUPPORTED_RASTER_FORMATS = ['png', 'jpg', 'jpeg', 'tif', 'tiff', 'bmp', 'gif', 'webp', 'xcf']
-SUPPORTED_VECTOR_FORMATS = ['svg']
-SUPPORTED_METADATA = ['exif', 'xmp', 'iptc']
-
-logger = logging.getLogger(__name__)
-
-@dataclass
-class FileOperationResult:
-    """Result container for file operations."""
-    success: bool
-    message: str
-    data: Dict[str, Any] = None
-    error: Optional[str] = None
-
-class FileOperationTools:
-    """Tools for file operations in GIMP MCP Server."""
+class FileOperationTools(BaseToolCategory):
+    """
+    Core file operation tools for image handling in GIMP MCP.
     
-    def __init__(self, cli_wrapper: Any, config: Any):
-        """Initialize file operation tools.
-        
-        Args:
-            cli_wrapper: The GIMP CLI wrapper instance
-            config: Configuration object
-        """
-        self.cli_wrapper = cli_wrapper
-        self.config = config
-        self.logger = logging.getLogger(__name__)
+    This class provides methods for loading, saving, and manipulating image files
+    with support for various formats and metadata operations. It serves as the
+    foundation for all file-based operations in the GIMP MCP server.
     
-    def create_success_response(self, data: Dict[str, Any], message: str = "") -> Dict[str, Any]:
-        """Create a standardized success response.
-        
-        Args:
-            data: Response data
-            message: Optional success message
-            
-        Returns:
-            Formatted success response
-        """
-        return {
-            "success": True,
-            "data": data,
-            "message": message
+    Features:
+    - Thread-safe file operations
+    - Automatic format detection
+    - Metadata preservation
+    - Security validation
+    - Progress reporting
+    """
+    
+    def __init__(self, cli_wrapper, config):
+        """Initialize file operation tools with dependencies."""
+        super().__init__(cli_wrapper, config)
+        self._supported_formats = {
+            'raster': ['png', 'jpg', 'jpeg', 'tif', 'tiff', 'bmp', 'gif', 'webp', 'xcf'],
+            'vector': ['svg'],
+            'metadata': ['exif', 'xmp', 'iptc']
         }
     
-    def create_error_response(self, error: str, details: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        """Create a standardized error response.
-        
-        Args:
-            error: Error message
-            details: Optional additional error details
-            
-        Returns:
-            Formatted error response
-        """
-        response = {
-            "success": False,
-            "error": error
-        }
-        if details:
-            response["details"] = details
-        return response
-
-    def register_tools(self, mcp: FastMCP) -> None:
-        """Register all file operation tools with the MCP server.
-        
-        Args:
-            mcp: The FastMCP instance to register tools with
-        """
-        @mcp.tool(
-            name="load_image",
-            description=(
-                "Load an image file and return comprehensive metadata and image handle.\n\n"
-                "This tool loads an image file from the specified path, validates it against "
-                "supported formats, extracts metadata, and returns a structured response with "
-                "image details. The returned handle can be used for subsequent operations.\n\n"
-                "Key Features:\n"
-                "- Supports all major image formats (PNG, JPEG, TIFF, WebP, etc.)\n"
-                "- Automatic format detection from file extension and content\n"
-                "- Optional metadata extraction (EXIF, XMP, IPTC)\n"
-                "- Size-constrained loading for large images\n"
-                "- Comprehensive error handling and validation"
-            ),
-            parameters={
-                "file_path": {
-                    "type": "string",
-                    "format": "file-path",
-                    "description": "Path to the image file to load",
-                    "required": True
-                },
-                "load_metadata": {
-                    "type": "boolean",
-                    "description": "Whether to extract and include image metadata (EXIF, XMP, IPTC)",
-                    "default": True
-                },
-                "max_dimension": {
-                    "type": "integer",
-                    "description": "Maximum width or height for loaded images (pixels)",
-                    "minimum": 0,
-                    "default": 0,
-                    "note": "Set to 0 to load at original resolution"
-                }
-            },
-            returns={
-                "type": "object",
-                "properties": {
-                    "success": {"type": "boolean"},
-                    "file_path": {"type": "string"},
-                    "file_name": {"type": "string"},
-                    "file_size": {"type": "integer"},
-                    "format": {"type": "string"},
-                    "dimensions": {
-                        "type": "object",
-                        "properties": {
-                            "width": {"type": "integer"},
-                            "height": {"type": "integer"},
-                            "channels": {"type": "integer"},
-                            "bits_per_channel": {"type": "integer"}
-                        }
-                    },
-                    "metadata": {
-                        "type": "object",
-                        "properties": {
-                            "exif": {"type": "object"},
-                            "xmp": {"type": "object"},
-                            "iptc": {"type": "object"}
-                        }
-                    },
-                    "created_date": {"type": "string"},
-                    "modified_date": {"type": "string"},
-                    "image_handle": {"type": "string"},
-                    "error": {"type": "string"}
-                },
-                "required": ["success", "file_path", "file_name", "file_size", "format", "dimensions"]
-            }
-        )
-        async def load_image(file_path: str, load_metadata: bool = True, max_dimension: int = 0) -> Dict[str, Any]:
-            """Load an image file and return comprehensive metadata."""
-            try:
-                if not os.path.exists(file_path):
-                    return {
-                        "success": False,
-                        "error": f"File not found: {file_path}",
-                        "file_path": file_path
-                    }
-                
-                path = Path(file_path)
-                stat = path.stat()
-                
-                result = {
-                    "success": True,
-                    "file_path": str(path.resolve()),
-                    "file_name": path.name,
-                    "file_size": stat.st_size,
-                    "created_date": datetime.fromtimestamp(stat.st_ctime).isoformat(),
-                    "modified_date": datetime.fromtimestamp(stat.st_mtime).isoformat(),
-                    "format": path.suffix.lower().lstrip('.')
-                }
-                
-                if hasattr(self.cli_wrapper, 'get_image_metadata'):
-                    try:
-                        metadata = await self.cli_wrapper.get_image_metadata(
-                            str(path),
-                            load_metadata=load_metadata,
-                            max_dimension=max_dimension
-                        )
-                        result.update(metadata)
-                    except Exception as e:
-                        logger.warning(f"Could not get image metadata: {e}")
-                
-                return result
-                
-            except Exception as e:
-                logger.error(f"Failed to load image {file_path}: {e}", exc_info=True)
-                return {
-                    "success": False,
-                    "error": f"Failed to load image: {str(e)}",
-                    "file_path": file_path
-                }  
-        
-        @mcp.tool(
-            name="save_image",
-            description=(
-                "Save or convert an image to the specified format and location with advanced options.\n\n"
-                "This tool provides comprehensive image saving capabilities including format conversion, "
-                "quality adjustment, metadata preservation, and file management. It supports all major "
-                "image formats and handles format-specific options automatically.\n\n"
-                "Key Features:\n"
-                "- Automatic format detection from file extension\n"
-                "- Lossless and lossy compression options\n"
-                "- Metadata (EXIF/XMP/IPTC) preservation\n"
-                "- File overwrite protection\n"
-                "- Comprehensive error handling"
-            ),
-            parameters={
-                "input_path": {
-                    "type": "string",
-                    "format": "file-path",
-                    "description": "Path to the source image file",
-                    "required": True
-                },
-                "output_path": {
-                    "type": "string",
-                    "format": "file-path",
-                    "description": "Destination path for the saved image",
-                    "required": True
-                },
-                "format": {
-                    "type": "string",
-                    "description": "Output format (e.g., 'jpg', 'png', 'webp')",
-                    "default": "auto"
-                },
-                "quality": {
-                    "type": "integer",
-                    "description": "Compression quality (1-100)",
-                    "minimum": 1,
-                    "maximum": 100,
-                    "default": 95
-                },
-                "preserve_metadata": {
-                    "type": "boolean",
-                    "description": "Whether to preserve image metadata",
-                    "default": True
-                },
-                "overwrite": {
-                    "type": "boolean",
-                    "description": "Overwrite output file if it exists",
-                    "default": False
-                }
-            },
-            returns={
-                "type": "object",
-                "properties": {
-                    "success": {"type": "boolean"},
-                    "input_path": {"type": "string"},
-                    "output_path": {"type": "string"},
-                    "file_size": {"type": "integer"},
-                    "error": {"type": "string"}
-                },
-                "required": ["success", "input_path", "output_path"]
-            }
-        )
-        async def save_image(
-            input_path: str,
-            output_path: str,
-            format: str = "auto",
-            quality: int = 95,
-            preserve_metadata: bool = True,
-            overwrite: bool = False
-        ) -> Dict[str, Any]:
-            """Save an image to the specified path and format.
-            
-            Args:
-                input_path: Path to the source image
-                output_path: Destination path for the saved image
-                format: Output format (auto-detected from extension if 'auto')
-                quality: Compression quality (1-100)
-                preserve_metadata: Whether to keep existing metadata
-                overwrite: Whether to overwrite existing files
-                
-            Returns:
-                Dictionary with operation status and result details
-            """
-            try:
-                if not os.path.exists(input_path):
-                    return self.create_error_response(f"Input file not found: {input_path}")
-                
-                if not overwrite and os.path.exists(output_path):
-                    return self.create_error_response(f"Output file exists: {output_path}")
-                
-                if format == "auto":
-                    format = Path(output_path).suffix.lower().lstrip('.')
-                
-                if hasattr(self.cli_wrapper, 'save_image'):
-                    result = await self.cli_wrapper.save_image(
-                        input_path=input_path,
-                        output_path=output_path,
-                        format=format,
-                        quality=quality,
-                        preserve_metadata=preserve_metadata
-                    )
-                    
-                    if result.get('success'):
-                        return self.create_success_response({
-                            "input_path": input_path,
-                            "output_path": output_path,
-                            "file_size": os.path.getsize(output_path)
-                        }, "Image saved successfully")
-                    else:
-                        return self.create_error_response(
-                            result.get('error', 'Failed to save image'),
-                            result.get('details')
-                        )
-                else:
-                    return self.create_error_response("Image saving not implemented")
-                    
-            except Exception as e:
-                self.logger.error(f"Failed to save image: {e}", exc_info=True)
-                return self.create_error_response(f"Failed to save image: {str(e)}")
-        
-        # Register the tools
-        self.load_image = load_image
-        self.save_image = save_image
+    def _format_timestamp(self, timestamp: float) -> str:
+        """Convert a timestamp to a human-readable format."""
+        return datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
     
     @tool(
         name="load_image",
@@ -926,14 +650,97 @@ class FileOperationTools:
                 f"Failed to save image: {str(e)}",
                 details={
                     "input_path": input_path,
+                    "output_path": output_path,
                     "error": str(e)
                 }
             )
+        
+        @app.tool()
+        async def convert_format(input_path: str,
+                               output_path: str,
+                               target_format: str,
+                               quality: int = 95,
+                               preserve_metadata: Optional[bool] = None) -> Dict[str, Any]:
+            """
+            Convert an image from one format to another with format-specific options.
             
-        if not self.validate_file_path(output_path, must_exist=False):
-            return self.create_error_response(f"Invalid output path: {output_path}")
-            
-        return self.create_success_response(
-            data=conversion_data,
-            message=f"Successfully converted {input_format.upper()} to {target_format.upper()}"
-        )
+            Args:
+                input_path: Source image file path
+                output_path: Destination file path
+                target_format: Target format (jpeg, png, webp, tiff, etc.)
+                quality: Compression quality for lossy formats (1-100)
+                preserve_metadata: Whether to preserve EXIF data (None = use config default)
+                
+            Returns:
+                Dict containing conversion results and file information
+            """
+            try:
+                # Validate inputs
+                if not self.validate_file_path(input_path, must_exist=True):
+                    return self.create_error_response(f"Invalid input file: {input_path}")
+                
+                if not self.validate_file_path(output_path, must_exist=False):
+                    return self.create_error_response(f"Invalid output path: {output_path}")
+                
+                # Validate target format
+                target_format = target_format.lower()
+                if not self.config.is_format_supported(target_format):
+                    return self.create_error_response(f"Unsupported target format: {target_format}")
+                
+                # Use configuration default for metadata preservation if not specified
+                if preserve_metadata is None:
+                    preserve_metadata = self.config.preserve_metadata
+                
+                # Get input file info for comparison
+                input_path_obj = Path(input_path)
+                input_stat = input_path_obj.stat()
+                input_format = input_path_obj.suffix.lower().lstrip('.')
+                
+                # Ensure output has correct extension
+                output_path_obj = Path(output_path)
+                if output_path_obj.suffix.lower().lstrip('.') != target_format:
+                    output_path_obj = output_path_obj.with_suffix(f'.{target_format}')
+                
+                # Perform conversion
+                success = await self.cli_wrapper.convert_image(
+                    input_path=input_path,
+                    output_path=str(output_path_obj),
+                    output_format=target_format,
+                    quality=quality
+                )
+                
+                if not success:
+                    return self.create_error_response("Format conversion failed")
+                
+                # Get output file info
+                output_stat = output_path_obj.stat()
+                
+                # Calculate conversion statistics
+                size_reduction = ((input_stat.st_size - output_stat.st_size) / input_stat.st_size) * 100
+                
+                conversion_data = {
+                    "conversion": {
+                        "input_format": input_format,
+                        "output_format": target_format,
+                        "quality": quality if target_format in ["jpeg", "jpg", "webp"] else None,
+                        "metadata_preserved": preserve_metadata
+                    },
+                    "file_sizes": {
+                        "input_bytes": input_stat.st_size,
+                        "output_bytes": output_stat.st_size,
+                        "size_change_percent": round(size_reduction, 2)
+                    },
+                    "paths": {
+                        "input": input_path,
+                        "output": str(output_path_obj.resolve())
+                    }
+                }
+                
+                return self.create_success_response(
+                    data=conversion_data,
+                    message=f"Successfully converted {input_format.upper()} to {target_format.upper()}"
+                )
+                
+            except Exception as e:
+                self.logger.error(f"Format conversion failed from {input_path}: {e}")
+                return self.create_error_response(f"Format conversion failed: {str(e)}")

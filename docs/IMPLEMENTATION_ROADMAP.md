@@ -1,7 +1,7 @@
 # GIMP-MCP Implementation Roadmap
 **Document Version:** 1.0  
 **Date:** 2025-08-12  
-**Author:** Sandra Schieder  
+**Author:** Sandra Schipal  
 **Purpose:** Detailed implementation plan and development timeline
 
 ## 🎯 Project Overview

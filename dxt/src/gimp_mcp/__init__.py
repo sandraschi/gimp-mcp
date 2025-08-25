@@ -14,12 +14,12 @@ Key Features:
 - Geometric transformations
 - Error handling and recovery
 
-Author: Sandra Schipal
+Author: Sandra Schieder
 License: MIT
 """
 
 __version__ = "0.1.0"
-__author__ = "Sandra Schipal"
+__author__ = "Sandra Schieder"
 __email__ = "sandra@sandraschi.dev"
 
 from .server import GimpMcpServer

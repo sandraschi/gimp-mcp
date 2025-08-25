@@ -9,10 +9,10 @@ import logging
 import os
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 import yaml
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, validator
 
 logger = logging.getLogger(__name__)
 
@@ -148,9 +148,8 @@ class GimpConfig(BaseModel):
         description="List of allowed directories for file operations"
     )
     
-    @field_validator('temp_directory')
-    @classmethod
-    def validate_temp_directory(cls, v: str) -> str:
+    @validator('temp_directory')
+    def validate_temp_directory(cls, v):
         """Validate and create temp directory if needed."""
         path = Path(v)
         try:
@@ -161,18 +160,16 @@ class GimpConfig(BaseModel):
             raise ValueError(f"Invalid temp directory: {v} - {e}")
         return str(path)
     
-    @field_validator('default_interpolation')
-    @classmethod
-    def validate_interpolation(cls, v: str) -> str:
+    @validator('default_interpolation')
+    def validate_interpolation(cls, v):
         """Validate interpolation method."""
         valid_methods = ["none", "linear", "cubic", "lanczos"]
         if v.lower() not in valid_methods:
             raise ValueError(f"Invalid interpolation method: {v}. Must be one of {valid_methods}")
         return v.lower()
     
-    @field_validator('log_level')
-    @classmethod
-    def validate_log_level(cls, v: str) -> str:
+    @validator('log_level')
+    def validate_log_level(cls, v):
         """Validate logging level."""
         valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR"]
         if v.upper() not in valid_levels:

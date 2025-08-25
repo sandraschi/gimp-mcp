@@ -1,7 +1,7 @@
 # GIMP Technical Assessment & MCP Server Analysis
 **Document Version:** 1.0  
 **Date:** 2025-08-12  
-**Author:** Sandra Schieder  
+**Author:** Sandra Schipal  
 **Purpose:** Comprehensive technical assessment for GIMP MCP server development
 
 ## 🎯 Executive Summary
