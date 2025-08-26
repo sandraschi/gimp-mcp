@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Performance Optimization Tools for GIMP MCP Server.
 
@@ -6,19 +8,95 @@ following FastMCP 2.10 standards.
 """
 
 import asyncio
-import logging
-import time
 import hashlib
+import logging
 import os
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+import sys
+import time
+from collections import defaultdict
+from dataclasses import dataclass, field
+from enum import Enum, auto
 from functools import lru_cache
+from pathlib import Path
+from typing import (
+    Any, Callable, Dict, List, Literal, Optional, Type, TypeVar, Union, cast
+)
 
 from fastmcp import FastMCP
 
-from .base import BaseToolCategory
+from .base import BaseToolCategory, tool
+
+if sys.version_info >= (3, 10):
+    from typing import TypeAlias, ParamSpec
+else:
+    from typing_extensions import TypeAlias, ParamSpec
 
 logger = logging.getLogger(__name__)
+
+# Type aliases
+T = TypeVar('T')
+P = ParamSpec('P')
+FilePath: TypeAlias = str
+CacheKey: TypeAlias = str
+OperationID: TypeAlias = str
+PerformanceMetric: TypeAlias = Dict[str, Union[float, int, str]]
+
+class CacheStrategy(str, Enum):
+    """Available caching strategies."""
+    LRU = "lru"          # Least Recently Used
+    LFU = "lfu"          # Least Frequently Used
+    FIFO = "fifo"        # First In, First Out
+    NONE = "none"        # No caching
+    MEMORY = "memory"    # In-memory only
+    DISK = "disk"        # Disk-based
+    HYBRID = "hybrid"    # Memory + Disk
+
+class PerformanceMetricType(str, Enum):
+    """Types of performance metrics that can be collected."""
+    EXECUTION_TIME = "execution_time"
+    MEMORY_USAGE = "memory_usage"
+    CACHE_HIT_RATE = "cache_hit_rate"
+    THROUGHPUT = "throughput"
+    LATENCY = "latency"
+    CPU_USAGE = "cpu_usage"
+    GPU_USAGE = "gpu_usage"
+
+@dataclass
+class CacheConfig:
+    """Configuration for caching behavior."""
+    enabled: bool = True
+    strategy: CacheStrategy = CacheStrategy.LRU
+    max_size: int = 1000
+    ttl: Optional[int] = 3600  # Time to live in seconds
+    disk_path: Optional[Path] = None
+    compress: bool = True
+    pickle_protocol: int = 4
+    
+    def __post_init__(self):
+        if self.disk_path is None:
+            self.disk_path = Path(".cache/gimp-mcp")
+        if not self.disk_path.exists():
+            self.disk_path.mkdir(parents=True, exist_ok=True)
+
+@dataclass
+class PerformanceConfig:
+    """Configuration for performance monitoring."""
+    enabled: bool = True
+    metrics: List[PerformanceMetricType] = field(
+        default_factory=lambda: [
+            PerformanceMetricType.EXECUTION_TIME,
+            PerformanceMetricType.MEMORY_USAGE,
+            PerformanceMetricType.CACHE_HIT_RATE
+        ]
+    )
+    sampling_interval: float = 1.0  # seconds
+    history_size: int = 1000
+    enable_profiling: bool = False
+    profile_output_dir: Path = Path("./profiles")
+    
+    def __post_init__(self):
+        if not self.profile_output_dir.exists():
+            self.profile_output_dir.mkdir(parents=True, exist_ok=True)
 
 class PerformanceTools(BaseToolCategory):
     """

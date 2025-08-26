@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Brightness and Contrast adjustment tool for GIMP MCP Server.
 
@@ -5,11 +7,44 @@ Provides a simple interface to adjust image brightness and contrast.
 """
 
 import logging
-from typing import Any, Dict
+import sys
+from dataclasses import dataclass
+from enum import Enum
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union, cast
 
-from fastmcp import mcp
+from fastmcp import FastMCP, mcp
+
+from .base import BaseToolCategory, tool
+
+if sys.version_info >= (3, 10):
+    from typing import TypeAlias
+else:
+    from typing_extensions import TypeAlias
 
 logger = logging.getLogger(__name__)
+
+# Type aliases
+FilePath: TypeAlias = str
+ImageData: TypeAlias = Any  # numpy.ndarray | PIL.Image.Image | GIMP image
+
+class ColorPreservationMode(str, Enum):
+    """Modes for color preservation during brightness/contrast adjustments."""
+    NONE = "none"
+    LUMINOSITY = "luminosity"
+    HUE = "hue"
+    SATURATION = "saturation"
+    PERCEPTUAL = "perceptual"
+
+@dataclass
+class BrightnessContrastConfig:
+    """Configuration for brightness and contrast adjustments."""
+    brightness: float = 0.0  # Range: -100 to 100
+    contrast: float = 0.0    # Range: -100 to 100
+    color_preservation: ColorPreservationMode = ColorPreservationMode.PERCEPTUAL
+    preserve_highlights: bool = True
+    preserve_shadows: bool = True
+    auto_contrast: bool = False
 
 def register_color_tools(mcp_instance):
     """Register all color adjustment tools with the MCP instance."""

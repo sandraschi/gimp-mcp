@@ -12,19 +12,23 @@ from pathlib import Path
 from typing import Optional, Dict, Any
 
 from fastmcp import FastMCP
-from fastmcp.transports import stdio_transport, http_transport
 
 from .config import GimpConfig, load_config
 from .gimp_detector import GimpDetector  
 from .cli_wrapper import GimpCliWrapper
 
-# Import tool registration functions
-from .tools.file_operations import register_file_tools
-from .tools.transforms import register_transform_tools
-from .tools.color_adjustments import register_color_tools
-from .tools.filters import register_filter_tools
-from .tools.batch_processing import register_batch_tools
-from .tools.help_tools import register_help_tools
+# Import tool categories
+from .tools import (
+    FileOperationTools,
+    TransformTools,
+    ColorAdjustmentTools,
+    FilterTools,
+    BatchProcessingTools,
+    HelpTools,
+    LayerManagementTools,
+    ImageAnalysisTools,
+    PerformanceTools
+)
 
 # Configure logging
 logging.basicConfig(
@@ -44,11 +48,20 @@ class GimpMCPServer:
             config_path: Optional path to configuration file
         """
         self.config = load_config(config_path) if config_path else GimpConfig()
+        
+        # Initialize FastMCP with explicit configuration
         self.mcp = FastMCP(
             name="GIMP MCP Server",
-            description="MCP server for GIMP image manipulation",
             version="2.0.0"
         )
+        
+        # Set up logging
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        )
+        
+        self.logger = logging.getLogger(__name__)
         self.cli_wrapper: Optional[GimpCliWrapper] = None
     
     async def initialize(self) -> bool:
@@ -87,38 +100,72 @@ class GimpMCPServer:
         if not self.cli_wrapper:
             raise RuntimeError("CLI wrapper not initialized")
         
-        # Register tool categories
-        register_file_tools(self.mcp, self.cli_wrapper, self.config)
-        register_transform_tools(self.mcp, self.cli_wrapper, self.config)
-        register_color_tools(self.mcp, self.cli_wrapper, self.config)
-        register_filter_tools(self.mcp, self.cli_wrapper, self.config)
-        register_batch_tools(self.mcp, self.cli_wrapper, self.config)
-        register_help_tools(self.mcp, self.cli_wrapper, self.config)
+        # Debug: Log FastMCP version and attributes
+        import fastmcp
+        logger.info(f"FastMCP version: {fastmcp.__version__}")
+        logger.info(f"FastMCP attributes: {dir(fastmcp)}")
+        logger.info(f"MCP instance type: {type(self.mcp)}")
+        logger.info(f"MCP instance attributes: {dir(self.mcp)}")
         
-        logger.info("All tools registered successfully")
-    
-    async def run_stdio(self) -> None:
-        """Run the server in stdio mode."""
-        if not await self.initialize():
-            sys.exit(1)
+        logger.info("Starting tool registration...")
+        
+        try:
+            # Initialize and register tool categories
+            tool_classes = [
+                ("File Operations", FileOperationTools),
+                ("Transforms", TransformTools),
+                ("Color Adjustments", ColorAdjustmentTools),
+                ("Filters", FilterTools),
+                ("Batch Processing", BatchProcessingTools),
+                ("Help", HelpTools),
+                ("Layer Management", LayerManagementTools),
+                ("Image Analysis", ImageAnalysisTools),
+                ("Performance", PerformanceTools)
+            ]
             
-        logger.info("Starting GIMP MCP Server in stdio mode")
-        await self.mcp.run(stdio_transport())
+            registered_categories = 0
+            
+            for category_name, tool_class in tool_classes:
+                try:
+                    logger.info(f"Registering {category_name} tools...")
+                    tool_instance = tool_class(self.cli_wrapper, self.config)
+                    tool_instance.register_tools(self.mcp)
+                    registered_categories += 1
+                    logger.info(f"Successfully registered {category_name} tools")
+                except Exception as e:
+                    logger.error(f"Failed to register {category_name} tools: {e}", exc_info=True)
+            
+            if registered_categories == 0:
+                logger.error("No tool categories were registered successfully")
+            else:
+                logger.info(f"Successfully registered {registered_categories} tool categories")
+                
+            # Debug: List all registered tools
+            try:
+                if hasattr(self.mcp, 'list_tools'):
+                    tools = self.mcp.list_tools()
+                    logger.info(f"Registered tools: {', '.join(tools) if tools else 'None'}")
+            except Exception as e:
+                logger.warning(f"Could not list registered tools: {e}")
+                
+        except Exception as e:
+            logger.error(f"Error during tool registration: {e}", exc_info=True)
+            raise
     
-    async def run_http(self, host: str = "0.0.0.0", port: int = 8000) -> None:
+    def run_stdio(self) -> None:
+        """Run the server in stdio mode."""
+        self.mcp.run()
+        
+    def run_http(self, host: str = '0.0.0.0', port: int = 8000) -> None:
         """Run the server in HTTP mode.
         
         Args:
             host: Host to bind to
             port: Port to listen on
         """
-        if not await self.initialize():
-            sys.exit(1)
-            
-        logger.info(f"Starting GIMP MCP Server in HTTP mode on {host}:{port}")
-        await self.mcp.run(http_transport(host=host, port=port))
+        self.mcp.run(transport="http", host=host, port=port)
 
-async def main():
+def main():
     """Main entry point for the GIMP MCP Server."""
     import argparse
     
@@ -131,52 +178,46 @@ async def main():
         help="Server mode (default: stdio)"
     )
     parser.add_argument(
-        "--host", 
-        default="0.0.0.0",
-        help="Host to bind to (HTTP mode only, default: 0.0.0.0)"
-    )
-    parser.add_argument(
         "--port", 
         type=int, 
         default=8000,
-        help="Port to listen on (HTTP mode only, default: 8000)"
+        help="Port for HTTP server (default: 8000)"
     )
     parser.add_argument(
-        "--config", 
+        "--host", 
+        default="0.0.0.0",
+        help="Host to bind to (default: 0.0.0.0)"
+    )
+    parser.add_argument(
+        "--config",
         type=Path,
+        default=None,
         help="Path to configuration file"
-    )
-    parser.add_argument(
-        "--log-level",
-        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
-        default="INFO",
-        help="Logging level (default: INFO)"
     )
     
     args = parser.parse_args()
     
-    # Configure logging level
-    logging.basicConfig(
-        level=getattr(logging, args.log_level),
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        handlers=[logging.StreamHandler()]
-    )
+    # Initialize server
+    server = GimpMCPServer(config_path=args.config)
     
-    # Create and run server
-    try:
-        server = GimpMCPServer(config_path=args.config)
-        
-        if args.mode == "http":
-            await server.run_http(host=args.host, port=args.port)
-        else:  # stdio
-            await server.run_stdio()
-            
-    except Exception as e:
-        logger.critical(f"Fatal error: {e}", exc_info=True)
+    # Initialize the server
+    if not server.initialize():
+        logger.error("Failed to initialize GIMP MCP Server")
         sys.exit(1)
+    
+    # Run the appropriate server mode
+    try:
+        if args.mode == "http":
+            logger.info(f"Starting HTTP server on {args.host}:{args.port}")
+            server.run_http(host=args.host, port=args.port)
+        else:
+            logger.info("Starting in stdio mode")
+            server.run_stdio()
     except KeyboardInterrupt:
         logger.info("Shutting down...")
-        sys.exit(0)
+    except Exception as e:
+        logger.error(f"Error: {e}", exc_info=True)
+        sys.exit(1)
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Image Analysis Tools for GIMP MCP Server.
 
@@ -8,14 +10,74 @@ content analysis, and metadata extraction following FastMCP 2.10 standards.
 import asyncio
 import logging
 import math
+import sys
+from dataclasses import dataclass, field
+from enum import Enum, auto
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import (
+    Any, Dict, List, Literal, Optional, Sequence, Set, Tuple, TypeVar, Union, cast, TypedDict
+)
 
 from fastmcp import FastMCP
 
-from .base import BaseToolCategory
+# Optional numpy import with type checking
+try:
+    import numpy as np
+    import numpy.typing as npt
+    HAS_NUMPY = True
+except ImportError:
+    np = None  # type: ignore
+    npt = None  # type: ignore
+    HAS_NUMPY = False
+
+from .base import BaseToolCategory, tool
+
+if sys.version_info >= (3, 10):
+    from typing import TypeAlias
+else:
+    from typing_extensions import TypeAlias
 
 logger = logging.getLogger(__name__)
+
+# Type aliases
+FilePath: TypeAlias = str
+ImageData: TypeAlias = Any  # numpy.ndarray | PIL.Image.Image | GIMP image
+AnalysisResult: TypeAlias = Dict[str, Any]
+
+class AnalysisType(str, Enum):
+    """Types of image analysis that can be performed."""
+    BASIC = "basic"
+    COMPREHENSIVE = "comprehensive"
+    DETAILED = "detailed"
+    QUALITY = "quality"
+    NOISE = "noise"
+    COLOR = "color"
+    COMPOSITION = "composition"
+    METADATA = "metadata"
+
+class ImageQualityMetrics(TypedDict, total=False):
+    """Metrics for image quality assessment."""
+    sharpness: float
+    noise_level: float
+    contrast: float
+    brightness: float
+    color_balance: Dict[str, float]
+    dynamic_range: float
+    compression_artifacts: float
+    blur_detection: Dict[str, float]
+    exposure: Dict[str, float]
+    snr: Optional[float]  # Signal-to-Noise Ratio
+    psnr: Optional[float]  # Peak Signal-to-Noise Ratio
+    ssim: Optional[float]  # Structural Similarity Index
+
+@dataclass
+class ImageAnalysisConfig:
+    """Configuration for image analysis operations."""
+    analysis_type: AnalysisType = AnalysisType.COMPREHENSIVE
+    include_metrics: List[str] = field(default_factory=lambda: ["all"])
+    export_visualization: bool = False
+    output_format: str = "json"
+    max_dimension: int = 4000
 
 class ImageAnalysisTools(BaseToolCategory):
     """

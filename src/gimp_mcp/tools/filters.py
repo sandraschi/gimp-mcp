@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Filter and Effects Tools for GIMP MCP Server.
 
@@ -7,14 +9,69 @@ noise reduction, and artistic effects.
 
 import logging
 import math
-from typing import Any, Dict, List, Optional, Tuple, Union
+import sys
+from dataclasses import dataclass
+from enum import Enum, auto
+from typing import (
+    Any, Dict, List, Literal, Optional, Sequence, Set, Tuple, TypeVar, Union, cast
+)
 
-import numpy as np
 from fastmcp import FastMCP
 
-from .base import BaseToolCategory
+# Optional numpy import with type checking
+try:
+    import numpy as np
+    import numpy.typing as npt
+    HAS_NUMPY = True
+except ImportError:
+    np = None  # type: ignore
+    npt = None  # type: ignore
+    HAS_NUMPY = False
+
+from .base import BaseToolCategory, tool
+
+if sys.version_info >= (3, 10):
+    from typing import TypeAlias
+else:
+    from typing_extensions import TypeAlias
 
 logger = logging.getLogger(__name__)
+
+# Type aliases
+FilePath: TypeAlias = str
+Kernel: TypeAlias = Any  # numpy.ndarray | List[List[float]]
+FilterResult: TypeAlias = Dict[str, Any]
+
+# Constants for filters
+DEFAULT_KERNEL_SIZE = 3
+MAX_KERNEL_SIZE = 15
+
+class BlurMethod(str, Enum):
+    """Available blur methods."""
+    GAUSSIAN = "gaussian"
+    MOTION = "motion"
+    ZOOM = "zoom"
+    PIXELIZE = "pixelize"
+    TILE = "tile"
+    LENS = "lens"
+    SELECTIVE_GAUSSIAN = "selective_gaussian"
+
+class EdgeDetectMethod(str, Enum):
+    """Available edge detection methods."""
+    SOBEL = "sobel"
+    PREWITT = "prewitt"
+    LAPLACIAN = "laplacian"
+    CANNY = "canny"
+    SCHARR = "scharr"
+
+@dataclass
+class FilterConfig:
+    """Configuration for image filters."""
+    radius: float = 1.0
+    method: str = BlurMethod.GAUSSIAN
+    threshold: float = 0.5
+    amount: float = 1.0
+    iterations: int = 1
 
 class FilterTools(BaseToolCategory):
     """

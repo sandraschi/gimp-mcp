@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Layer Management Tools for GIMP MCP Server.
 
@@ -6,15 +8,91 @@ blending modes, effects, and organization following FastMCP 2.10 standards.
 """
 
 import asyncio
+import enum
 import logging
+import sys
+from dataclasses import dataclass
+from enum import Enum, auto
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import (
+    Any, Dict, List, Literal, Optional, Sequence, Set, Tuple, TypeVar, Union, cast
+)
 
 from fastmcp import FastMCP
 
-from .base import BaseToolCategory
+from .base import BaseToolCategory, tool
+
+if sys.version_info >= (3, 10):
+    from typing import TypeAlias
+else:
+    from typing_extensions import TypeAlias
 
 logger = logging.getLogger(__name__)
+
+# Type aliases
+FilePath: TypeAlias = str
+LayerName: TypeAlias = str
+LayerID: TypeAlias = str
+LayerResult: TypeAlias = Dict[str, Any]
+
+class LayerType(str, Enum):
+    """Supported layer types in GIMP."""
+    NORMAL = "normal"
+    TEXT = "text"
+    VECTOR = "vector"
+    LAYER_GROUP = "group"
+    LAYER_MASK = "mask"
+    CHANNEL_MASK = "channel-mask"
+    SELECTION_MASK = "selection-mask"
+    LAYER_EFFECT = "effect"
+
+class BlendMode(str, Enum):
+    """Supported layer blending modes in GIMP."""
+    NORMAL = "normal"
+    DISSOLVE = "dissolve"
+    BEHIND = "behind"
+    MULTIPLY = "multiply"
+    SCREEN = "screen"
+    OVERLAY = "overlay"
+    DIFFERENCE = "difference"
+    ADDITION = "addition"
+    SUBTRACT = "subtract"
+    DARKEN_ONLY = "darken-only"
+    LIGHTEN_ONLY = "lighten-only"
+    HUE = "hue"
+    SATURATION = "saturation"
+    COLOR = "color"
+    VALUE = "value"
+    DIVIDE = "divide"
+    DODGE = "dodge"
+    BURN = "burn"
+    HARDLIGHT = "hardlight"
+    SOFTLIGHT = "softlight"
+    GRAIN_EXTRACT = "grain-extract"
+    GRAIN_MERGE = "grain-merge"
+    COLOR_ERASE = "color-erase"
+    ERASE = "erase"
+    REPLACE = "replace"
+    ANTI_ERASE = "anti-erase"
+
+@dataclass
+class LayerConfig:
+    """Configuration for creating or modifying a layer."""
+    name: str = "New Layer"
+    layer_type: LayerType = LayerType.NORMAL
+    opacity: float = 100.0
+    blend_mode: BlendMode = BlendMode.NORMAL
+    visible: bool = True
+    linked: bool = False
+    lock_alpha: bool = False
+    lock_position: bool = False
+    lock_visibility: bool = False
+    lock_edit: bool = False
+    preserve_transparency: bool = False
+    apply_mask: bool = False
+    show_mask: bool = False
+    edit_mask: bool = False
+    apply_matrix: bool = False
 
 class LayerManagementTools(BaseToolCategory):
     """

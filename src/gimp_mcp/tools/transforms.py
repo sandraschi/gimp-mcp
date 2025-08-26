@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Transform Tools for GIMP MCP Server.
 
@@ -5,16 +7,44 @@ Provides geometric transformation operations including resize, crop, rotate,
 and other spatial manipulations.
 """
 
-import asyncio
 import logging
+import sys
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 from fastmcp import FastMCP
 
-from .base import BaseToolCategory
+from .base import BaseToolCategory, tool
+
+if sys.version_info >= (3, 10):
+    from typing import TypeAlias
+else:
+    from typing_extensions import TypeAlias
 
 logger = logging.getLogger(__name__)
+
+# Type aliases for better type hints
+FilePath: TypeAlias = str
+ImageData: TypeAlias = Any
+TransformResult: TypeAlias = Dict[str, Any]
+
+# Constants for transformations
+DEFAULT_INTERPOLATION = 'lanczos'
+SUPPORTED_INTERPOLATION = {
+    'none', 'linear', 'cubic', 'lanczos', 'nohalo', 'lohalo'
+}
+
+@dataclass
+class TransformConfig:
+    """Configuration for image transformations."""
+    width: Optional[int] = None
+    height: Optional[int] = None
+    x: int = 0
+    y: int = 0
+    angle: float = 0.0
+    interpolation: str = DEFAULT_INTERPOLATION
+    keep_aspect: bool = True
 
 class TransformTools(BaseToolCategory):
     """

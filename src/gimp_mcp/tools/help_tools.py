@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Help Tools for GIMP MCP Server.
 
@@ -6,13 +8,60 @@ at different technical levels for users, developers, and AI systems.
 """
 
 import logging
-from typing import Dict, List, Optional, Any
+import sys
+from dataclasses import dataclass, field
+from enum import Enum, auto
+from pathlib import Path
+from typing import (
+    Any, Dict, List, Literal, Optional, Type, TypedDict, Union, 
+    get_type_hints, cast
+)
 
 from fastmcp import FastMCP
 
 from .base import BaseToolCategory
 
+if sys.version_info >= (3, 10):
+    from typing import TypeAlias
+else:
+    from typing_extensions import TypeAlias
+
 logger = logging.getLogger(__name__)
+
+# Type aliases
+HelpLevel = Literal["basic", "intermediate", "advanced"]
+ToolName: TypeAlias = str
+CategoryName: TypeAlias = str
+HelpContent: TypeAlias = Dict[HelpLevel, str]
+
+class HelpSection(TypedDict):
+    """Structure for help documentation sections."""
+    basic: str
+    intermediate: str
+    advanced: str
+    examples: List[Dict[str, str]]
+    parameters: Dict[str, Dict[str, Any]]
+
+@dataclass
+class ToolDocumentation:
+    """Complete documentation for a tool."""
+    name: str
+    description: str
+    category: str
+    help_levels: HelpContent
+    examples: List[Dict[str, str]] = field(default_factory=list)
+    parameters: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary for JSON serialization."""
+        return {
+            "name": self.name,
+            "description": self.description,
+            "category": self.category,
+            "help_levels": self.help_levels,
+            "examples": self.examples,
+            "parameters": self.parameters
+        }
 
 class HelpTools(BaseToolCategory):
     """

@@ -5,7 +5,7 @@ Core dependencies for production use.
 """
 
 # Core FastMCP dependencies
-fastmcp>=2.11.3,<3.0.0
+fastmcp==2.10.1
 fastapi>=0.95.0
 uvicorn[standard]>=0.22.0
 

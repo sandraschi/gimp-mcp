@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Batch Processing Tools for GIMP MCP Server.
 
@@ -10,16 +12,57 @@ import glob
 import logging
 import os
 import shutil
+import sys
 import tempfile
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import dataclass
+from enum import Enum, auto
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import (
+    Any, Callable, Dict, List, Optional, Set, Tuple, TypeVar, Union, cast
+)
 
 from fastmcp import FastMCP
 
-from .base import BaseToolCategory
+from .base import BaseToolCategory, tool
+
+if sys.version_info >= (3, 10):
+    from typing import TypeAlias
+else:
+    from typing_extensions import TypeAlias
 
 logger = logging.getLogger(__name__)
+
+# Type aliases for better type hints
+FilePath: TypeAlias = str
+FilePattern: TypeAlias = str
+BatchResult: TypeAlias = Dict[str, Any]
+BatchProcessor = Callable[[FilePath], BatchResult]
+T = TypeVar('T')
+
+class BatchStatus(Enum):
+    """Status of a batch operation."""
+    PENDING = auto()
+    PROCESSING = auto()
+    COMPLETED = auto()
+    FAILED = auto()
+    SKIPPED = auto()
+
+@dataclass
+class BatchItem:
+    """Represents an item in a batch process."""
+    input_path: FilePath
+    output_path: Optional[FilePath] = None
+    status: BatchStatus = BatchStatus.PENDING
+    result: Optional[Dict[str, Any]] = None
+    error: Optional[str] = None
+
+# Constants for batch processing
+DEFAULT_BATCH_SIZE = 10
+MAX_CONCURRENT_PROCESSES = 4
+SUPPORTED_IMAGE_FORMATS = {
+    'jpg', 'jpeg', 'png', 'tif', 'tiff', 'bmp', 'gif', 'webp', 'xcf', 'psd'
+}
 
 class BatchProcessingTools(BaseToolCategory):
     """
@@ -239,76 +282,6 @@ class BatchProcessingTools(BaseToolCategory):
                     logger.warning(f"Failed to clean up temp file {temp_file}: {cleanup_error}")
             return False, f"{input_file}: {str(e)}"
     
-    # Core Batch Operations
-    
-    @app.tool(
-        name="batch_resize",
-        description="""
-        Batch resize multiple images to specified dimensions.
-        
-        This tool processes all images matching the given pattern in the input directory,
-        resizes them to the target dimensions while optionally maintaining aspect ratio,
-        and saves the results to the output directory.
-        
-        Features:
-        - Concurrent processing for better performance
-        - Preserves file metadata
-        - Atomic writes to prevent partial files
-        - Progress tracking
-        - Detailed error reporting
-        """,
-        parameters={
-            "input_dir": {
-                "type": "string",
-                "description": "Directory containing images to resize",
-                "required": True
-            },
-            "output_dir": {
-                "type": "string",
-                "description": "Directory to save resized images",
-                "required": True
-            },
-            "width": {
-                "type": "integer",
-                "description": "Target width in pixels",
-                "required": True
-            },
-            "height": {
-                "type": "integer",
-                "description": "Target height in pixels",
-                "required": True
-            },
-            "maintain_aspect_ratio": {
-                "type": "boolean",
-                "description": "Whether to maintain aspect ratio",
-                "default": True
-            },
-            "pattern": {
-                "type": "string",
-                "description": "File pattern to match (e.g., '*.jpg')",
-                "default": "*"
-            }
-        },
-        returns={
-            "type": "object",
-            "description": "Operation results including success/failure counts",
-            "properties": {
-                "operation": {"type": "string"},
-                "total_files": {"type": "integer"},
-                "processed": {"type": "integer"},
-                "successful": {"type": "integer"},
-                "failed": {"type": "integer"},
-                "failed_files": {"type": "array", "items": {"type": "string"}},
-                "success_rate": {"type": "number"}
-            }
-        },
-        examples=[
-            {
-                "description": "Resize all JPG images to 800x600",
-                "code": "await batch_resize('input/', 'output/', 800, 600, pattern='*.jpg')"
-            }
-        ]
-    )
     async def batch_resize(
         self,
         input_dir: str, 
@@ -327,7 +300,7 @@ class BatchProcessingTools(BaseToolCategory):
             # For now, just copy the file as a placeholder
             shutil.copy2(input_file, output_file)
             return True
-            
+                
         return await self._process_batch_operation(
             input_files,
             output_dir,
@@ -338,90 +311,14 @@ class BatchProcessingTools(BaseToolCategory):
             maintain_aspect_ratio=maintain_aspect_ratio
         )
     
-    @app.tool(
-        name="batch_convert",
-        description="""
-        Convert multiple images to a different format in batch.
-        
-        This tool processes all images matching the given pattern in the input directory,
-        converts them to the specified output format with configurable quality settings,
-        and saves the results to the output directory.
-        
-        Supported formats: jpg, jpeg, png, tif, tiff, bmp, gif, webp, xcf
-        
-        Features:
-        - Concurrent processing
-        - Configurable quality for lossy formats
-        - Preserves metadata when possible
-        - Atomic writes
-        """,
-        parameters={
-            "input_dir": {
-                "type": "string",
-                "description": "Directory containing source images",
-                "required": True
-            },
-            "output_dir": {
-                "type": "string",
-                "description": "Directory to save converted images",
-                "required": True
-            },
-            "output_format": {
-                "type": "string",
-                "description": "Target file format (lowercase, e.g., 'jpg', 'png')",
-                "required": True,
-                "enum": ["jpg", "jpeg", "png", "tif", "tiff", "bmp", "gif", "webp", "xcf"]
-            },
-            "quality": {
-                "type": "integer",
-                "description": "Quality setting (1-100) for lossy formats",
-                "minimum": 1,
-                "maximum": 100,
-                "default": 90
-            },
-            "pattern": {
-                "type": "string",
-                "description": "File pattern to match (e.g., '*.png')",
-                "default": "*"
-            }
-        },
-        returns={
-            "type": "object",
-            "description": "Operation results including success/failure counts",
-            "properties": {
-                "operation": {"type": "string"},
-                "total_files": {"type": "integer"},
-                "processed": {"type": "integer"},
-                "successful": {"type": "integer"},
-                "failed": {"type": "integer"},
-                "failed_files": {"type": "array", "items": {"type": "string"}},
-                "success_rate": {"type": "number"}
-            }
-        },
-        examples=[
-            {
-                "description": "Convert all PNGs to high-quality JPGs",
-                "code": "await batch_convert('input/', 'output/', 'jpg', quality=95, pattern='*.png')"
-            },
-            {
-                "description": "Convert all images to WebP format",
-                "code": "await batch_convert('photos/', 'webp_photos/', 'webp')"
-            }
-        ]
-    )
     async def batch_convert(
         self,
-        input_dir: str,
+        input_dir: str, 
         output_dir: str,
         output_format: str,
         quality: int = 90,
         pattern: str = "*"
     ) -> Dict[str, Any]:
-        if output_format.lower() not in self._supported_formats:
-            return self.create_error_response(
-                f"Unsupported output format: {output_format}"
-            )
-            
         input_files = self._get_supported_files(input_dir, pattern)
         if not input_files:
             return self.create_error_response("No supported image files found")
@@ -431,13 +328,13 @@ class BatchProcessingTools(BaseToolCategory):
             # For now, just copy the file as a placeholder
             shutil.copy2(input_file, output_file)
             return True
-            
+                
         return await self._process_batch_operation(
             input_files,
             output_dir,
             "batch_convert",
             convert_op,
-            output_format=output_format.lower(),
+            output_format=output_format,
             quality=quality
         )
     
@@ -451,10 +348,6 @@ class BatchProcessingTools(BaseToolCategory):
         Args:
             app: The FastMCP application instance to register tools with
         """
-        # The actual tool implementations are decorated with @app.tool() directly
-        # This method is kept for backward compatibility and future extensions
-        
-        # Register batch_resize
         @app.tool(
             name="batch_resize",
             description="""
@@ -474,21 +367,21 @@ class BatchProcessingTools(BaseToolCategory):
         )
         async def batch_resize_wrapper(*args, **kwargs):
             return await self.batch_resize(*args, **kwargs)
-        
-        # Register batch_convert
+
         @app.tool(
             name="batch_convert",
             description="""
             Convert multiple images to a different format.
             
-            Supports conversion between all major image formats with
-            configurable quality settings for lossy formats.
+            Processes all matching images in the input directory and saves
+            them in the specified format to the output directory.
             """,
             parameters={
                 "input_dir": {"type": "string", "required": True},
                 "output_dir": {"type": "string", "required": True},
-                "output_format": {"type": "string", "required": True},
-                "quality": {"type": "integer", "default": 90},
+                "output_format": {"type": "string", "required": True, 
+                                "enum": ["jpg", "jpeg", "png", "webp", "tif", "tiff", "bmp", "gif"]},
+                "quality": {"type": "integer", "default": 90, "minimum": 1, "maximum": 100},
                 "pattern": {"type": "string", "default": "*"}
             }
         )

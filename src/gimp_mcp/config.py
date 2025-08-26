@@ -326,6 +326,41 @@ class GimpConfig(BaseModel):
             return False
 
 
+def load_config(config_path: Optional[Union[str, Path]] = None) -> GimpConfig:
+    """
+    Load configuration from file or create a default config if it doesn't exist.
+    
+    Args:
+        config_path: Optional path to configuration file. If None, uses default location.
+        
+    Returns:
+        GimpConfig: Loaded configuration
+        
+    Raises:
+        ValueError: If the config file is invalid
+    """
+    if config_path is None:
+        # Use default config location in user's config directory
+        config_dir = Path.home() / ".config" / "gimp-mcp"
+        config_dir.mkdir(parents=True, exist_ok=True)
+        config_path = config_dir / "config.yaml"
+    else:
+        config_path = Path(config_path)
+    
+    # Create default config if it doesn't exist
+    if not config_path.exists():
+        logger.info(f"Config file not found at {config_path}, creating default config")
+        create_default_config_file(config_path)
+    
+    try:
+        # Load and validate the config
+        return GimpConfig.load_from_file(config_path)
+    except Exception as e:
+        logger.error(f"Error loading config from {config_path}: {e}")
+        logger.info("Falling back to default configuration")
+        return GimpConfig.load_default()
+
+
 def create_default_config_file(config_path: Union[str, Path]) -> None:
     """
     Create a default configuration file with comments.

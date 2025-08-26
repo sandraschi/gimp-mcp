@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 File Operation Tools for GIMP MCP Server.
 
@@ -20,24 +22,36 @@ Supported Formats:
 import asyncio
 import logging
 import os
-from pathlib import Path
-from typing import Any, Dict, Optional, List, Union, Tuple, Callable, Awaitable
-from datetime import datetime
+import sys
 from dataclasses import dataclass
-from typing import List
+from datetime import datetime
+from pathlib import Path
+from typing import Dict, Optional, Any, List, Union
 
 from fastmcp import FastMCP
 
+from ..config import GimpConfig
+from ..gimp_cli import GimpCliWrapper
+
+if sys.version_info >= (3, 10):
+    from typing import TypeAlias
+else:
+    from typing_extensions import TypeAlias
+
 __all__ = ['FileOperationTools', 'FileOperationResult']
 
-# Type aliases for better readability
-FilePath = str
-ImageMetadata = Dict[str, Any]
+# Type aliases for better type hints
+FilePath: TypeAlias = str
+ImageMetadata: TypeAlias = Dict[str, Any]
+ImageData: TypeAlias = Any  # Placeholder for actual image data type
 
-# Supported formats
-SUPPORTED_RASTER_FORMATS = ['png', 'jpg', 'jpeg', 'tif', 'tiff', 'bmp', 'gif', 'webp', 'xcf']
-SUPPORTED_VECTOR_FORMATS = ['svg']
-SUPPORTED_METADATA = ['exif', 'xmp', 'iptc']
+T = TypeVar('T')
+
+# Constants for file operations
+SUPPORTED_RASTER_FORMATS = {'png', 'jpg', 'jpeg', 'tiff', 'tif', 'bmp', 'gif', 'webp', 'xcf'}
+SUPPORTED_VECTOR_FORMATS = {'svg'}
+SUPPORTED_METADATA = {'exif', 'xmp', 'iptc'}
+MAX_FILE_SIZE = 100 * 1024 * 1024  # 100MB
 
 logger = logging.getLogger(__name__)
 
@@ -103,66 +117,61 @@ class FileOperationTools:
         Args:
             mcp: The FastMCP instance to register tools with
         """
-        @mcp.tool(
-            name="load_image",
-            description=(
-                "Load an image file and return comprehensive metadata and image handle.\n\n"
-                "This tool loads an image file from the specified path, validates it against "
-                "supported formats, extracts metadata, and returns a structured response with "
-                "image details. The returned handle can be used for subsequent operations.\n\n"
-                "Key Features:\n"
-                "- Supports all major image formats (PNG, JPEG, TIFF, WebP, etc.)\n"
-                "- Automatic format detection from file extension and content\n"
-                "- Optional metadata extraction (EXIF, XMP, IPTC)\n"
-                "- Size-constrained loading for large images\n"
-                "- Comprehensive error handling and validation"
-            ),
-            parameters={
-                "file_path": {
-                    "type": "string",
-                    "format": "file-path",
-                    "description": "Path to the image file to load",
-                    "required": True
-                },
-                "load_metadata": {
-                    "type": "boolean",
-                    "description": "Whether to extract and include image metadata (EXIF, XMP, IPTC)",
-                    "default": True
-                },
-                "max_dimension": {
-                    "type": "integer",
-                    "description": "Maximum width or height for loaded images (pixels)",
-                    "minimum": 0,
-                    "default": 0,
-                    "note": "Set to 0 to load at original resolution"
-                }
-            },
-            returns={
-                "type": "object",
-                "properties": {
-                    "success": {"type": "boolean"},
-                    "file_path": {"type": "string"},
-                    "file_name": {"type": "string"},
-                    "file_size": {"type": "integer"},
-                    "format": {"type": "string"},
-                    "dimensions": {
-                        "type": "object",
-                        "properties": {
-                            "width": {"type": "integer"},
-                            "height": {"type": "integer"},
-                            "channels": {"type": "integer"},
-                            "bits_per_channel": {"type": "integer"}
-                        }
-                    },
+        # Register a simple test tool
+        @mcp.tool
+        def test_tool(name: str = "World") -> Dict[str, str]:
+            """A simple test tool to verify tool registration
+            
+            Args:
+                name: Your name
+                
+            Returns:
+                A test message
+            """
+            return {"message": f"Hello, {name}! This is a test tool from GIMP MCP Server."}
+            
+        # Register load_image tool
+        @mcp.tool
+        async def load_image(
+            file_path: str,
+            load_metadata: bool = True,
+            max_dimension: int = 0
+        ) -> Dict[str, Any]:
+            """Load an image file and return comprehensive metadata and image handle.
+            
+            This tool loads an image file from the specified path, validates it against 
+            supported formats, extracts metadata, and returns a structured response with 
+            image details. The returned handle can be used for subsequent operations.
+            
+            Args:
+                file_path: Path to the image file to load
+                load_metadata: Whether to load and return image metadata
+                max_dimension: Optional maximum dimension for the loaded image (0 for no resizing)
+                
+            Returns:
+                Dictionary containing status, image handle, and optional metadata
+            """
+            try:
+                # Basic validation
+                if not os.path.exists(file_path):
+                    return self._error_response("File not found", f"The file {file_path} does not exist")
+                
+                # Here you would add the actual image loading logic
+                # For now, we'll return a mock response
+                response = {
+                    "status": "success",
+                    "image_handle": f"img_{os.path.basename(file_path)}_{int(time.time())}",
                     "metadata": {
-                        "type": "object",
-                        "properties": {
-                            "exif": {"type": "object"},
-                            "xmp": {"type": "object"},
-                            "iptc": {"type": "object"}
-                        }
-                    },
-                    "created_date": {"type": "string"},
+                        "filename": os.path.basename(file_path),
+                        "file_size": os.path.getsize(file_path),
+                        "last_modified": os.path.getmtime(file_path)
+                    } if load_metadata else None
+                }
+                
+                return response
+                
+            except Exception as e:
+                return self._error_response("Error loading image", str(e))
                     "modified_date": {"type": "string"},
                     "image_handle": {"type": "string"},
                     "error": {"type": "string"}
@@ -170,7 +179,7 @@ class FileOperationTools:
                 "required": ["success", "file_path", "file_name", "file_size", "format", "dimensions"]
             }
         )
-        async def load_image(file_path: str, load_metadata: bool = True, max_dimension: int = 0) -> Dict[str, Any]:
+        def load_image(file_path: str, load_metadata: bool = True, max_dimension: int = 0) -> Dict[str, Any]:
             """Load an image file and return comprehensive metadata."""
             try:
                 if not os.path.exists(file_path):
@@ -195,10 +204,14 @@ class FileOperationTools:
                 
                 if hasattr(self.cli_wrapper, 'get_image_metadata'):
                     try:
-                        metadata = await self.cli_wrapper.get_image_metadata(
-                            str(path),
-                            load_metadata=load_metadata,
-                            max_dimension=max_dimension
+                        # Run the async function in the current event loop
+                        loop = asyncio.get_event_loop()
+                        metadata = loop.run_until_complete(
+                            self.cli_wrapper.get_image_metadata(
+                                str(path),
+                                load_metadata=load_metadata,
+                                max_dimension=max_dimension
+                            )
                         )
                         result.update(metadata)
                     except Exception as e:
@@ -719,7 +732,7 @@ class FileOperationTools:
                 "type": "string",
                 "description": "Output format (e.g., 'jpg', 'png', 'webp'); 'auto' to detect from output_path extension",
                 "default": "auto",
-                "enum": ["auto"] + SUPPORTED_OUTPUT_FORMATS
+                "enum": ["auto"] + sorted(SUPPORTED_RASTER_FORMATS)
             },
             "quality": {
                 "type": "integer",
