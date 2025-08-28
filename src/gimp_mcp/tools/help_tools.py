@@ -216,8 +216,8 @@ class HelpTools(BaseToolCategory):
     def register_tools(self, app: FastMCP) -> None:
         """Register help tools with FastMCP."""
         
-        @app.tool()
         async def get_help(
+            self,
             topic: str = "overview", 
             level: str = "basic",
             tool_name: Optional[str] = None
@@ -304,7 +304,7 @@ class HelpTools(BaseToolCategory):
                 return self.create_error_response("An error occurred while fetching help")
         
         @app.tool()
-        async def list_tools() -> Dict[str, Any]:
+        async def list_tools(self) -> Dict[str, Any]:
             """
             List all available tools in the GIMP MCP server.
             

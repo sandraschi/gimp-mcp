@@ -365,7 +365,7 @@ class BatchProcessingTools(BaseToolCategory):
                 "pattern": {"type": "string", "default": "*"}
             }
         )
-        async def batch_resize_wrapper(*args, **kwargs):
+        async def batch_resize_wrapper(self, *args, **kwargs):
             return await self.batch_resize(*args, **kwargs)
 
         @app.tool(
@@ -385,5 +385,9 @@ class BatchProcessingTools(BaseToolCategory):
                 "pattern": {"type": "string", "default": "*"}
             }
         )
-        async def batch_convert_wrapper(*args, **kwargs):
+        async def batch_convert_wrapper(self, *args, **kwargs):
             return await self.batch_convert(*args, **kwargs)
+            
+        # Register the tools with proper instance binding
+        app.register_tool(batch_resize_wrapper.__get__(self, type(self)))
+        app.register_tool(batch_convert_wrapper.__get__(self, type(self)))

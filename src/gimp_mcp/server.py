@@ -17,17 +17,13 @@ from .cli_wrapper import GimpCliWrapper
 from .config import GimpConfig
 from .plugins import PluginManager, GimpPlugin
 
-# Import core plugins that should always be available
-from .tools import (
-    FileOperationTools,
-    TransformTools, 
-    ColorAdjustmentTools,
-    FilterTools,
-    BatchProcessingTools,
-    HelpTools
-)
-
-# Import new tool categories
+# Import all tool categories directly
+from .tools.file_operations_tools import FileOperationTools
+from .tools.transforms import TransformTools
+from .tools.color_adjustments import ColorAdjustmentTools
+from .tools.filters import FilterTools
+from .tools.batch_processing import BatchProcessingTools
+from .tools.help_tools import HelpTools
 from .tools.layer_management import LayerManagementTools
 from .tools.image_analysis import ImageAnalysisTools
 from .tools.performance_tools import PerformanceTools

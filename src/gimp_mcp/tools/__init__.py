@@ -8,17 +8,25 @@ providing comprehensive image editing capabilities through GIMP integration.
 """
 
 import sys
+import logging
 from dataclasses import dataclass
-from enum import Enum, auto
-from typing import (
-    Any, Dict, List, Optional, Type, TypeVar, Union, 
-    get_type_hints, get_args, get_origin
-)
+from typing import Any, Dict, List, Optional, Type, TypeVar, Union
 
-# Import tool categories with conditional imports
+# Set up logging
+logger = logging.getLogger(__name__)
+
+# Define base class first
+class BaseToolCategory:
+    """Base class for all tool categories."""
+    pass
+
+# Create type variable for tool categories
+ToolCategoryT = TypeVar('ToolCategoryT', bound=BaseToolCategory)
+
+# Import tool categories
 try:
-    from .base import BaseToolCategory
-    from .file_operations import FileOperationTools
+    # Import all tool categories
+    from .file_operations_tools import FileOperationTools
     from .transforms import TransformTools
     from .color_adjustments import ColorAdjustmentTools
     from .filters import FilterTools
@@ -28,10 +36,7 @@ try:
     from .image_analysis import ImageAnalysisTools
     from .performance_tools import PerformanceTools
     
-    # Type variable for tool categories
-    ToolCategoryT = TypeVar('ToolCategoryT', bound=BaseToolCategory)
-    
-    # List of all tool categories
+    # Define all tool categories
     ALL_TOOL_CATEGORIES = [
         FileOperationTools,
         TransformTools,
@@ -44,48 +49,79 @@ try:
         PerformanceTools
     ]
     
-    # Check for missing implementations
     MISSING_IMPLEMENTATIONS = False
     
 except ImportError as e:
-    # Handle missing dependencies or modules
-    print(f"Warning: Could not import all tool categories: {e}")
+    logger.error(f"Failed to import tool categories: {e}")
     MISSING_IMPLEMENTATIONS = True
-    
-    # Define fallback types for type checking
-    class BaseToolCategory:  # type: ignore
-        pass
-    
-    ToolCategoryT = TypeVar('ToolCategoryT', bound=BaseToolCategory)
     ALL_TOOL_CATEGORIES: List[Type[BaseToolCategory]] = []
 
 # Version information
 __version__ = "0.1.0"
-__all__ = [
-    "BaseToolCategory",
-    "FileOperationTools",
-    "TransformTools",
-    "ColorAdjustmentTools",
-    "FilterTools",
-    "BatchProcessingTools",
-    "HelpTools",
-    "LayerManagementTools",
-    "ImageAnalysisTools",
-    "PerformanceTools"
-]
 
-# Tool category mapping for easy access
+# Define tool categories mapping
 TOOL_CATEGORIES = {
-    "file_operations": FileOperationTools,
-    "transforms": TransformTools,
-    "color_adjustments": ColorAdjustmentTools,
-    "filters": FilterTools,
-    "batch_processing": BatchProcessingTools,
-    "help_tools": HelpTools,
-    "layer_management": LayerManagementTools,
-    "image_analysis": ImageAnalysisTools,
-    "performance_tools": PerformanceTools
+    "file_operations": FileOperationTools if 'FileOperationTools' in globals() else None,
+    "transforms": TransformTools if 'TransformTools' in globals() else None,
+    "color_adjustments": ColorAdjustmentTools if 'ColorAdjustmentTools' in globals() else None,
+    "filters": FilterTools if 'FilterTools' in globals() else None,
+    "batch_processing": BatchProcessingTools if 'BatchProcessingTools' in globals() else None,
+    "help_tools": HelpTools if 'HelpTools' in globals() else None,
+    "layer_management": LayerManagementTools if 'LayerManagementTools' in globals() else None,
+    "image_analysis": ImageAnalysisTools if 'ImageAnalysisTools' in globals() else None,
+    "performance_tools": PerformanceTools if 'PerformanceTools' in globals() else None
 }
+
+def get_tool_category(category_name: str) -> Type[BaseToolCategory]:
+    """Get a tool category by name."""
+    if MISSING_IMPLEMENTATIONS:
+        raise RuntimeError("Some tool categories failed to import. Check logs for details.")
+    
+    category = TOOL_CATEGORIES.get(category_name.lower())
+    if category is None:
+        valid_categories = ", ".join(f'"{name}"' for name in TOOL_CATEGORIES if TOOL_CATEGORIES[name] is not None)
+        raise ValueError(
+            f"Unknown tool category: '{category_name}'. "
+            f"Valid categories are: {valid_categories}"
+        )
+    return category
+
+def list_tool_categories(include_experimental: bool = False) -> List[str]:
+    """List all available tool categories."""
+    if MISSING_IMPLEMENTATIONS:
+        raise RuntimeError("Some tool categories failed to import. Check logs for details.")
+    
+    return [name for name, cls in TOOL_CATEGORIES.items() 
+           if cls is not None and (include_experimental or not getattr(cls, 'EXPERIMENTAL', False))]
+
+def get_tool_category_info(category_name: str) -> Dict[str, Any]:
+    """Get information about a specific tool category."""
+    category = get_tool_category(category_name)
+    return {
+        'name': category_name,
+        'display_name': getattr(category, 'DISPLAY_NAME', category_name.replace('_', ' ').title()),
+        'description': getattr(category, 'DESCRIPTION', ''),
+        'version': getattr(category, 'VERSION', '0.1.0'),
+        'experimental': getattr(category, 'EXPERIMENTAL', False),
+        'requires_gpu': getattr(category, 'REQUIRES_GPU', False)
+    }
+
+__all__ = [
+    'BaseToolCategory',
+    'FileOperationResult',
+    'FileOperationTools',
+    'TransformTools',
+    'ColorAdjustmentTools',
+    'FilterTools',
+    'BatchProcessingTools',
+    'HelpTools',
+    'LayerManagementTools',
+    'ImageAnalysisTools',
+    'PerformanceTools',
+    'get_tool_category',
+    'list_tool_categories',
+    'get_tool_category_info'
+]
 
 # Additional metadata for tool categories
 @dataclass

@@ -66,8 +66,32 @@ class ColorAdjustmentTools(BaseToolCategory):
     def register_tools(self, app: FastMCP) -> None:
         """Register all color adjustment tools with FastMCP."""
         
-        @app.tool()
+        @app.tool(
+            name="adjust_brightness_contrast",
+            description=(
+                "Adjust image brightness and contrast with optional color preservation. "
+                "This tool provides professional-grade brightness and contrast adjustments "
+                "with optional color preservation. It's ideal for photo correction, "
+                "creative effects, and batch processing of multiple images."
+            ),
+            parameters={
+                "input_path": {"type": "string", "format": "file-path", "description": "Source image path"},
+                "output_path": {"type": "string", "format": "file-path", "description": "Output image path"},
+                "brightness": {"type": "number", "minimum": -100, "maximum": 100, "default": 0.0, "description": "Brightness adjustment (-100 to 100)"},
+                "contrast": {"type": "number", "minimum": -100, "maximum": 100, "default": 0.0, "description": "Contrast adjustment (-100 to 100)"},
+                "preserve_colors": {"type": "boolean", "default": False, "description": "Whether to preserve color relationships"}
+            },
+            returns={
+                "type": "object",
+                "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "details": {"type": "object"}
+                }
+            }
+        )
         async def adjust_brightness_contrast(
+            self,
             input_path: str,
             output_path: str,
             brightness: float = 0.0,
@@ -137,7 +161,31 @@ class ColorAdjustmentTools(BaseToolCategory):
                 self.logger.error(f"Brightness/contrast adjustment failed: {str(e)}", exc_info=True)
                 return self.create_error_response(f"Adjustment operation failed: {str(e)}")
         
-        @app.tool()
+        @app.tool(
+            name="adjust_hue_saturation",
+            description=(
+                "Adjust hue, saturation, and lightness of an image. "
+                "Allows for precise color adjustments with options for colorization "
+                "and overlap control."
+            ),
+            parameters={
+                "input_path": {"type": "string", "format": "file-path", "description": "Source image path"},
+                "output_path": {"type": "string", "format": "file-path", "description": "Output image path"},
+                "hue": {"type": "number", "minimum": -180, "maximum": 180, "default": 0.0, "description": "Hue shift in degrees"},
+                "saturation": {"type": "number", "minimum": -100, "maximum": 100, "default": 0.0, "description": "Saturation adjustment"},
+                "lightness": {"type": "number", "minimum": -100, "maximum": 100, "default": 0.0, "description": "Lightness adjustment"},
+                "overlap": {"type": "number", "minimum": 0.0, "maximum": 1.0, "default": 0.0, "description": "Overlap amount"},
+                "colorize": {"type": "boolean", "default": False, "description": "Whether to colorize the image"}
+            },
+            returns={
+                "type": "object",
+                "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "details": {"type": "object"}
+                }
+            }
+        )
         async def adjust_hue_saturation(
             self,
             input_path: str,
@@ -219,7 +267,31 @@ class ColorAdjustmentTools(BaseToolCategory):
                 self.logger.error(f"Hue/saturation adjustment failed: {str(e)}", exc_info=True)
                 return self.create_error_response(f"Hue/saturation adjustment failed: {str(e)}")
         
-        @app.tool()
+        @app.tool(
+            name="adjust_color_balance",
+            description=(
+                "Adjust color balance of an image with separate controls for shadows, "
+                "midtones, and highlights. Allows fine-tuning of color casts and overall "
+                "color balance."
+            ),
+            parameters={
+                "input_path": {"type": "string", "format": "file-path", "description": "Source image path"},
+                "output_path": {"type": "string", "format": "file-path", "description": "Output image path"},
+                "cyan_red": {"type": "array", "items": {"type": "number"}, "default": [0, 0, 0], "description": "Cyan-Red balance for [shadows, midtones, highlights]"},
+                "magenta_green": {"type": "array", "items": {"type": "number"}, "default": [0, 0, 0], "description": "Magenta-Green balance for [shadows, midtones, highlights]"},
+                "yellow_blue": {"type": "array", "items": {"type": "number"}, "default": [0, 0, 0], "description": "Yellow-Blue balance for [shadows, midtones, highlights]"},
+                "preserve_luminosity": {"type": "boolean", "default": True, "description": "Whether to preserve image luminosity"},
+                "range_type": {"type": "string", "enum": ["shadows", "midtones", "highlights"], "default": "midtones", "description": "Range to adjust"}
+            },
+            returns={
+                "type": "object",
+                "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "details": {"type": "object"}
+                }
+            }
+        )
         async def adjust_color_balance(
             self,
             input_path: str,
@@ -311,7 +383,31 @@ class ColorAdjustmentTools(BaseToolCategory):
                 self.logger.error(f"Color balance adjustment failed: {str(e)}", exc_info=True)
                 return self.create_error_response(f"Color balance adjustment failed: {str(e)}")
         
-        @app.tool()
+        @app.tool(
+            name="adjust_levels",
+            description=(
+                "Adjust image levels (tonal range and gamma). Provides precise control "
+                "over the input and output ranges for different color channels."
+            ),
+            parameters={
+                "input_path": {"type": "string", "format": "file-path", "description": "Source image path"},
+                "output_path": {"type": "string", "format": "file-path", "description": "Output image path"},
+                "channel": {"type": "string", "enum": ["value", "red", "green", "blue", "alpha"], "default": "value", "description": "Channel to adjust"},
+                "in_min": {"type": "number", "minimum": 0.0, "maximum": 1.0, "default": 0.0, "description": "Input black point"},
+                "in_max": {"type": "number", "minimum": 0.0, "maximum": 1.0, "default": 1.0, "description": "Input white point"},
+                "gamma": {"type": "number", "minimum": 0.1, "maximum": 10.0, "default": 1.0, "description": "Gamma correction"},
+                "out_min": {"type": "number", "minimum": 0.0, "maximum": 1.0, "default": 0.0, "description": "Output black point"},
+                "out_max": {"type": "number", "minimum": 0.0, "maximum": 1.0, "default": 1.0, "description": "Output white point"}
+            },
+            returns={
+                "type": "object",
+                "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "details": {"type": "object"}
+                }
+            }
+        )
         async def adjust_levels(
             self,
             input_path: str,
@@ -415,7 +511,28 @@ class ColorAdjustmentTools(BaseToolCategory):
                 self.logger.error(f"Levels adjustment failed: {str(e)}", exc_info=True)
                 return self.create_error_response(f"Levels adjustment failed: {str(e)}")
         
-        @app.tool()
+        @app.tool(
+            name="adjust_curves",
+            description=(
+                "Adjust image using curves for precise tonal control. Allows creating custom "
+                "tone mapping curves for different color channels."
+            ),
+            parameters={
+                "input_path": {"type": "string", "format": "file-path", "description": "Source image path"},
+                "output_path": {"type": "string", "format": "file-path", "description": "Output image path"},
+                "channel": {"type": "string", "enum": ["value", "red", "green", "blue", "alpha"], "default": "value", "description": "Channel to adjust"},
+                "control_points": {"type": "array", "items": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2}, "default": [[0,0], [1,1]], "description": "List of [x,y] control points (0.0-1.0)"},
+                "curve_type": {"type": "string", "enum": ["smooth", "free"], "default": "smooth", "description": "Type of curve interpolation"}
+            },
+            returns={
+                "type": "object",
+                "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "details": {"type": "object"}
+                }
+            }
+        )
         async def adjust_curves(
             self,
             input_path: str,
@@ -512,7 +629,28 @@ class ColorAdjustmentTools(BaseToolCategory):
                 self.logger.error(f"Curves adjustment failed: {str(e)}", exc_info=True)
                 return self.create_error_response(f"Curves adjustment failed: {str(e)}")
         
-        @app.tool()
+        @app.tool(
+            name="adjust_threshold",
+            description=(
+                "Apply threshold adjustment to an image. Converts the image to black and white "
+                "based on a specified threshold value. Useful for creating high-contrast "
+                "black and white images or masks."
+            ),
+            parameters={
+                "input_path": {"type": "string", "format": "file-path", "description": "Source image path"},
+                "output_path": {"type": "string", "format": "file-path", "description": "Output image path"},
+                "threshold": {"type": "number", "minimum": 0.0, "maximum": 1.0, "default": 0.5, "description": "Threshold value (0.0-1.0)"},
+                "channel": {"type": "string", "enum": ["value", "red", "green", "blue", "alpha"], "default": "value", "description": "Channel to threshold"}
+            },
+            returns={
+                "type": "object",
+                "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "details": {"type": "object"}
+                }
+            }
+        )
         async def adjust_threshold(
             self,
             input_path: str,
@@ -592,7 +730,28 @@ class ColorAdjustmentTools(BaseToolCategory):
                 self.logger.error(f"Threshold adjustment failed: {str(e)}", exc_info=True)
                 return self.create_error_response(f"Threshold adjustment failed: {str(e)}")
         
-        @app.tool()
+        @app.tool(
+            name="adjust_posterize",
+            description=(
+                "Apply posterize effect to reduce the number of colors in an image. "
+                "This effect can create artistic, stylized images or reduce file sizes "
+                "for certain applications."
+            ),
+            parameters={
+                "input_path": {"type": "string", "format": "file-path", "description": "Source image path"},
+                "output_path": {"type": "string", "format": "file-path", "description": "Output image path"},
+                "levels": {"type": "integer", "minimum": 2, "maximum": 255, "default": 2, "description": "Number of brightness levels"},
+                "dither": {"type": "boolean", "default": True, "description": "Whether to apply dithering"}
+            },
+            returns={
+                "type": "object",
+                "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "details": {"type": "object"}
+                }
+            }
+        )
         async def adjust_posterize(
             self,
             input_path: str,
@@ -652,7 +811,32 @@ class ColorAdjustmentTools(BaseToolCategory):
                 self.logger.error(f"Posterize adjustment failed: {str(e)}", exc_info=True)
                 return self.create_error_response(f"Posterize adjustment failed: {str(e)}")
         
-        @app.tool()
+        @app.tool(
+            name="desaturate",
+            description=(
+                "Convert an image to grayscale using different desaturation methods. "
+                "Choose from various algorithms to achieve the best grayscale conversion "
+                "for your specific image and use case."
+            ),
+            parameters={
+                "input_path": {"type": "string", "format": "file-path", "description": "Source image path"},
+                "output_path": {"type": "string", "format": "file-path", "description": "Output image path"},
+                "mode": {
+                    "type": "string", 
+                    "enum": ["luminosity", "average", "lightness", "max", "min"], 
+                    "default": "luminosity", 
+                    "description": "Desaturation method"
+                }
+            },
+            returns={
+                "type": "object",
+                "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "details": {"type": "object"}
+                }
+            }
+        )
         async def desaturate(
             self,
             input_path: str,
@@ -720,3 +904,13 @@ class ColorAdjustmentTools(BaseToolCategory):
             except Exception as e:
                 self.logger.error(f"Desaturation failed: {str(e)}", exc_info=True)
                 return self.create_error_response(f"Desaturation failed: {str(e)}")
+        
+        # Register all tools with proper binding
+        app.register_tool(self.adjust_brightness_contrast.__get__(self, type(self)))
+        app.register_tool(self.adjust_hue_saturation.__get__(self, type(self)))
+        app.register_tool(self.adjust_color_balance.__get__(self, type(self)))
+        app.register_tool(self.adjust_levels.__get__(self, type(self)))
+        app.register_tool(self.adjust_curves.__get__(self, type(self)))
+        app.register_tool(self.adjust_threshold.__get__(self, type(self)))
+        app.register_tool(self.adjust_posterize.__get__(self, type(self)))
+        app.register_tool(self.desaturate.__get__(self, type(self)))

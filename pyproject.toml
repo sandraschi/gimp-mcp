@@ -11,7 +11,7 @@ authors = [
     {name = "Sandra Schipal", email = "sandra@sandraschi.dev"},
     {name = "FastMCP Community", email = "fastmcp@example.com"}
 ]
-requires-python = ">=3.10,<3.13"
+requires-python = ">=3.10,<3.14"
 license = {text = "MIT"}
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -24,6 +24,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Typing :: Typed",
     "Topic :: Multimedia :: Graphics",
     "Topic :: Multimedia :: Graphics :: Graphics Conversion",
@@ -55,8 +56,8 @@ dependencies = [
     "click>=8.1.3,<9.0.0",
     
     # Async utilities
-    "anyio>=3.6.2,<4.0.0",
-    "asyncer>=0.0.2,<1.0.0"
+    "anyio>=4.5.0,<5.0.0",
+    "asyncer>=0.0.8,<0.0.9"  # Latest available version that supports anyio>=4.5.0
 ]
 
 [project.urls]
@@ -66,7 +67,7 @@ Issues = "https://github.com/sandraschi/gimp-mcp/issues"
 Source = "https://github.com/sandraschi/gimp-mcp"
 
 [project.scripts]
-gimp-mcp = "gimp_mcp.main:main"
+"gimp-mcp" = "gimp_mcp.main:main"
 
 [project.optional-dependencies]
 # HTTP server support
@@ -118,10 +119,6 @@ docs = [
     "mkdocs-jupyter>=0.24.1,<1.0.0"
 ]
 
-[project.entry-points]
-"console_scripts" = [
-    "gimp-mcp = gimp_mcp.main:main",
-]
 
 [tool.setuptools.packages.find]
 where = ["src"]
