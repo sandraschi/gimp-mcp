@@ -348,46 +348,38 @@ class BatchProcessingTools(BaseToolCategory):
         Args:
             app: The FastMCP application instance to register tools with
         """
-        @app.tool(
-            name="batch_resize",
-            description="""
-            Resize multiple images to specified dimensions.
-            
-            Processes all matching images in the input directory and saves
-            resized versions to the output directory.
-            """,
-            parameters={
-                "input_dir": {"type": "string", "required": True},
-                "output_dir": {"type": "string", "required": True},
-                "width": {"type": "integer", "required": True},
-                "height": {"type": "integer", "required": True},
-                "maintain_aspect_ratio": {"type": "boolean", "default": True},
-                "pattern": {"type": "string", "default": "*"}
-            }
-        )
-        async def batch_resize_wrapper(self, *args, **kwargs):
-            return await self.batch_resize(*args, **kwargs)
+        @app.tool()
+        async def batch_resize(
+            input_directory: str,
+            output_directory: str,
+            width: int,
+            height: int,
+            maintain_aspect_ratio: bool = True,
+            output_format: str = "jpg",
+            quality: int = 90
+        ) -> Dict[str, Any]:
+            """Batch resize multiple images to specified dimensions."""
+            return await self.batch_resize(
+                input_directory=input_directory,
+                output_directory=output_directory, 
+                width=width,
+                height=height,
+                maintain_aspect_ratio=maintain_aspect_ratio,
+                output_format=output_format,
+                quality=quality
+            )
 
-        @app.tool(
-            name="batch_convert",
-            description="""
-            Convert multiple images to a different format.
-            
-            Processes all matching images in the input directory and saves
-            them in the specified format to the output directory.
-            """,
-            parameters={
-                "input_dir": {"type": "string", "required": True},
-                "output_dir": {"type": "string", "required": True},
-                "output_format": {"type": "string", "required": True, 
-                                "enum": ["jpg", "jpeg", "png", "webp", "tif", "tiff", "bmp", "gif"]},
-                "quality": {"type": "integer", "default": 90, "minimum": 1, "maximum": 100},
-                "pattern": {"type": "string", "default": "*"}
-            }
-        )
-        async def batch_convert_wrapper(self, *args, **kwargs):
-            return await self.batch_convert(*args, **kwargs)
-            
-        # Register the tools with proper instance binding
-        app.register_tool(batch_resize_wrapper.__get__(self, type(self)))
-        app.register_tool(batch_convert_wrapper.__get__(self, type(self)))
+        @app.tool()
+        async def batch_convert(
+            input_directory: str,
+            output_directory: str,
+            output_format: str = "jpg",
+            quality: int = 90
+        ) -> Dict[str, Any]:
+            """Batch convert multiple images to a different format."""
+            return await self.batch_convert(
+                input_directory=input_directory,
+                output_directory=output_directory,
+                output_format=output_format,
+                quality=quality
+            )
