@@ -350,7 +350,7 @@ class BatchProcessingTools(BaseToolCategory):
         """
         @app.tool()
         async def batch_resize(
-            input_directory: str,
+            self, input_directory: str,
             output_directory: str,
             width: int,
             height: int,
@@ -371,7 +371,7 @@ class BatchProcessingTools(BaseToolCategory):
 
         @app.tool()
         async def batch_convert(
-            input_directory: str,
+            self, input_directory: str,
             output_directory: str,
             output_format: str = "jpg",
             quality: int = 90

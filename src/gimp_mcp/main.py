@@ -20,6 +20,11 @@ from fastmcp import FastMCP
 from .config import GimpConfig, load_config
 from .gimp_detector import GimpDetector  
 from .cli_wrapper import GimpCliWrapper
+from .logging_config import (
+    setup_logging, get_logger, log_server_start, log_server_stop,
+    log_tool_registration, log_gimp_detection, log_config_load,
+    log_operation_start, log_operation_success, log_operation_error
+)
 
 # Import tool categories
 from .tools import (
@@ -34,13 +39,8 @@ from .tools import (
     PerformanceTools
 )
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[logging.StreamHandler()]
-)
-logger = logging.getLogger(__name__)
+# Configure structured logging
+logger = setup_logging(component="main")
 
 class GimpMCPServer:
     """Main server class for GIMP MCP integration."""
@@ -67,10 +67,98 @@ class GimpMCPServer:
         
         self.logger = logging.getLogger(__name__)
         self.cli_wrapper: Optional[GimpCliWrapper] = None
+
+    def _validate_configuration(self) -> bool:
+        """
+        Validate server configuration for critical settings.
+
+        Returns:
+            bool: True if configuration is valid, False otherwise
+        """
+        try:
+            # Check required configuration attributes
+            required_attrs = ['allowed_directories', 'max_file_size_mb']
+            for attr in required_attrs:
+                if not hasattr(self.config, attr):
+                    logger.error(f"Missing required configuration attribute: {attr}")
+                    return False
+
+            # Validate allowed directories exist and are accessible
+            allowed_dirs = getattr(self.config, 'allowed_directories', [])
+            if not allowed_dirs:
+                logger.warning("No allowed directories configured - this may limit functionality")
+            else:
+                for dir_path in allowed_dirs:
+                    path = Path(dir_path)
+                    if not path.exists():
+                        logger.warning(f"Allowed directory does not exist: {path}")
+                    elif not path.is_dir():
+                        logger.error(f"Allowed path is not a directory: {path}")
+                        return False
+
+            # Validate max file size is reasonable
+            max_size = getattr(self.config, 'max_file_size_mb', 100)
+            if not isinstance(max_size, (int, float)) or max_size <= 0:
+                logger.error(f"Invalid max_file_size_mb: {max_size}")
+                return False
+
+            logger.info("Configuration validation passed")
+            return True
+
+        except Exception as e:
+            logger.error(f"Configuration validation error: {e}")
+            return False
+
+    def _safe_register_tool_category(self, category_name: str, tool_class, init_args: list) -> bool:
+        """
+        Safely register a tool category with comprehensive error handling.
+
+        Args:
+            category_name: Name of the tool category
+            tool_class: Tool class to instantiate
+            init_args: Arguments for tool initialization
+
+        Returns:
+            bool: True if registration successful, False otherwise
+        """
+        try:
+            logger.info(f"Initializing {category_name} tools...")
+
+            # Create tool instance with error handling
+            tool_instance = tool_class(*init_args)
+            logger.info(f"Created {category_name} tool instance")
+
+            # Register tools with the MCP app
+            tool_instance.register_tools(self.mcp)
+            logger.info(f"Registered {category_name} tools successfully")
+
+            # Store reference for status tracking
+            self.tools[category_name] = tool_instance
+
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to register {category_name} tools: {e}", exc_info=True)
+            # Don't crash - continue with other categories
+            return False
     
     async def initialize(self) -> bool:
-        """Initialize the GIMP MCP Server."""
+        """
+        Initialize the GIMP MCP Server with comprehensive error handling and recovery.
+
+        This method sets up all tool categories with robust error handling to ensure
+        the server can continue operating even if some components fail to initialize.
+
+        Returns:
+            bool: True if initialization successful, False if critical failure
+        """
         try:
+            logger.info("Starting GIMP MCP Server initialization...")
+
+            # Validate configuration first
+            if not self._validate_configuration():
+                logger.error("Configuration validation failed - aborting initialization")
+                return False
             # Initialize GIMP detector
             self.gimp_detector = GimpDetector()
             
@@ -98,7 +186,7 @@ class GimpMCPServer:
             
             # Import all tool categories from the tools package
             from .tools import (
-                HelpTools, FileOperationTools, TransformTools, ColorAdjustmentTools,
+                HelpTools, StatusTools, FileOperationTools, TransformTools, ColorAdjustmentTools,
                 LayerManagementTools, ImageAnalysisTools, FilterTools, BatchProcessingTools,
                 PerformanceTools
             )
@@ -106,6 +194,7 @@ class GimpMCPServer:
             # Define tool categories with their constructors
             tool_categories = [
                 ("help", HelpTools, [self.cli_wrapper, self.config, {}]),
+                ("status", StatusTools, [self.cli_wrapper, self.config]),
                 ("file", FileOperationTools, [self.cli_wrapper, self.config]),
                 ("transform", TransformTools, [self.cli_wrapper, self.config]),
                 ("color", ColorAdjustmentTools, [self.cli_wrapper, self.config]),
@@ -116,22 +205,23 @@ class GimpMCPServer:
                 ("performance", PerformanceTools, [self.cli_wrapper, self.config])
             ]
             
-            # Register tool categories
+            # Register tool categories with safe error handling
+            registration_results = {}
             for category_name, tool_class, init_args in tool_categories:
-                try:
-                    logger.info(f"Initializing {category_name} tools...")
-                    tool_instance = tool_class(*init_args)
-                    self.tools[category_name] = tool_instance
-                    
-                    # Register the tool instance with FastMCP
-                    if hasattr(tool_instance, 'register_tools'):
-                        tool_instance.register_tools(self.mcp)
-                        logger.info(f"Registered tools from {category_name} category")
-                    else:
-                        logger.warning(f"Tool category {category_name} has no register_tools method")
-                        
-                except Exception as e:
-                    logger.error(f"Failed to register {category_name} tools: {e}", exc_info=True)
+                success = self._safe_register_tool_category(category_name, tool_class, init_args)
+                registration_results[category_name] = success
+
+            # Log registration summary
+            successful_count = sum(registration_results.values())
+            total_count = len(registration_results)
+            logger.info(f"Tool registration complete: {successful_count}/{total_count} categories registered")
+
+            if successful_count == 0:
+                logger.error("No tool categories could be registered - server will not function")
+                return False
+            elif successful_count < total_count:
+                logger.warning(f"Some tool categories failed to register: {', '.join([cat for cat, success in registration_results.items() if not success])}")
+                # Continue anyway if at least one category registered
             
             # Verify tool registration
             try:

@@ -80,14 +80,18 @@ class BaseToolCategory(ABC):
         logger: Logger instance for the tool category
     """
     
-    def __init__(self, cli_wrapper: GimpCliWrapper, config: GimpConfig):
+    def __init__(self, cli_wrapper: Optional[GimpCliWrapper], config: GimpConfig):
         """
-        Initialize base tool category with dependencies.
-        
+        Initialize base tool category with dependencies and robust error handling.
+
         Args:
-            cli_wrapper: GIMP CLI wrapper instance for executing commands
+            cli_wrapper: GIMP CLI wrapper instance for executing commands (can be None)
             config: Server configuration with settings and allowed directories
-            
+
+        Raises:
+            ValueError: If config is invalid or missing required settings
+            TypeError: If parameters are of incorrect type
+
         Example:
             ```python
             config = GimpConfig()
@@ -95,9 +99,28 @@ class BaseToolCategory(ABC):
             tool = MyToolCategory(cli_wrapper, config)
             ```
         """
+        # Validate inputs with detailed error messages
+        if config is None:
+            raise ValueError("Configuration object cannot be None")
+
+        if not isinstance(config, GimpConfig):
+            raise TypeError(f"Expected GimpConfig, got {type(config)}")
+
+        # CLI wrapper can be None in limited functionality mode
         self.cli_wrapper = cli_wrapper
         self.config = config
-        self.logger = logging.getLogger(self.__class__.__name__)
+
+        # Initialize logger with error handling
+        try:
+            from ..logging_config import get_logger
+            self.logger = get_logger(self.__class__.__name__)
+        except ImportError:
+            # Fallback to standard logging if structured logging unavailable
+            import logging
+            self.logger = logging.getLogger(self.__class__.__name__)
+            self.logger.warning("Structured logging unavailable, using standard logging")
+
+        self.logger.info(f"Initialized {self.__class__.__name__} tool category")
     
     @abstractmethod
     def register_tools(self, app: FastMCP) -> None:
@@ -181,23 +204,151 @@ class BaseToolCategory(ABC):
         
         return response
     
-    def create_success_response(self, data: Any = None, message: str = "Operation completed successfully") -> Dict[str, Any]:
+    def create_success_response(self, data: Any = None, message: str = "Operation completed successfully", metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
-        Create standardized success response.
-        
+        Create comprehensive success response with optional metadata.
+
         Args:
             data: Response data
             message: Success message
-            
+            metadata: Optional metadata (timing, version, etc.)
+
         Returns:
-            Dict[str, Any]: Success response
+            Dict[str, Any]: Success response with enhanced information
         """
+        import time
+
         response = {
             "success": True,
-            "message": message
+            "message": message,
+            "timestamp": time.time()
         }
-        
+
         if data is not None:
             response["data"] = data
-        
+
+        if metadata:
+            response["metadata"] = metadata
+
         return response
+
+    def create_error_response(self, message: str, error_code: Optional[str] = None, details: Optional[Dict[str, Any]] = None, recoverable: bool = True) -> Dict[str, Any]:
+        """
+        Create comprehensive error response with detailed diagnostic information.
+
+        Args:
+            message: Human-readable error message
+            error_code: Optional error code for categorization
+            details: Optional technical details for debugging
+            recoverable: Whether this error allows continued operation
+
+        Returns:
+            Dict[str, Any]: Error response with diagnostic information
+        """
+        import time
+        import traceback
+
+        response = {
+            "success": False,
+            "error": message,
+            "timestamp": time.time(),
+            "recoverable": recoverable
+        }
+
+        if error_code:
+            response["error_code"] = error_code
+
+        if details:
+            response["details"] = details
+
+        # Add stack trace in debug mode
+        if hasattr(self.config, 'debug_mode') and getattr(self.config, 'debug_mode', False):
+            response["stack_trace"] = traceback.format_exc()
+
+        return response
+
+    def validate_file_path(self, file_path: Union[str, Path], operation: str = "access") -> Path:
+        """
+        Validate and normalize file paths with comprehensive security checks.
+
+        Args:
+            file_path: File path to validate
+            operation: Type of operation being performed (read, write, etc.)
+
+        Returns:
+            Normalized Path object
+
+        Raises:
+            ValueError: If path is invalid or not allowed
+            PermissionError: If access is not permitted
+        """
+        try:
+            # Convert to Path and resolve
+            path = Path(file_path).resolve()
+
+            # Check if path exists for read operations
+            if operation in ["read", "access"] and not path.exists():
+                raise FileNotFoundError(f"File does not exist: {path}")
+
+            # Check file permissions
+            if operation == "read" and not path.is_file():
+                raise ValueError(f"Path is not a file: {path}")
+
+            if operation == "write":
+                # Check if parent directory exists and is writable
+                if not path.parent.exists():
+                    raise FileNotFoundError(f"Parent directory does not exist: {path.parent}")
+                if not path.parent.is_dir():
+                    raise ValueError(f"Parent path is not a directory: {path.parent}")
+
+            # Security check: ensure path is within allowed directories
+            allowed_dirs = getattr(self.config, 'allowed_directories', [])
+            if allowed_dirs:
+                path_allowed = any(path.is_relative_to(Path(allowed_dir).resolve())
+                                 for allowed_dir in allowed_dirs)
+                if not path_allowed:
+                    raise PermissionError(f"Access denied: {path} is outside allowed directories")
+
+            return path
+
+        except Exception as e:
+            self.logger.error(f"File path validation failed for {file_path}: {e}")
+            raise
+
+    def handle_operation_error(self, operation: str, error: Exception, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Handle operation errors with appropriate logging and response generation.
+
+        Args:
+            operation: Name of the operation that failed
+            error: The exception that occurred
+            context: Additional context information
+
+        Returns:
+            Standardized error response
+        """
+        error_details = {
+            "operation": operation,
+            "error_type": type(error).__name__,
+            "error_message": str(error)
+        }
+
+        if context:
+            error_details["context"] = context
+
+        # Log the error with appropriate level
+        if isinstance(error, (FileNotFoundError, PermissionError)):
+            self.logger.warning(f"Operation '{operation}' failed: {error}", extra=error_details)
+        else:
+            self.logger.error(f"Operation '{operation}' failed: {error}", extra=error_details)
+
+        # Determine if error is recoverable
+        recoverable_errors = (FileNotFoundError, PermissionError, ValueError)
+        recoverable = isinstance(error, recoverable_errors)
+
+        return self.create_error_response(
+            message=f"Operation '{operation}' failed: {str(error)}",
+            error_code=type(error).__name__,
+            details=error_details,
+            recoverable=recoverable
+        )

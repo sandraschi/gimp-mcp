@@ -1,8 +1,8 @@
 """
-MCP Tool Registration for File Operations.
+Fixed MCP Tool Registration for File Operations.
 
-This module provides the MCP tool registration for file operations,
-building on top of the core functionality in file_operations_base.py.
+This module provides the corrected MCP tool registration for file operations,
+fixing the missing _get_image_info method and other implementation issues.
 """
 
 import time
@@ -32,6 +32,40 @@ class FileOperationTools(FileOperationBase):
             config: The application configuration
         """
         super().__init__(cli_wrapper, config)
+    
+    async def _get_image_info(self, file_path: str, load_metadata: bool = True, max_dimension: int = 0) -> Dict[str, Any]:
+        """Get image information using GIMP CLI wrapper.
+        
+        Args:
+            file_path: Path to the image file
+            load_metadata: Whether to load image metadata
+            max_dimension: Maximum dimension for thumbnails (0 = no thumbnail)
+            
+        Returns:
+            Dictionary containing image information
+        """
+        try:
+            # Use the CLI wrapper's load_image_info method
+            image_info = await self.cli_wrapper.load_image_info(file_path)
+            
+            # Add additional metadata if requested
+            if load_metadata:
+                file_path_obj = Path(file_path)
+                image_info.update({
+                    'file_size': file_path_obj.stat().st_size,
+                    'file_extension': file_path_obj.suffix.lower(),
+                    'last_modified': file_path_obj.stat().st_mtime
+                })
+            
+            # TODO: Implement thumbnail generation if max_dimension > 0
+            if max_dimension > 0:
+                image_info['thumbnail'] = {'note': 'Thumbnail generation not yet implemented'}
+            
+            return image_info
+            
+        except Exception as e:
+            logger.error(f"Failed to get image info for {file_path}: {e}")
+            raise
     
     @tool(
         name="test_tool",
@@ -88,9 +122,8 @@ class FileOperationTools(FileOperationBase):
                 "modified_time": file_path.stat().st_mtime
             }
             
-            # Add image-specific info if we can load it
+            # Add image-specific info using the fixed method
             try:
-                # This would be implemented in the base class
                 image_info = await self._get_image_info(str(file_path), load_metadata, max_dimension)
                 result["image_info"] = image_info
             except Exception as e:
@@ -107,7 +140,7 @@ class FileOperationTools(FileOperationBase):
         """Register all file operation tools with FastMCP."""
         
         @app.tool()
-        async def test_tool(name: str = "World") -> Dict[str, Any]:
+        async def test_tool(self, name: str = "World") -> Dict[str, Any]:
             """Test tool that returns a greeting.
             
             Args:
@@ -119,7 +152,7 @@ class FileOperationTools(FileOperationBase):
             return await self.test_tool(name)
 
         @app.tool()
-        async def load_image(file_path: str, load_metadata: bool = True, max_dimension: int = 0) -> Dict[str, Any]:
+        async def load_image(self, file_path: str, load_metadata: bool = True, max_dimension: int = 0) -> Dict[str, Any]:
             """Load an image file and return its information.
             
             Args:

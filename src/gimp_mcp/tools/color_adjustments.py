@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 """
 Color Adjustment Tools for GIMP MCP Server.
@@ -140,8 +140,7 @@ class ColorAdjustmentTools(BaseToolCategory):
         
         @app.tool()
         async def adjust_hue_saturation(
-            self,
-            input_path: str,
+            self, input_path: str,
             output_path: str,
             hue: float = 0.0,
             saturation: float = 0.0,
@@ -222,8 +221,7 @@ class ColorAdjustmentTools(BaseToolCategory):
         
         @app.tool()
         async def adjust_color_balance(
-            self,
-            input_path: str,
+            self, input_path: str,
             output_path: str,
             cyan_red: Tuple[float, float, float] = (0, 0, 0),
             magenta_green: Tuple[float, float, float] = (0, 0, 0),
@@ -314,8 +312,7 @@ class ColorAdjustmentTools(BaseToolCategory):
         
         @app.tool()
         async def adjust_levels(
-            self,
-            input_path: str,
+            self, input_path: str,
             output_path: str,
             channel: str = "value",
             in_min: float = 0.0,
@@ -418,8 +415,7 @@ class ColorAdjustmentTools(BaseToolCategory):
         
         @app.tool()
         async def adjust_curves(
-            self,
-            input_path: str,
+            self, input_path: str,
             output_path: str,
             channel: str = "value",
             control_points: Optional[List[Tuple[float, float]]] = None,
@@ -515,8 +511,7 @@ class ColorAdjustmentTools(BaseToolCategory):
         
         @app.tool()
         async def adjust_threshold(
-            self,
-            input_path: str,
+            self, input_path: str,
             output_path: str,
             threshold: float = 0.5,
             channel: str = "value"
@@ -595,8 +590,7 @@ class ColorAdjustmentTools(BaseToolCategory):
         
         @app.tool()
         async def adjust_posterize(
-            self,
-            input_path: str,
+            self, input_path: str,
             output_path: str,
             levels: int = 2,
             dither: bool = True
@@ -655,8 +649,7 @@ class ColorAdjustmentTools(BaseToolCategory):
         
         @app.tool()
         async def desaturate(
-            self,
-            input_path: str,
+            self, input_path: str,
             output_path: str,
             mode: str = "luminosity"
         ) -> Dict[str, Any]:
@@ -723,3 +716,4 @@ class ColorAdjustmentTools(BaseToolCategory):
                 return self.create_error_response(f"Desaturation failed: {str(e)}")
         
         # Tools are automatically registered via @app.tool() decorators
+

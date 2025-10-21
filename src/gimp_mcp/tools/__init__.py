@@ -32,6 +32,7 @@ try:
     from .filters import FilterTools
     from .batch_processing import BatchProcessingTools
     from .help_tools import HelpTools
+    from .status_tools import StatusTools
     from .layer_management import LayerManagementTools
     from .image_analysis import ImageAnalysisTools
     from .performance_tools import PerformanceTools
@@ -44,6 +45,7 @@ try:
         FilterTools,
         BatchProcessingTools,
         HelpTools,
+        StatusTools,
         LayerManagementTools,
         ImageAnalysisTools,
         PerformanceTools
@@ -67,6 +69,7 @@ TOOL_CATEGORIES = {
     "filters": FilterTools if 'FilterTools' in globals() else None,
     "batch_processing": BatchProcessingTools if 'BatchProcessingTools' in globals() else None,
     "help_tools": HelpTools if 'HelpTools' in globals() else None,
+    "status_tools": StatusTools if 'StatusTools' in globals() else None,
     "layer_management": LayerManagementTools if 'LayerManagementTools' in globals() else None,
     "image_analysis": ImageAnalysisTools if 'ImageAnalysisTools' in globals() else None,
     "performance_tools": PerformanceTools if 'PerformanceTools' in globals() else None
@@ -115,6 +118,7 @@ __all__ = [
     'FilterTools',
     'BatchProcessingTools',
     'HelpTools',
+    'StatusTools',
     'LayerManagementTools',
     'ImageAnalysisTools',
     'PerformanceTools',

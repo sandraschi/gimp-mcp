@@ -55,7 +55,7 @@ class TransformTools(BaseToolCategory):
         """Register transform tools with FastMCP."""
         
         @app.tool()
-        async def resize_image(input_path: str,
+        async def resize_image(self, input_path: str,
                              output_path: str,
                              width: int,
                              height: int,
@@ -151,7 +151,7 @@ class TransformTools(BaseToolCategory):
                 return self.create_error_response(f"Resize operation failed: {str(e)}")
         
         @app.tool()
-        async def crop_image(input_path: str,
+        async def crop_image(self, input_path: str,
                            output_path: str,
                            x: int,
                            y: int,
@@ -244,7 +244,7 @@ class TransformTools(BaseToolCategory):
                 return self.create_error_response(f"Crop operation failed: {str(e)}")
         
         @app.tool()
-        async def rotate_image(input_path: str,
+        async def rotate_image(self, input_path: str,
                              output_path: str,
                              degrees: float,
                              fill_color: str = "transparent") -> Dict[str, Any]:
@@ -336,7 +336,7 @@ class TransformTools(BaseToolCategory):
         
         @app.tool()
         async def flip_image(
-            input_path: str,
+            self, input_path: str,
             output_path: str,
             direction: str,
             preserve_metadata: bool = True,
