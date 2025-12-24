@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gimp-mcp"
-version = "2.0.0"
-description = "FastMCP 2.x server for professional image editing using GIMP"
+version = "3.0.0"
+description = "FastMCP 2.13 server for professional image editing using GIMP - portmanteau architecture"
 readme = "README.md"
 authors = [
     {name = "Sandra Schipal", email = "sandra@sandraschi.dev"},
@@ -32,17 +32,17 @@ classifiers = [
 ]
 
 dependencies = [
-    # Core FastMCP dependencies
-    "fastmcp>=2.11.3,<3.0.0",
+    # Core FastMCP dependencies - upgraded to 2.13+
+    "fastmcp>=2.13.0,<3.0.0",
     "pydantic>=2.0.0,<3.0.0",
     "typing-extensions>=4.5.0,<5.0.0",
     
     # Image processing
-    "pillow>=10.0.0,<11.0.0",
-    "numpy>=1.24.0,<2.0.0",
+    "pillow>=10.0.0,<12.0.0",
+    "numpy>=1.24.0,<3.0.0",
     
     # Process management and system utilities
-    "psutil>=5.9.0,<6.0.0",
+    "psutil>=5.9.0,<7.0.0",
     "python-dotenv>=1.0.0,<2.0.0",
     
     # File handling and validation
@@ -57,7 +57,7 @@ dependencies = [
     
     # Async utilities
     "anyio>=4.5.0,<5.0.0",
-    "asyncer>=0.0.8,<0.0.9"  # Latest available version that supports anyio>=4.5.0
+    "httpx>=0.27.0,<1.0.0"
 ]
 
 [project.urls]
@@ -123,6 +123,14 @@ docs = [
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]
+ignore = ["E501"]  # Line length handled by formatter
+
 [tool.black]
 line-length = 100
 target-version = ["py310"]
@@ -145,13 +153,23 @@ warn_unused_ignores = true
 warn_no_return = true
 warn_unreachable = true
 
+# Advanced analysis dependencies
+analysis = [
+    "scipy>=1.10.0,<2.0.0",  # For image quality metrics
+]
+
+all = [
+    "gimp-mcp[http,analysis]"
+]
+
 # MCP Server Configuration
 [tool.fastmcp]
 name = "gimp-mcp"
 display_name = "GIMP MCP Server"
-version = "2.0.0"
-description = "FastMCP 2.x server for professional image editing using GIMP"
+version = "3.0.0"
+description = "FastMCP 2.13+ server for professional image editing using GIMP - portmanteau architecture"
 entry_point = "gimp_mcp.main:main"
+architecture = "portmanteau"
 
 
 # Core Image File Tools

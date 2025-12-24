@@ -1,0 +1,41 @@
+{
+  "$schema": "https://glama.ai/mcp/schemas/server.json",
+  "maintainers": ["sandraschi"],
+  "name": "gimp-mcp",
+  "description": "FastMCP 2.13 server for image editing using GIMP. 8 portmanteau tools consolidating 50+ operations for file operations, transforms, color adjustments, filters, and layers. Beta status.",
+  "type": "mcp_server",
+  "status": "beta",
+  "framework": "FastMCP 2.13+",
+  "tools": 8,
+  "transport": ["stdio"],
+  "keywords": [
+    "gimp",
+    "image-editing",
+    "graphics",
+    "photo-editing",
+    "image-processing",
+    "mcp-server",
+    "fastmcp",
+    "portmanteau"
+  ],
+  "features": {
+    "file_operations": {
+      "enabled": true
+    },
+    "transforms": {
+      "enabled": true,
+      "operations": ["resize", "crop", "rotate", "flip", "scale", "perspective"]
+    },
+    "color_adjustments": {
+      "enabled": true,
+      "features": ["brightness", "contrast", "levels", "curves", "HSL"]
+    },
+    "filters": {
+      "enabled": true
+    },
+    "layer_management": {
+      "enabled": true
+    }
+  }
+}
+

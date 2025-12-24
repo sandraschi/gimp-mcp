@@ -17,16 +17,16 @@ from .cli_wrapper import GimpCliWrapper
 from .config import GimpConfig
 from .plugins import PluginManager, GimpPlugin
 
-# Import all tool categories directly
-from .tools.file_operations_tools import FileOperationTools
-from .tools.transforms import TransformTools
-from .tools.color_adjustments import ColorAdjustmentTools
-from .tools.filters import FilterTools
-from .tools.batch_processing import BatchProcessingTools
-from .tools.help_tools import HelpTools
-from .tools.layer_management import LayerManagementTools
-from .tools.image_analysis import ImageAnalysisTools
-from .tools.performance_tools import PerformanceTools
+# Import all tool categories from legacy tools
+from .tools_legacy.file_operations_tools import FileOperationTools
+from .tools_legacy.transforms import TransformTools
+from .tools_legacy.color_adjustments import ColorAdjustmentTools
+from .tools_legacy.filters import FilterTools
+from .tools_legacy.batch_processing import BatchProcessingTools
+from .tools_legacy.help_tools import HelpTools
+from .tools_legacy.layer_management import LayerManagementTools
+from .tools_legacy.image_analysis import ImageAnalysisTools
+from .tools_legacy.performance_tools import PerformanceTools
 
 logger = logging.getLogger(__name__)
 

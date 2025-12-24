@@ -1,10 +1,38 @@
 # GIMP MCP Server
 
+**By FlowEngineer sandraschi**
+
 Professional image editing through Model Context Protocol (MCP) using GIMP.
+
+[![FastMCP](https://img.shields.io/badge/FastMCP-2.13%2B-blue)](https://github.com/jlowin/fastmcp)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-green)](https://python.org)
+[![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ## Overview
 
 GIMP-MCP provides Claude and other AI agents with professional image editing capabilities through GIMP (GNU Image Manipulation Program). This MCP server enables powerful image processing operations via a clean, standardized interface.
+
+## v3.0.0 - Portmanteau Architecture
+
+**New in v3.0.0:** Instead of 50+ individual tools, GIMP MCP now consolidates related operations into **8 master portmanteau tools**. This design:
+
+- 🎯 **Reduces cognitive load** - 8 tools instead of 50+
+- 🔍 **Improves discoverability** - Related operations grouped together  
+- ⚡ **Follows FastMCP 2.13+ best practices** - Modern MCP architecture
+- 📚 **Better documentation** - Each tool is self-documenting with comprehensive docstrings
+
+### Portmanteau Tools
+
+| Tool | Operations | Description |
+|------|------------|-------------|
+| `gimp_file` | 6 | File operations: load, save, convert, info, validate |
+| `gimp_transform` | 7 | Transforms: resize, crop, rotate, flip, scale, perspective |
+| `gimp_color` | 12 | Color: brightness, contrast, levels, curves, HSL, auto |
+| `gimp_filter` | 8 | Filters: blur, sharpen, noise, edge, artistic, distort |
+| `gimp_layer` | 8 | Layers: create, duplicate, delete, merge, flatten |
+| `gimp_analysis` | 8 | Analysis: quality, statistics, histogram, compare |
+| `gimp_batch` | 6 | Batch: resize, convert, watermark, optimize |
+| `gimp_system` | 8 | System: status, help, diagnostics, cache, config |
 
 ## Features
 
@@ -14,6 +42,7 @@ GIMP-MCP provides Claude and other AI agents with professional image editing cap
 - **Color Adjustments**: Brightness, contrast, hue, saturation, and color balance
 - **Filters & Effects**: Blur, sharpen, noise reduction, and artistic filters
 - **Batch Processing**: Process multiple images efficiently
+- **Image Analysis**: Quality assessment, statistics, histogram, comparison
 
 ### Technical Highlights
 - **Cross-platform**: Windows, macOS, and Linux support
@@ -21,6 +50,7 @@ GIMP-MCP provides Claude and other AI agents with professional image editing cap
 - **Robust error handling**: Comprehensive validation and recovery
 - **Flexible configuration**: YAML-based settings with sensible defaults
 - **Security focused**: File validation and access controls
+- **FastMCP 2.13+**: Modern MCP architecture with portmanteau tools
 
 ## Installation
 
@@ -89,46 +119,80 @@ Add to your Claude Desktop MCP configuration:
 }
 ```
 
-## Available Tools
+## Available Tools (v3.0.0 Portmanteau)
 
-### File Operations
-- `load_image` - Load and analyze image files
-- `get_image_info` - Extract comprehensive metadata
-- `save_image` - Save with format conversion
-- `convert_format` - Format conversion with quality options
+### gimp_file - File Operations
+```python
+gimp_file(operation="load", input_path="image.jpg")
+gimp_file(operation="save", input_path="image.png", output_path="output.jpg", format="jpeg", quality=90)
+gimp_file(operation="convert", input_path="image.png", output_path="output.webp", format="webp")
+gimp_file(operation="info", input_path="image.jpg")
+```
+**Operations**: `load`, `save`, `convert`, `info`, `validate`, `list_formats`
 
-### Transformations
-- `resize_image` - Smart resizing with aspect ratio preservation
-- `crop_image` - Precise rectangular cropping
-- `rotate_image` - Rotation with background fill options
-- `flip_image` - Horizontal and vertical flipping
+### gimp_transform - Image Transformations
+```python
+gimp_transform(operation="resize", input_path="img.jpg", output_path="out.jpg", width=1920, height=1080)
+gimp_transform(operation="crop", input_path="img.jpg", output_path="out.jpg", x=100, y=100, width=500, height=400)
+gimp_transform(operation="rotate", input_path="img.jpg", output_path="out.jpg", degrees=90)
+gimp_transform(operation="flip", input_path="img.jpg", output_path="out.jpg", direction="horizontal")
+```
+**Operations**: `resize`, `crop`, `rotate`, `flip`, `scale`, `perspective`, `autocrop`
 
-### Color Adjustments
-- `adjust_brightness_contrast` - Basic tonal adjustments
-- `adjust_hue_saturation` - HSL color manipulation
-- `color_balance` - Professional color grading
+### gimp_color - Color Adjustments
+```python
+gimp_color(operation="brightness_contrast", input_path="img.jpg", output_path="out.jpg", brightness=20, contrast=10)
+gimp_color(operation="levels", input_path="img.jpg", output_path="out.jpg", gamma=1.2)
+gimp_color(operation="hue_saturation", input_path="img.jpg", output_path="out.jpg", saturation=20)
+gimp_color(operation="desaturate", input_path="img.jpg", output_path="out.jpg", mode="luminosity")
+```
+**Operations**: `brightness_contrast`, `levels`, `curves`, `color_balance`, `hue_saturation`, `colorize`, `threshold`, `posterize`, `desaturate`, `invert`, `auto_levels`, `auto_color`
 
-### Filters & Effects
-- `apply_blur` - Gaussian, motion, and radial blur
-- `apply_sharpen` - Unsharp mask sharpening
-- `noise_reduction` - Intelligent noise filtering
+### gimp_filter - Filters & Effects
+```python
+gimp_filter(operation="blur", input_path="img.jpg", output_path="out.jpg", method="gaussian", radius=5)
+gimp_filter(operation="sharpen", input_path="img.jpg", output_path="out.jpg", amount=0.8)
+gimp_filter(operation="artistic", input_path="img.jpg", output_path="out.jpg", effect="oilify")
+```
+**Operations**: `blur`, `sharpen`, `noise`, `edge_detect`, `artistic`, `enhance`, `distort`, `light_shadow`
 
-### Batch Processing
-- `batch_resize` - Bulk image resizing
-- `batch_convert` - Mass format conversion
-- `batch_apply_filter` - Apply filters to multiple images
+### gimp_analysis - Image Analysis
+```python
+gimp_analysis(operation="quality", input_path="img.jpg")
+gimp_analysis(operation="statistics", input_path="img.jpg", include_histogram=True)
+gimp_analysis(operation="compare", input_path="img1.jpg", compare_path="img2.jpg")
+gimp_analysis(operation="detect_issues", input_path="img.jpg")
+```
+**Operations**: `quality`, `statistics`, `histogram`, `compare`, `detect_issues`, `report`, `color_profile`, `metadata`
+
+### gimp_batch - Batch Processing
+```python
+gimp_batch(operation="resize", input_directory="photos/", output_directory="resized/", width=1920)
+gimp_batch(operation="convert", input_directory="images/", output_directory="webp/", output_format="webp")
+gimp_batch(operation="watermark", input_directory="photos/", output_directory="watermarked/", watermark_path="logo.png")
+```
+**Operations**: `resize`, `convert`, `process`, `watermark`, `rename`, `optimize`
+
+### gimp_system - System Operations
+```python
+gimp_system(operation="status")
+gimp_system(operation="help", topic="transform", level="intermediate")
+gimp_system(operation="diagnostics")
+gimp_system(operation="cache", cache_action="clear")
+```
+**Operations**: `status`, `help`, `diagnostics`, `cache`, `config`, `performance`, `tools`, `version`
 
 ## Development Status
 
-**Current Phase**: Foundation Complete (SUCCESS)
-- Repository scaffolding
-- GIMP detection system
-- Configuration management
-- CLI wrapper framework
-- Core tool structure
+**Current Phase**: v3.0.0 Portmanteau Architecture (COMPLETE)
+- ✅ FastMCP 2.13+ integration
+- ✅ 8 portmanteau tools consolidating 63 operations
+- ✅ Comprehensive docstrings with examples
+- ✅ MCPB manifest for Claude Desktop
+- ✅ Backwards-compatible with legacy tools
 
-**Next Phase**: Tool Implementation
-- File operations (in progress)
+**Capabilities**:
+- File operations with format conversion
 - Transform operations (basic complete)
 - Color adjustments (planned)
 - Filters and effects (planned)

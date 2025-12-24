@@ -1,8 +1,22 @@
 """
-GIMP MCP Server - FastMCP 2.x Implementation
+GIMP MCP Server - FastMCP 2.13+ Portmanteau Architecture
 
 This module serves as the main entry point for the GIMP MCP server, providing
-an interface between the MCP protocol and GIMP's functionality through a CLI wrapper.
+an interface between the MCP protocol and GIMP's functionality.
+
+PORTMANTEAU ARCHITECTURE (v3.0.0):
+Instead of 50+ individual tools, GIMP MCP consolidates related operations into 8
+master portmanteau tools. Each tool handles a specific domain with multiple operations.
+
+Tools:
+- gimp_file: File operations (load, save, convert, info)
+- gimp_transform: Geometric transforms (resize, crop, rotate, flip)
+- gimp_color: Color adjustments (brightness, levels, curves, HSL)
+- gimp_filter: Filters (blur, sharpen, noise, artistic)
+- gimp_layer: Layer management (create, merge, flatten)
+- gimp_analysis: Image analysis (quality, statistics, compare)
+- gimp_batch: Batch processing (resize, convert, watermark)
+- gimp_system: System operations (status, help, cache)
 """
 
 import argparse
@@ -26,8 +40,21 @@ from .logging_config import (
     log_operation_start, log_operation_success, log_operation_error
 )
 
-# Import tool categories
+# Import portmanteau tools (v3.0.0 architecture)
 from .tools import (
+    gimp_file,
+    gimp_transform,
+    gimp_color,
+    gimp_filter,
+    gimp_layer,
+    gimp_analysis,
+    gimp_batch,
+    gimp_system,
+    PORTMANTEAU_TOOLS,
+)
+
+# Legacy imports for backwards compatibility
+from .tools_legacy import (
     FileOperationTools,
     TransformTools,
     ColorAdjustmentTools,
@@ -146,19 +173,21 @@ class GimpMCPServer:
         """
         Initialize the GIMP MCP Server with comprehensive error handling and recovery.
 
-        This method sets up all tool categories with robust error handling to ensure
-        the server can continue operating even if some components fail to initialize.
+        This method sets up all portmanteau tools (v3.0.0 architecture) with robust
+        error handling to ensure the server can continue operating even if some
+        components fail to initialize.
 
         Returns:
             bool: True if initialization successful, False if critical failure
         """
         try:
-            logger.info("Starting GIMP MCP Server initialization...")
+            logger.info("Starting GIMP MCP Server v3.0.0 (Portmanteau Architecture)...")
 
             # Validate configuration first
             if not self._validate_configuration():
                 logger.error("Configuration validation failed - aborting initialization")
                 return False
+            
             # Initialize GIMP detector
             self.gimp_detector = GimpDetector()
             
@@ -184,8 +213,264 @@ class GimpMCPServer:
                 logger.warning("GIMP not found. Running in limited functionality mode")
                 self.cli_wrapper = None
             
-            # Import all tool categories from the tools package
-            from .tools import (
+            # Register portmanteau tools (v3.0.0 architecture)
+            logger.info("Registering portmanteau tools...")
+            portmanteau_registered = self._register_portmanteau_tools()
+            
+            if portmanteau_registered:
+                logger.info(f"Successfully registered {len(PORTMANTEAU_TOOLS)} portmanteau tools")
+                # Count total operations
+                total_ops = sum(len(t["operations"]) for t in PORTMANTEAU_TOOLS)
+                logger.info(f"Total operations available: {total_ops}")
+            else:
+                logger.warning("Portmanteau registration failed, falling back to legacy tools")
+                # Fall back to legacy tool registration
+                return await self._initialize_legacy_tools()
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"Critical error during initialization: {e}", exc_info=True)
+            return False
+    
+    def _register_portmanteau_tools(self) -> bool:
+        """
+        Register all portmanteau tools with FastMCP.
+        
+        Returns:
+            bool: True if registration successful
+        """
+        try:
+            # Register each portmanteau tool with the MCP instance
+            # We wrap them to inject cli_wrapper and config
+            
+            @self.mcp.tool()
+            async def gimp_file_tool(
+                operation: str,
+                input_path: str = None,
+                output_path: str = None,
+                format: str = None,
+                quality: int = 95,
+                compression: int = 6,
+                progressive: bool = False,
+            ) -> Dict[str, Any]:
+                """File operations: load, save, convert, info, validate, list_formats."""
+                return await gimp_file(
+                    operation=operation,
+                    input_path=input_path,
+                    output_path=output_path,
+                    format=format,
+                    quality=quality,
+                    compression=compression,
+                    progressive=progressive,
+                    cli_wrapper=self.cli_wrapper,
+                    config=self.config,
+                )
+            
+            @self.mcp.tool()
+            async def gimp_transform_tool(
+                operation: str,
+                input_path: str,
+                output_path: str,
+                width: int = None,
+                height: int = None,
+                maintain_aspect: bool = True,
+                x: int = 0,
+                y: int = 0,
+                degrees: float = 0.0,
+                direction: str = "horizontal",
+                fill_color: str = "transparent",
+            ) -> Dict[str, Any]:
+                """Transforms: resize, crop, rotate, flip, scale, perspective, autocrop."""
+                return await gimp_transform(
+                    operation=operation,
+                    input_path=input_path,
+                    output_path=output_path,
+                    width=width,
+                    height=height,
+                    maintain_aspect=maintain_aspect,
+                    x=x, y=y,
+                    degrees=degrees,
+                    direction=direction,
+                    fill_color=fill_color,
+                    cli_wrapper=self.cli_wrapper,
+                    config=self.config,
+                )
+            
+            @self.mcp.tool()
+            async def gimp_color_tool(
+                operation: str,
+                input_path: str,
+                output_path: str,
+                brightness: float = 0.0,
+                contrast: float = 0.0,
+                hue: float = 0.0,
+                saturation: float = 0.0,
+                lightness: float = 0.0,
+                gamma: float = 1.0,
+                levels: int = 8,
+                threshold: float = 0.5,
+                mode: str = "luminosity",
+            ) -> Dict[str, Any]:
+                """Color adjustments: brightness_contrast, levels, curves, hue_saturation, etc."""
+                return await gimp_color(
+                    operation=operation,
+                    input_path=input_path,
+                    output_path=output_path,
+                    brightness=brightness,
+                    contrast=contrast,
+                    hue=hue,
+                    saturation=saturation,
+                    lightness=lightness,
+                    gamma=gamma,
+                    levels=levels,
+                    threshold=threshold,
+                    mode=mode,
+                    cli_wrapper=self.cli_wrapper,
+                    config=self.config,
+                )
+            
+            @self.mcp.tool()
+            async def gimp_filter_tool(
+                operation: str,
+                input_path: str,
+                output_path: str,
+                radius: float = 1.0,
+                amount: float = 0.5,
+                method: str = "gaussian",
+                effect: str = "oilify",
+            ) -> Dict[str, Any]:
+                """Filters: blur, sharpen, noise, edge_detect, artistic, enhance, distort."""
+                return await gimp_filter(
+                    operation=operation,
+                    input_path=input_path,
+                    output_path=output_path,
+                    radius=radius,
+                    amount=amount,
+                    method=method,
+                    effect=effect,
+                    cli_wrapper=self.cli_wrapper,
+                    config=self.config,
+                )
+            
+            @self.mcp.tool()
+            async def gimp_layer_tool(
+                operation: str,
+                input_path: str,
+                output_path: str,
+                layer_name: str = "New Layer",
+                layer_index: int = 0,
+                opacity: float = 100.0,
+                blend_mode: str = "normal",
+                visible: bool = True,
+            ) -> Dict[str, Any]:
+                """Layer management: create, duplicate, delete, merge, flatten, reorder, info."""
+                return await gimp_layer(
+                    operation=operation,
+                    input_path=input_path,
+                    output_path=output_path,
+                    layer_name=layer_name,
+                    layer_index=layer_index,
+                    opacity=opacity,
+                    blend_mode=blend_mode,
+                    visible=visible,
+                    cli_wrapper=self.cli_wrapper,
+                    config=self.config,
+                )
+            
+            @self.mcp.tool()
+            async def gimp_analysis_tool(
+                operation: str,
+                input_path: str,
+                compare_path: str = None,
+                include_histogram: bool = True,
+                analysis_type: str = "comprehensive",
+                report_format: str = "detailed",
+            ) -> Dict[str, Any]:
+                """Image analysis: quality, statistics, histogram, compare, detect_issues, report."""
+                return await gimp_analysis(
+                    operation=operation,
+                    input_path=input_path,
+                    compare_path=compare_path,
+                    include_histogram=include_histogram,
+                    analysis_type=analysis_type,
+                    report_format=report_format,
+                    cli_wrapper=self.cli_wrapper,
+                    config=self.config,
+                )
+            
+            @self.mcp.tool()
+            async def gimp_batch_tool(
+                operation: str,
+                input_directory: str,
+                output_directory: str,
+                width: int = None,
+                height: int = None,
+                output_format: str = "jpg",
+                quality: int = 90,
+                file_pattern: str = "*.jpg",
+                max_workers: int = 4,
+            ) -> Dict[str, Any]:
+                """Batch processing: resize, convert, process, watermark, rename, optimize."""
+                return await gimp_batch(
+                    operation=operation,
+                    input_directory=input_directory,
+                    output_directory=output_directory,
+                    width=width,
+                    height=height,
+                    output_format=output_format,
+                    quality=quality,
+                    file_pattern=file_pattern,
+                    max_workers=max_workers,
+                    cli_wrapper=self.cli_wrapper,
+                    config=self.config,
+                )
+            
+            @self.mcp.tool()
+            async def gimp_system_tool(
+                operation: str,
+                topic: str = None,
+                level: str = "basic",
+                cache_action: str = "status",
+            ) -> Dict[str, Any]:
+                """System: status, help, diagnostics, cache, config, performance, tools, version."""
+                return await gimp_system(
+                    operation=operation,
+                    topic=topic,
+                    level=level,
+                    cache_action=cache_action,
+                    cli_wrapper=self.cli_wrapper,
+                    config=self.config,
+                )
+            
+            # Track registered tools
+            self.tools = {
+                "gimp_file": gimp_file_tool,
+                "gimp_transform": gimp_transform_tool,
+                "gimp_color": gimp_color_tool,
+                "gimp_filter": gimp_filter_tool,
+                "gimp_layer": gimp_layer_tool,
+                "gimp_analysis": gimp_analysis_tool,
+                "gimp_batch": gimp_batch_tool,
+                "gimp_system": gimp_system_tool,
+            }
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to register portmanteau tools: {e}", exc_info=True)
+            return False
+    
+    async def _initialize_legacy_tools(self) -> bool:
+        """
+        Fall back to legacy tool registration (for backwards compatibility).
+        
+        Returns:
+            bool: True if initialization successful
+        """
+        try:
+            # Import all tool categories from the legacy tools package
+            from .tools_legacy import (
                 HelpTools, StatusTools, FileOperationTools, TransformTools, ColorAdjustmentTools,
                 LayerManagementTools, ImageAnalysisTools, FilterTools, BatchProcessingTools,
                 PerformanceTools
@@ -214,30 +499,12 @@ class GimpMCPServer:
             # Log registration summary
             successful_count = sum(registration_results.values())
             total_count = len(registration_results)
-            logger.info(f"Tool registration complete: {successful_count}/{total_count} categories registered")
+            logger.info(f"Legacy tool registration: {successful_count}/{total_count} categories registered")
 
-            if successful_count == 0:
-                logger.error("No tool categories could be registered - server will not function")
-                return False
-            elif successful_count < total_count:
-                logger.warning(f"Some tool categories failed to register: {', '.join([cat for cat, success in registration_results.items() if not success])}")
-                # Continue anyway if at least one category registered
-            
-            # Verify tool registration
-            try:
-                # Note: FastMCP 2.11.3 doesn't have a direct list_tools method
-                # The tools are registered and will be available through the MCP protocol
-                logger.info("Tool registration completed successfully")
-                total_tools = len(self.tools)
-                logger.info(f"Initialized {total_tools} tool categories")
-                
-            except Exception as e:
-                logger.warning(f"Could not verify tool registration: {e}")
-            
-            return True
+            return successful_count > 0
             
         except Exception as e:
-            logger.error(f"Critical error during initialization: {e}", exc_info=True)
+            logger.error(f"Legacy tool initialization failed: {e}", exc_info=True)
             return False
     
     def run_http(self, host: str = '0.0.0.0', port: int = 8000) -> None:

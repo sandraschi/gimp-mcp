@@ -1,0 +1,78 @@
+{
+  "name": "gimp-mcp",
+  "version": "3.0.0",
+  "description": "FastMCP 2.13 server for professional image editing using GIMP with portmanteau architecture",
+  "author": "Sandra Schipal <sandra@sandraschi.dev>",
+  "license": "MIT",
+  "repository": "https://github.com/sandraschi/gimp-mcp",
+  "keywords": [
+    "mcp",
+    "gimp",
+    "image-processing",
+    "image-editing",
+    "graphics",
+    "batch-processing",
+    "filters",
+    "transforms"
+  ],
+  "mcpb": {
+    "version": "1.0",
+    "entry_point": "gimp_mcp.main:main",
+    "transport": ["stdio", "http"],
+    "python_version": ">=3.10"
+  },
+  "tools": {
+    "portmanteau": true,
+    "categories": [
+      {
+        "name": "gimp_file",
+        "description": "File operations: load, save, convert, get info",
+        "operations": ["load", "save", "convert", "info", "validate"]
+      },
+      {
+        "name": "gimp_transform",
+        "description": "Geometric transforms: resize, crop, rotate, flip, scale, perspective",
+        "operations": ["resize", "crop", "rotate", "flip", "scale", "perspective", "distort"]
+      },
+      {
+        "name": "gimp_color",
+        "description": "Color adjustments: brightness, contrast, levels, curves, balance, HSL",
+        "operations": ["brightness_contrast", "levels", "curves", "color_balance", "hue_saturation", "colorize", "threshold", "posterize", "desaturate", "invert"]
+      },
+      {
+        "name": "gimp_filter",
+        "description": "Filters and effects: blur, sharpen, noise, artistic, edge detection",
+        "operations": ["blur", "sharpen", "noise", "edge_detect", "artistic", "distort", "enhance"]
+      },
+      {
+        "name": "gimp_layer",
+        "description": "Layer management: create, duplicate, merge, reorder, properties",
+        "operations": ["create", "duplicate", "delete", "merge", "reorder", "properties", "flatten"]
+      },
+      {
+        "name": "gimp_analysis",
+        "description": "Image analysis: quality, statistics, histogram, compare, detect issues",
+        "operations": ["quality", "statistics", "histogram", "compare", "detect_issues", "report"]
+      },
+      {
+        "name": "gimp_batch",
+        "description": "Batch operations: resize, convert, process multiple images",
+        "operations": ["resize", "convert", "process", "watermark"]
+      },
+      {
+        "name": "gimp_system",
+        "description": "System operations: status, help, performance, cache, diagnostics",
+        "operations": ["status", "help", "performance", "cache", "diagnostics", "config"]
+      }
+    ]
+  },
+  "config": {
+    "gimp_executable": "auto",
+    "temp_directory": "auto",
+    "max_file_size_mb": 500,
+    "supported_formats": ["png", "jpg", "jpeg", "gif", "bmp", "tiff", "webp", "xcf", "psd"],
+    "default_quality": 95,
+    "log_level": "INFO"
+  }
+}
+
