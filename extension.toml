@@ -1,0 +1,10 @@
+id = "gimp-mcp"
+name = "GIMPImageEditor"
+version = "0.1.0"
+schema_version = 1
+authors = ["Sandra <sandraschipal@hotmail.com>"]
+description = "Professional image editing and manipulation"
+repository = "https://github.com/sandraschi/gimp-mcp"
+
+[context_servers.gimp-mcp]
+name = "GIMP Image Tools"
