@@ -53,6 +53,9 @@ from .tools import (
     PORTMANTEAU_TOOLS,
 )
 
+# Import agentic workflow tools
+from .agentic import register_agentic_tools
+
 # Legacy imports for backwards compatibility
 from .tools_legacy import (
     FileOperationTools,
@@ -81,7 +84,40 @@ class GimpMCPServer:
         self.config = load_config(config_path) if config_path else GimpConfig()
         
         # Initialize FastMCP with the server name
-        self.mcp = FastMCP("GIMP MCP Server")
+        self.mcp = FastMCP(
+            "GIMP MCP Server",
+            instructions="""You are GIMP MCP Server, a comprehensive FastMCP 2.14.3 server for professional image editing using GIMP.
+
+FASTMCP 2.14.3 FEATURES:
+- Conversational tool returns for natural AI interaction
+- Sampling capabilities for agentic workflows and complex image processing operations
+- Portmanteau design preventing tool explosion while maintaining full functionality
+
+CORE CAPABILITIES:
+- Professional Image Editing: Advanced photo manipulation, retouching, and creative effects
+- File Operations: Load, save, convert between formats, batch processing
+- Geometric Transforms: Resize, crop, rotate, flip, perspective correction
+- Color Adjustments: Brightness/contrast, levels, curves, color balance, HSL adjustments
+- Filters & Effects: Blur, sharpen, noise reduction, artistic filters, edge detection
+- Layer Management: Create, duplicate, merge, reorder, and manipulate image layers
+- Image Analysis: Quality assessment, statistics, histogram analysis, comparison tools
+- Batch Processing: Automated workflows for multiple images with consistent effects
+
+CONVERSATIONAL FEATURES:
+- Tools return natural language responses alongside structured data
+- Sampling allows autonomous orchestration of complex editing workflows
+- Agentic capabilities for intelligent image processing pipelines
+
+RESPONSE FORMAT:
+- All tools return dictionaries with 'success' boolean and 'message' for conversational responses
+- Error responses include 'error' field with descriptive message
+- Success responses include relevant data fields and natural language summaries
+
+PORTMANTEAU DESIGN:
+Tools are consolidated into logical groups to prevent tool explosion while maintaining full functionality.
+Each portmanteau tool handles multiple related operations through an 'operation' parameter.
+"""
+        )
         
         # Set up tool registration
         self.tools = {}  # Store tool instances for later reference
@@ -454,7 +490,10 @@ class GimpMCPServer:
                 "gimp_batch": gimp_batch_tool,
                 "gimp_system": gimp_system_tool,
             }
-            
+
+            # Register agentic workflow tools
+            register_agentic_tools()
+
             return True
             
         except Exception as e:
