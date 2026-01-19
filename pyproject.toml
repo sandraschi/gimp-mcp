@@ -33,7 +33,7 @@ classifiers = [
 
 dependencies = [
     # Core FastMCP dependencies - upgraded to 2.13+
-    "fastmcp>=2.13.0,<3.0.0",
+    "fastmcp>=2.14.3,<3.0.0",
     "pydantic>=2.0.0,<3.0.0",
     "typing-extensions>=4.5.0,<5.0.0",
     

@@ -4,13 +4,25 @@
 
 Professional image editing through Model Context Protocol (MCP) using GIMP.
 
-[![FastMCP](https://img.shields.io/badge/FastMCP-2.13%2B-blue)](https://github.com/jlowin/fastmcp)
+[![FastMCP](https://img.shields.io/badge/FastMCP-2.14.3%2B-blue)](https://github.com/jlowin/fastmcp)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-green)](https://python.org)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ## Overview
 
 GIMP-MCP provides Claude and other AI agents with professional image editing capabilities through GIMP (GNU Image Manipulation Program). This MCP server enables powerful image processing operations via a clean, standardized interface.
+
+## 🚀 **Coming Soon: AI Image Generation**
+
+**Transform natural language into professional raster images.** Tell Claude "create a fake photo of Benny driving a motorbike through a cyberpunk city" and watch it generate production-ready images automatically.
+
+- **🤖 AI-Powered Image Generation**: Natural language to professional raster graphics
+- **🎨 Multi-Model Support**: Integration with Flux, Stable Diffusion, and other AI models
+- **🛡️ Enterprise Security**: Validated image generation with content safety
+- **🔄 GIMP Post-Processing**: Professional editing and enhancement workflows
+- **📚 Image Repository**: Versioned asset management and intelligent search
+
+See [AI Image Generation Plan](docs/AI_IMAGE_GENERATION_PLAN.md) for technical details.
 
 ## v3.0.0 - Portmanteau Architecture
 
@@ -59,6 +71,30 @@ GIMP-MCP provides Claude and other AI agents with professional image editing cap
 - GIMP 2.10+ (GIMP 3.0+ recommended)
 
 ### Quick Install
+
+#### **Option 1: PyPI Package Install (Recommended)** ⭐
+
+**Simple pip installation - no repository cloning required!**
+
+```bash
+# Install from PyPI
+pip install gimp-mcp
+
+# Verify installation
+gimp-mcp --version
+```
+
+**Advantages:**
+- ✅ **Universal compatibility** - Works with any MCP client
+- ✅ **Simple installation** - Just one pip command
+- ✅ **Always up-to-date** - Install latest version directly
+- ✅ **No repository cloning** - Clean, minimal setup
+- ✅ **Easy updates** - `pip install --upgrade gimp-mcp`
+
+---
+
+#### **Option 2: Repository Installation (Development)**
+
 ```bash
 # Clone the repository
 git clone https://github.com/sandraschi/gimp-mcp.git
