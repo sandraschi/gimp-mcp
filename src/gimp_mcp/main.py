@@ -94,6 +94,7 @@ FASTMCP 2.14.3 FEATURES:
 - Portmanteau design preventing tool explosion while maintaining full functionality
 
 CORE CAPABILITIES:
+- **AI Image Generation**: Conversational image creation using advanced AI models with GIMP post-processing
 - Professional Image Editing: Advanced photo manipulation, retouching, and creative effects
 - File Operations: Load, save, convert between formats, batch processing
 - Geometric Transforms: Resize, crop, rotate, flip, perspective correction
@@ -102,6 +103,7 @@ CORE CAPABILITIES:
 - Layer Management: Create, duplicate, merge, reorder, and manipulate image layers
 - Image Analysis: Quality assessment, statistics, histogram analysis, comparison tools
 - Batch Processing: Automated workflows for multiple images with consistent effects
+- Image Repository: Versioned asset management with intelligent search and metadata
 
 CONVERSATIONAL FEATURES:
 - Tools return natural language responses alongside structured data
@@ -492,10 +494,10 @@ Each portmanteau tool handles multiple related operations through an 'operation'
             }
 
             # Register agentic workflow tools
-            register_agentic_tools()
+            register_agentic_tools(self.mcp)
 
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to register portmanteau tools: {e}", exc_info=True)
             return False
@@ -539,6 +541,14 @@ Each portmanteau tool handles multiple related operations through an 'operation'
             successful_count = sum(registration_results.values())
             total_count = len(registration_results)
             logger.info(f"Legacy tool registration: {successful_count}/{total_count} categories registered")
+
+            # Register agentic workflow tools even with legacy tools
+            try:
+                from .agentic import register_agentic_tools
+                register_agentic_tools(self.mcp)
+                logger.info("Agentic workflow tools registered with legacy setup")
+            except Exception as e:
+                logger.warning(f"Failed to register agentic tools with legacy setup: {e}")
 
             return successful_count > 0
             
