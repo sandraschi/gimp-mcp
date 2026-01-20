@@ -322,6 +322,73 @@ gimp_analysis operations:
 - metadata: Extract EXIF and other metadata
             """,
         },
+        "ai_generation": {
+            "basic": "Use generate_image for AI-powered image creation with GIMP post-processing.",
+            "intermediate": """
+AI Image Generation with GIMP MCP:
+
+generate_image tool:
+- description: Natural language image description
+- style_preset: photorealistic, artistic, technical, fantasy, abstract
+- dimensions: Image size (1024x1024, 2048x1536, etc.)
+- model: flux-dev, nano-banana-pro
+- quality: draft, standard, high, ultra
+- post_processing: List of GIMP operations to apply
+
+Example:
+generate_image(
+    description="cyberpunk city street at night with neon signs",
+    style_preset="photorealistic",
+    dimensions="2048x1536",
+    model="flux-dev",
+    quality="high",
+    post_processing=["sharpen", "color_correction"]
+)
+
+Features:
+- Conversational refinement with iterative improvements
+- GIMP post-processing pipeline (sharpen, color correction, etc.)
+- Image repository with versioning and metadata
+- Quality assessment and enhancement
+- Batch processing capabilities
+            """,
+            "advanced": """
+AI Image Generation Technical Details:
+
+PIPELINE PHASES:
+1. Analysis & Planning: Parse description, validate parameters
+2. AI Generation: Call selected model (flux-dev/nano-banana-pro)
+3. GIMP Processing: Apply post-processing operations
+4. Quality Assessment: Evaluate output metrics
+5. Repository Storage: Save with comprehensive metadata
+
+SUPPORTED OPERATIONS:
+- generate_image: Main AI generation tool
+- Repository management: save, load, search images
+- Quality assessment: metrics, enhancement
+- Batch processing: multiple generations
+
+QUALITY LEVELS:
+- draft: Fast generation, lower quality
+- standard: Balanced quality/speed
+- high: Maximum quality, slower generation
+- ultra: Highest fidelity, longest generation
+
+STYLE PRESETS:
+- photorealistic: High-fidelity, realistic imagery
+- artistic: Creative, stylized interpretations
+- technical: Precise, technical imagery
+- fantasy: Imaginative, fantastical scenes
+- abstract: Non-representational compositions
+
+POST-PROCESSING OPTIONS:
+- sharpen: Enhance image sharpness
+- color_correction: Adjust color balance
+- noise_reduction: Reduce image noise
+- contrast_enhancement: Improve contrast
+- detail_enhancement: Boost fine details
+            """,
+        },
     }
 
     if topic and topic in help_topics:

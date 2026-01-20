@@ -12,17 +12,33 @@ Professional image editing through Model Context Protocol (MCP) using GIMP.
 
 GIMP-MCP provides Claude and other AI agents with professional image editing capabilities through GIMP (GNU Image Manipulation Program). This MCP server enables powerful image processing operations via a clean, standardized interface.
 
-## 🚀 **Coming Soon: AI Image Generation**
+## 🚀 **AI Image Generation System**
 
 **Transform natural language into professional raster images.** Tell Claude "create a fake photo of Benny driving a motorbike through a cyberpunk city" and watch it generate production-ready images automatically.
 
+### 🎯 **Now Available in v3.0.0!**
 - **🤖 AI-Powered Image Generation**: Natural language to professional raster graphics
-- **🎨 Multi-Model Support**: Integration with Flux, Stable Diffusion, and other AI models
+- **🎨 Multi-Model Support**: Integration with Flux (flux-dev) and nano-banana-pro models
 - **🛡️ Enterprise Security**: Validated image generation with content safety
 - **🔄 GIMP Post-Processing**: Professional editing and enhancement workflows
 - **📚 Image Repository**: Versioned asset management and intelligent search
+- **🎨 Style Presets**: photorealistic, artistic, technical, fantasy, abstract
+- **⚡ Quality Levels**: draft, standard, high, ultra with intelligent optimization
 
-See [AI Image Generation Plan](docs/AI_IMAGE_GENERATION_PLAN.md) for technical details.
+### Quick Example
+```python
+# Generate a photorealistic cyberpunk scene
+generate_image(
+    description="cyberpunk city street at night with neon signs and flying cars",
+    style_preset="photorealistic",
+    dimensions="2048x1536",
+    model="flux-dev",
+    quality="high",
+    post_processing=["sharpen", "color_correction"]
+)
+```
+
+See [AI Image Generation Documentation](docs/USAGE.md#ai-image-generation) for complete usage guide.
 
 ## v3.0.0 - Portmanteau Architecture
 
@@ -37,6 +53,7 @@ See [AI Image Generation Plan](docs/AI_IMAGE_GENERATION_PLAN.md) for technical d
 
 | Tool | Operations | Description |
 |------|------------|-------------|
+| `generate_image` | 1 | **AI Image Generation**: Create images from natural language with GIMP post-processing |
 | `gimp_file` | 6 | File operations: load, save, convert, info, validate |
 | `gimp_transform` | 7 | Transforms: resize, crop, rotate, flip, scale, perspective |
 | `gimp_color` | 12 | Color: brightness, contrast, levels, curves, HSL, auto |
@@ -47,6 +64,15 @@ See [AI Image Generation Plan](docs/AI_IMAGE_GENERATION_PLAN.md) for technical d
 | `gimp_system` | 8 | System: status, help, diagnostics, cache, config |
 
 ## Features
+
+### 🤖 AI Image Generation (New in v3.0.0)
+- **Conversational Creation**: Natural language to professional raster images
+- **Multi-Model Support**: Flux-dev and nano-banana-pro AI models
+- **Style Presets**: photorealistic, artistic, technical, fantasy, abstract
+- **Quality Levels**: draft, standard, high, ultra with intelligent optimization
+- **GIMP Post-Processing**: Automatic application of professional editing operations
+- **Image Repository**: Versioned asset management with metadata and search
+- **Iterative Refinement**: Conversational improvement cycles
 
 ### Core Image Operations
 - **File Management**: Load, save, and convert between formats (JPEG, PNG, WebP, TIFF, etc.)
