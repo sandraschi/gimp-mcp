@@ -207,7 +207,7 @@ def register_agentic_tools(mcp_instance=None):
                 "message": "An unexpected error occurred during image generation. Try simplifying your request or contact support."
             }
 
-    @mcp.tool()
+    @mcp_instance.tool()
     async def agentic_gimp_workflow(
         workflow_prompt: str,
         available_tools: List[str],
@@ -268,7 +268,7 @@ def register_agentic_tools(mcp_instance=None):
                 "message": "An error occurred while setting up the agentic workflow."
             }
 
-    @mcp.tool()
+    @mcp_instance.tool()
     async def intelligent_image_processing(
         images: List[Dict[str, Any]],
         processing_goal: str,
@@ -330,7 +330,7 @@ def register_agentic_tools(mcp_instance=None):
                 "message": "An error occurred while setting up intelligent image processing."
             }
 
-    @mcp.tool()
+    @mcp_instance.tool()
     async def conversational_gimp_assistant(
         user_query: str,
         context_level: str = "comprehensive",

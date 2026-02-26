@@ -90,8 +90,28 @@ See [AI Image Generation Documentation](docs/USAGE.md#ai-image-generation) for c
 - **Security focused**: File validation and access controls
 - **FastMCP 2.13+**: Modern MCP architecture with portmanteau tools
 
-## Installation
+## 🚀 Installation
 
+### Prerequisites
+- [uv](https://docs.astral.sh/uv/) installed (RECOMMENDED)
+- Python 3.12+
+
+### 📦 Quick Start
+Run immediately via `uvx`:
+```bash
+uvx gimp-mcp
+```
+
+### 🎯 Claude Desktop Integration
+Add to your `claude_desktop_config.json`:
+```json
+"mcpServers": {
+  "gimp-mcp": {
+    "command": "uv",
+    "args": ["--directory", "D:/Dev/repos/gimp-mcp", "run", "gimp-mcp"]
+  }
+}
+```
 ### Prerequisites
 - Python 3.10 or higher
 - GIMP 2.10+ (GIMP 3.0+ recommended)
@@ -119,26 +139,50 @@ gimp-mcp --version
 
 ---
 
-#### **Option 2: Repository Installation (Development)**
+## 🚀 Installation
 
+### Prerequisites
+- [uv](https://docs.astral.sh/uv/) installed (RECOMMENDED)
+- Python 3.12+
+
+### 📦 Quick Start
+Run immediately via `uvx`:
 ```bash
-# Clone the repository
-git clone https://github.com/sandraschi/gimp-mcp.git
-cd gimp-mcp
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Install the package
-pip install -e .
+uvx gimp-mcp
 ```
 
-### Verify Installation
+### 🎯 Claude Desktop Integration
+Add to your `claude_desktop_config.json`:
+```json
+"mcpServers": {
+  "gimp-mcp": {
+    "command": "uv",
+    "args": ["--directory", "D:/Dev/repos/gimp-mcp", "run", "gimp-mcp"]
+  }
+}
+```
+## 🚀 Installation
+
+### Prerequisites
+- [uv](https://docs.astral.sh/uv/) installed (RECOMMENDED)
+- Python 3.12+
+
+### 📦 Quick Start
+Run immediately via `uvx`:
 ```bash
-# Check GIMP detection
-gimp-mcp --validate-only
+uvx gimp-mcp
 ```
 
+### 🎯 Claude Desktop Integration
+Add to your `claude_desktop_config.json`:
+```json
+"mcpServers": {
+  "gimp-mcp": {
+    "command": "uv",
+    "args": ["--directory", "D:/Dev/repos/gimp-mcp", "run", "gimp-mcp"]
+  }
+}
+```
 ## Configuration
 
 GIMP-MCP works out of the box with automatic GIMP detection and sensible defaults.
@@ -244,6 +288,17 @@ gimp_system(operation="cache", cache_action="clear")
 ```
 **Operations**: `status`, `help`, `diagnostics`, `cache`, `config`, `performance`, `tools`, `version`
 
+## 📦 Packaging & Distribution
+
+This repository is SOTA 2026 compliant and uses the officially validated `@anthropic-ai/mcpb` workflow for distribution.
+
+### Pack Extension
+To generate a `.mcpb` distribution bundle with complete source code and automated build exclusions:
+```bash
+# SOTA 2026 standard pack command
+mcpb pack . dist/gimp-mcp.mcpb
+```
+
 ## Development Status
 
 **Current Phase**: v3.0.0 Portmanteau Architecture (COMPLETE)
@@ -275,3 +330,15 @@ See the detailed implementation plan in `docs/IMPLEMENTATION_ROADMAP.md` for dev
 ## License
 
 MIT License - see LICENSE file for details.
+
+
+## 🌐 Webapp Dashboard
+
+This MCP server includes a free, premium web interface for monitoring and control.
+By default, the web dashboard runs on port **10772**.
+*(Assigned ports: **10772** (Frontend), **10773** (Backend))*
+
+To start the webapp:
+1. Navigate to the `webapp` (or `web`, `frontend`) directory.
+2. Run `start.bat` (Windows) or `./start.ps1` (PowerShell).
+3. Open `http://localhost:10772` in your browser.

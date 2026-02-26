@@ -11,7 +11,7 @@ authors = [
     {name = "Sandra Schipal", email = "sandra@sandraschi.dev"},
     {name = "FastMCP Community", email = "fastmcp@example.com"}
 ]
-requires-python = ">=3.10,<3.14"
+requires-python = ">=3.12"
 license = {text = "MIT"}
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -104,7 +104,6 @@ dev = [
     "mkdocs-redirects>=1.1.2,<2.0.0",
     
     # Type stubs
-    "types-python-dotenv>=1.0.0,<2.0.0",
     "types-psutil>=5.9.0,<6.0.0",
     "types-python-dateutil>=2.8.0,<3.0.0",
     "types-requests>=2.28.0,<3.0.0",

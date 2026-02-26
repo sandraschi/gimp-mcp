@@ -31,21 +31,13 @@ from typing import Optional, Dict, Any
 
 from fastmcp import FastMCP
 
-from .transport import run_server, run_server_async
 from .config import GimpConfig, load_config
-from .gimp_detector import GimpDetector
+from .gimp_detector import GimpDetector  
 from .cli_wrapper import GimpCliWrapper
 from .logging_config import (
-    setup_logging,
-    get_logger,
-    log_server_start,
-    log_server_stop,
-    log_tool_registration,
-    log_gimp_detection,
-    log_config_load,
-    log_operation_start,
-    log_operation_success,
-    log_operation_error,
+    setup_logging, get_logger, log_server_start, log_server_stop,
+    log_tool_registration, log_gimp_detection, log_config_load,
+    log_operation_start, log_operation_success, log_operation_error
 )
 
 # Import portmanteau tools (v3.0.0 architecture)
@@ -74,24 +66,23 @@ from .tools_legacy import (
     HelpTools,
     LayerManagementTools,
     ImageAnalysisTools,
-    PerformanceTools,
+    PerformanceTools
 )
 
 # Configure structured logging
 logger = setup_logging(component="main")
 
-
 class GimpMCPServer:
     """Main server class for GIMP MCP integration."""
-
+    
     def __init__(self, config_path: Optional[Path] = None):
         """Initialize the GIMP MCP server.
-
+        
         Args:
             config_path: Optional path to configuration file
         """
         self.config = load_config(config_path) if config_path else GimpConfig()
-
+        
         # Initialize FastMCP with the server name
         self.mcp = FastMCP(
             "GIMP MCP Server",
@@ -127,17 +118,18 @@ RESPONSE FORMAT:
 PORTMANTEAU DESIGN:
 Tools are consolidated into logical groups to prevent tool explosion while maintaining full functionality.
 Each portmanteau tool handles multiple related operations through an 'operation' parameter.
-""",
+"""
         )
-
+        
         # Set up tool registration
         self.tools = {}  # Store tool instances for later reference
-
+        
         # Set up logging
         logging.basicConfig(
-            level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            level=logging.INFO,
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         )
-
+        
         self.logger = logging.getLogger(__name__)
         self.cli_wrapper: Optional[GimpCliWrapper] = None
 
@@ -150,14 +142,14 @@ Each portmanteau tool handles multiple related operations through an 'operation'
         """
         try:
             # Check required configuration attributes
-            required_attrs = ["allowed_directories", "max_file_size_mb"]
+            required_attrs = ['allowed_directories', 'max_file_size_mb']
             for attr in required_attrs:
                 if not hasattr(self.config, attr):
                     logger.error(f"Missing required configuration attribute: {attr}")
                     return False
 
             # Validate allowed directories exist and are accessible
-            allowed_dirs = getattr(self.config, "allowed_directories", [])
+            allowed_dirs = getattr(self.config, 'allowed_directories', [])
             if not allowed_dirs:
                 logger.warning("No allowed directories configured - this may limit functionality")
             else:
@@ -170,7 +162,7 @@ Each portmanteau tool handles multiple related operations through an 'operation'
                         return False
 
             # Validate max file size is reasonable
-            max_size = getattr(self.config, "max_file_size_mb", 100)
+            max_size = getattr(self.config, 'max_file_size_mb', 100)
             if not isinstance(max_size, (int, float)) or max_size <= 0:
                 logger.error(f"Invalid max_file_size_mb: {max_size}")
                 return False
@@ -214,7 +206,7 @@ Each portmanteau tool handles multiple related operations through an 'operation'
             logger.error(f"Failed to register {category_name} tools: {e}", exc_info=True)
             # Don't crash - continue with other categories
             return False
-
+    
     async def initialize(self) -> bool:
         """
         Initialize the GIMP MCP Server with comprehensive error handling and recovery.
@@ -233,21 +225,21 @@ Each portmanteau tool handles multiple related operations through an 'operation'
             if not self._validate_configuration():
                 logger.error("Configuration validation failed - aborting initialization")
                 return False
-
+            
             # Initialize GIMP detector
             self.gimp_detector = GimpDetector()
-
+            
             # Try to detect GIMP installation
             gimp_path = None
             try:
                 gimp_path = self.gimp_detector.detect_gimp_installation()
             except Exception as e:
                 logger.warning(f"Error detecting GIMP installation: {e}")
-
+            
             if gimp_path:
                 logger.info(f"Found GIMP at: {gimp_path}")
                 self.config.gimp_executable = str(gimp_path)
-
+                
                 # Initialize CLI wrapper
                 try:
                     self.cli_wrapper = GimpCliWrapper(self.config)
@@ -258,11 +250,11 @@ Each portmanteau tool handles multiple related operations through an 'operation'
             else:
                 logger.warning("GIMP not found. Running in limited functionality mode")
                 self.cli_wrapper = None
-
+            
             # Register portmanteau tools (v3.0.0 architecture)
             logger.info("Registering portmanteau tools...")
             portmanteau_registered = self._register_portmanteau_tools()
-
+            
             if portmanteau_registered:
                 logger.info(f"Successfully registered {len(PORTMANTEAU_TOOLS)} portmanteau tools")
                 # Count total operations
@@ -272,24 +264,24 @@ Each portmanteau tool handles multiple related operations through an 'operation'
                 logger.warning("Portmanteau registration failed, falling back to legacy tools")
                 # Fall back to legacy tool registration
                 return await self._initialize_legacy_tools()
-
+            
             return True
-
+            
         except Exception as e:
             logger.error(f"Critical error during initialization: {e}", exc_info=True)
             return False
-
+    
     def _register_portmanteau_tools(self) -> bool:
         """
         Register all portmanteau tools with FastMCP.
-
+        
         Returns:
             bool: True if registration successful
         """
         try:
             # Register each portmanteau tool with the MCP instance
             # We wrap them to inject cli_wrapper and config
-
+            
             @self.mcp.tool()
             async def gimp_file_tool(
                 operation: str,
@@ -312,7 +304,7 @@ Each portmanteau tool handles multiple related operations through an 'operation'
                     cli_wrapper=self.cli_wrapper,
                     config=self.config,
                 )
-
+            
             @self.mcp.tool()
             async def gimp_transform_tool(
                 operation: str,
@@ -335,15 +327,14 @@ Each portmanteau tool handles multiple related operations through an 'operation'
                     width=width,
                     height=height,
                     maintain_aspect=maintain_aspect,
-                    x=x,
-                    y=y,
+                    x=x, y=y,
                     degrees=degrees,
                     direction=direction,
                     fill_color=fill_color,
                     cli_wrapper=self.cli_wrapper,
                     config=self.config,
                 )
-
+            
             @self.mcp.tool()
             async def gimp_color_tool(
                 operation: str,
@@ -376,7 +367,7 @@ Each portmanteau tool handles multiple related operations through an 'operation'
                     cli_wrapper=self.cli_wrapper,
                     config=self.config,
                 )
-
+            
             @self.mcp.tool()
             async def gimp_filter_tool(
                 operation: str,
@@ -399,7 +390,7 @@ Each portmanteau tool handles multiple related operations through an 'operation'
                     cli_wrapper=self.cli_wrapper,
                     config=self.config,
                 )
-
+            
             @self.mcp.tool()
             async def gimp_layer_tool(
                 operation: str,
@@ -424,7 +415,7 @@ Each portmanteau tool handles multiple related operations through an 'operation'
                     cli_wrapper=self.cli_wrapper,
                     config=self.config,
                 )
-
+            
             @self.mcp.tool()
             async def gimp_analysis_tool(
                 operation: str,
@@ -445,7 +436,7 @@ Each portmanteau tool handles multiple related operations through an 'operation'
                     cli_wrapper=self.cli_wrapper,
                     config=self.config,
                 )
-
+            
             @self.mcp.tool()
             async def gimp_batch_tool(
                 operation: str,
@@ -472,7 +463,7 @@ Each portmanteau tool handles multiple related operations through an 'operation'
                     cli_wrapper=self.cli_wrapper,
                     config=self.config,
                 )
-
+            
             @self.mcp.tool()
             async def gimp_system_tool(
                 operation: str,
@@ -489,7 +480,7 @@ Each portmanteau tool handles multiple related operations through an 'operation'
                     cli_wrapper=self.cli_wrapper,
                     config=self.config,
                 )
-
+            
             # Track registered tools
             self.tools = {
                 "gimp_file": gimp_file_tool,
@@ -510,29 +501,22 @@ Each portmanteau tool handles multiple related operations through an 'operation'
         except Exception as e:
             logger.error(f"Failed to register portmanteau tools: {e}", exc_info=True)
             return False
-
+    
     async def _initialize_legacy_tools(self) -> bool:
         """
         Fall back to legacy tool registration (for backwards compatibility).
-
+        
         Returns:
             bool: True if initialization successful
         """
         try:
             # Import all tool categories from the legacy tools package
             from .tools_legacy import (
-                HelpTools,
-                StatusTools,
-                FileOperationTools,
-                TransformTools,
-                ColorAdjustmentTools,
-                LayerManagementTools,
-                ImageAnalysisTools,
-                FilterTools,
-                BatchProcessingTools,
-                PerformanceTools,
+                HelpTools, StatusTools, FileOperationTools, TransformTools, ColorAdjustmentTools,
+                LayerManagementTools, ImageAnalysisTools, FilterTools, BatchProcessingTools,
+                PerformanceTools
             )
-
+            
             # Define tool categories with their constructors
             tool_categories = [
                 ("help", HelpTools, [self.cli_wrapper, self.config, {}]),
@@ -544,9 +528,9 @@ Each portmanteau tool handles multiple related operations through an 'operation'
                 ("image", ImageAnalysisTools, [self.cli_wrapper, self.config]),
                 ("filter", FilterTools, [self.cli_wrapper, self.config]),
                 ("batch", BatchProcessingTools, [self.cli_wrapper, self.config]),
-                ("performance", PerformanceTools, [self.cli_wrapper, self.config]),
+                ("performance", PerformanceTools, [self.cli_wrapper, self.config])
             ]
-
+            
             # Register tool categories with safe error handling
             registration_results = {}
             for category_name, tool_class, init_args in tool_categories:
@@ -556,110 +540,126 @@ Each portmanteau tool handles multiple related operations through an 'operation'
             # Log registration summary
             successful_count = sum(registration_results.values())
             total_count = len(registration_results)
-            logger.info(
-                f"Legacy tool registration: {successful_count}/{total_count} categories registered"
-            )
+            logger.info(f"Legacy tool registration: {successful_count}/{total_count} categories registered")
 
             # Register agentic workflow tools even with legacy tools
             try:
                 from .agentic import register_agentic_tools
-
                 register_agentic_tools(self.mcp)
                 logger.info("Agentic workflow tools registered with legacy setup")
             except Exception as e:
                 logger.warning(f"Failed to register agentic tools with legacy setup: {e}")
 
             return successful_count > 0
-
+            
         except Exception as e:
             logger.error(f"Legacy tool initialization failed: {e}", exc_info=True)
             return False
-
-    def run_http(self, host: str = "0.0.0.0", port: int = 8000) -> None:
+    
+    def run_http(self, host: str = '0.0.0.0', port: int = 8000) -> None:
         """Run the server in HTTP mode.
-
+        
         Args:
             host: Host to bind to
             port: Port to listen on
         """
         # Check if we have tool categories registered
         if not self.tools:
-            logger.warning(
-                "No tool categories were registered. Running in limited functionality mode."
-            )
+            logger.warning("No tool categories were registered. Running in limited functionality mode.")
         else:
             tool_count = len(self.tools)
             logger.info(f"Starting HTTP server with {tool_count} tool categories registered")
-
+            
         # Start the server
         logger.info(f"Starting HTTP server on {host}:{port}")
-        run_server(self.mcp, server_name="GIMP MCP Server")
+        self.mcp.run(transport="http", host=host, port=port)
 
     def run_stdio(self) -> None:
         """Run the server in stdio mode."""
         # Check if we have tool categories registered
         if not self.tools:
-            logger.warning(
-                "No tool categories were registered. Running in limited functionality mode."
-            )
+            logger.warning("No tool categories were registered. Running in limited functionality mode.")
         else:
             tool_count = len(self.tools)
             logger.info(f"Starting stdio server with {tool_count} tool categories registered")
-
+            
         # Start the server
         logger.info("Starting stdio server")
-        run_server(self.mcp, server_name="GIMP MCP Server")
+        self.mcp.run(transport="stdio")
 
-
-async def main_async():
+def main():
     # Configure basic logging first to capture early messages
     logging.basicConfig(
         level=logging.INFO,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         force=True,
         handlers=[
             logging.StreamHandler(sys.stderr)  # Ensure logs go to stderr
-        ],
+        ]
     )
     logger = logging.getLogger(__name__)
     logger.info("Starting GIMP MCP Server...")
-
-    # Create parser using standardized transport parser
-    from .transport import create_argument_parser
-
-    parser = create_argument_parser("GIMP MCP Server")
-
-    # Add GIMP-specific arguments
-    parser.add_argument("--config", type=str, help="Path to config file", default=None)
+    
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description='GIMP MCP Server')
+    parser.add_argument(
+        "--config", 
+        type=str, 
+        help='Path to config file',
+        default=None
+    )
+    parser.add_argument(
+        "--mode", 
+        choices=["stdio", "http"], 
+        default="stdio",
+        help="Server mode (default: stdio)"
+    )
+    parser.add_argument(
+        "--port", 
+        type=int, 
+        default=8000,
+        help="Port for HTTP server (default: 8000)"
+    )
+    parser.add_argument(
+        "--host", 
+        default="0.0.0.0",
+        help="Host to bind to (default: 0.0.0.0)"
+    )
     parser.add_argument(
         "--log-level",
         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
         default="INFO",
-        help="Set the logging level (default: INFO)",
+        help="Set the logging level (default: INFO)"
     )
-
+    
     args = parser.parse_args()
-
+    logger.debug(f"Command line arguments: {args}")
+    
     # Configure logging
     log_level = getattr(logging, args.log_level)
     logging.basicConfig(
         level=log_level,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        force=True,  # Force reconfiguration of root logger
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        force=True  # Force reconfiguration of root logger
     )
-
+    
+    logger.debug(f"Logging configured at level: {args.log_level}")
     logger.info(f"Starting GIMP MCP Server with log level: {args.log_level}")
-
+    
     # Initialize server
+    logger.debug("Initializing server...")
     try:
         server = GimpMCPServer(config_path=Path(args.config) if args.config else None)
+        logger.debug("Server instance created")
     except Exception as e:
         logger.error(f"Error creating server: {e}")
-        return 1
-
+        raise
+    
     # Initialize server components
+    logger.debug("Initializing server components...")
     try:
-        init_result = await server.initialize()
+        init_result = asyncio.run(server.initialize())
+        logger.debug(f"Server initialization result: {init_result}")
         if not init_result:
             logger.error("Failed to initialize GIMP MCP Server")
             return 1
@@ -667,23 +667,23 @@ async def main_async():
         logger.error(f"Error during initialization: {e}")
         logger.exception("Failed to initialize GIMP MCP Server")
         return 1
-
+        
     try:
-        # Pass args to run_server_async to let it handle transport selection
-        await run_server_async(server.mcp, args=args, server_name="GIMP MCP Server")
+        if args.mode == "http":
+            logger.info(f"Starting HTTP server on {args.host}:{args.port}")
+            server.run_http(host=args.host, port=args.port)
+        else:
+            logger.info("Starting stdio server")
+            server.run_stdio()
     except KeyboardInterrupt:
         logger.info("Server stopped by user")
     except Exception as e:
         logger.exception("Server error:")
+        logger.error(f"Server error: {e}")
         return 1
-
+        
     logger.info("Server shutdown complete")
     return 0
-
-
-def main():
-    return asyncio.run(main_async())
-
 
 if __name__ == "__main__":
     main()
