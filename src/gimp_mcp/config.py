@@ -27,6 +27,57 @@ class GimpConfig(BaseModel):
         description="Path to GIMP executable (auto-detected if None)"
     )
     
+    def detect_gimp_executable(self) -> Optional[str]:
+        """
+        Detect GIMP executable path based on current operating system.
+        
+        Returns:
+            Optional[str]: Path to GIMP executable if found, otherwise None.
+        """
+        import platform
+        system = platform.system().lower()
+        
+        if system == "windows":
+            # Common GIMP installation paths on Windows
+            paths = [
+                # GIMP 3.0 (future-proofing)
+                r"C:\Program Files\GIMP 3\bin\gimp-console-3.0.exe",
+                r"C:\Program Files\GIMP 3\bin\gimp-3.0.exe",
+                # GIMP 2.10 (current stable)
+                r"C:\Program Files\GIMP 2\bin\gimp-console-2.10.exe",
+                r"C:\Program Files\GIMP 2\bin\gimp-2.10.exe",
+                # GIMP in PATH via where.exe check fallback
+            ]
+            
+            for path in paths:
+                if Path(path).exists():
+                    return path
+            
+            # Try finding in PATH
+            try:
+                import shutil
+                path = shutil.which("gimp-console-2.10") or shutil.which("gimp-2.10") or shutil.which("gimp")
+                if path:
+                    return path
+            except Exception:
+                pass
+                
+        elif system == "linux":
+            # Common Linux locations or via PATH
+            import shutil
+            return shutil.which("gimp") or "/usr/bin/gimp" or "/usr/local/bin/gimp"
+            
+        elif system == "darwin":  # macOS
+            paths = [
+                "/Applications/GIMP.app/Contents/MacOS/gimp",
+                "/Applications/Gimp-2.10.app/Contents/MacOS/gimp",
+            ]
+            for path in paths:
+                if Path(path).exists():
+                    return path
+            
+        return None
+    
     # Performance Settings
     max_concurrent_processes: int = Field(
         default=3,
@@ -102,6 +153,22 @@ class GimpConfig(BaseModel):
     enable_plugins: bool = Field(
         default=True,
         description="Enable plugin system"
+    )
+    
+    # Bridge Configuration
+    enable_live_mode: bool = Field(
+        default=True,
+        description="Enable real-time 'Live' interaction mode with running GIMP instance"
+    )
+    
+    bridge_host: str = Field(
+        default="127.0.0.1",
+        description="Host for the GIMP Live Bridge"
+    )
+    
+    bridge_port: int = Field(
+        default=10774,
+        description="Port for the GIMP Live Bridge"
     )
     
     plugin_dirs: List[str] = Field(
@@ -238,7 +305,18 @@ class GimpConfig(BaseModel):
                     logger.warning(f"Failed to load config from {config_path}: {e}")
         
         logger.info("Using default configuration")
-        return cls()
+        config = cls()
+        
+        # Auto-detect GIMP executable if not provided
+        if not config.gimp_executable:
+            detected_path = config.detect_gimp_executable()
+            if detected_path:
+                logger.info(f"Auto-detected GIMP executable: {detected_path}")
+                config.gimp_executable = detected_path
+            else:
+                logger.warning("GIMP executable not found in common locations. Please configure it manually.")
+                
+        return config
     
     def save_to_file(self, config_path: Union[str, Path]) -> None:
         """

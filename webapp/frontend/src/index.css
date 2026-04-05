@@ -1,8 +1,10 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @layer base {
   :root {
-    --background: 240 10% 3.9%;
+    --background: 240 10% 2.0%;
     --foreground: 0 0% 98%;
     --card: 240 10% 3.9%;
     --card-foreground: 0 0% 98%;
@@ -11,7 +13,7 @@
     --primary: 263 70% 50%;
     /* GIMP Purple-ish */
     --primary-foreground: 210 40% 98%;
-    --secondary: 240 3.7% 15.9%;
+    --secondary: 240 3.7% 12.9%;
     --secondary-foreground: 0 0% 98%;
     --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
@@ -22,7 +24,12 @@
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
     --ring: 240 4.9% 83.9%;
-    --radius: 0.5rem;
+    --radius: 0.75rem;
+    
+    /* Glassmorphism tokens */
+    --glass-bg: 240 10% 4% / 0.7;
+    --glass-border: 0 0% 100% / 0.1;
+    --glass-blur: 16px;
   }
 }
 
@@ -32,6 +39,19 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply bg-background text-foreground font-sans antialiased selection:bg-primary/30;
+    background-image: 
+      radial-gradient(at 0% 0%, hsla(263, 70%, 50%, 0.1) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, hsla(240, 10%, 4%, 0.1) 0px, transparent 50%);
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    @apply bg-[hsl(var(--glass-bg))] backdrop-blur-[var(--glass-blur)] border border-[hsl(var(--glass-border))] shadow-2xl;
+  }
+  
+  .premium-gradient {
+    @apply bg-gradient-to-br from-primary via-purple-500 to-indigo-600;
   }
 }

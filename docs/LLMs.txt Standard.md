@@ -161,7 +161,7 @@ Unlike robots.txt or sitemaps (designed for crawlers), llms.txt is built specifi
 1. **✅ Auto-generate llms.txt** from tool metadata (DONE)
 2. **✅ Validation and preview tools** (DONE) 
 3. **Next**: Add to CI/CD pipeline for automatic updates
-4. **Future**: Integration with DXT packaging
+4. **Future**: Integration with MCPB packaging
 
 ### **General Best Practices:**
 1. **Start simple**: Basic llms.txt with core sections

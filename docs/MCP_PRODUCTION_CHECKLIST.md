@@ -68,7 +68,7 @@ Use this checklist to audit any MCP server repo before marking it production-rea
 
 ## 📦 PACKAGING & DISTRIBUTION
 
-- [ ] **DXT/MCPB Workflow:**
+- [ ] **MCPB Workflow:**
   - [ ] Anthropic `mcpb validate` passes successfully (DO NOT use `mcpb init` or `mcpb publish`)
   - [ ] Anthropic `mcpb pack` creates valid package
   - [ ] Package validates in Claude Desktop Extensions directory
@@ -187,7 +187,7 @@ Use this checklist to audit any MCP server repo before marking it production-rea
 
 **🔥 CRITICAL:** Dual interface (MCP + FastAPI) with `/api/docs` and `/health` endpoints is MANDATORY  
 **🎯 TESTING:** Local test scripts + Postman collection required for production readiness  
-**⚡ DXT:** Use only `mcpb validate` and `mcpb pack` - NO `mcpb init` or `mcpb publish`
+**⚡ MCPB:** Use only `mcpb validate` and `mcpb pack` - NO `mcpb init` or `mcpb publish`
 
 **Auditor:** _____________  
 **Date:** _____________  

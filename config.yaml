@@ -1,0 +1,23 @@
+# GIMP MCP Server Configuration
+# This file overrides default settings.
+# GIMP auto-detection is enabled, but you can manually specify the path below:
+
+# GIMP Configuration
+# gimp_executable: "C:\\Program Files\\GIMP 2\\bin\\gimp-console-2.10.exe"
+
+# Performance Settings
+max_concurrent_processes: 3
+process_timeout: 30
+
+# File Handling
+# temp_directory: "D:\\Dev\\repos\\gimp-mcp\\tmp"
+max_file_size_mb: 100
+preserve_metadata: true
+
+# Image Processing Defaults
+default_quality: 95
+default_interpolation: "lanczos"
+
+# Logging
+log_level: "INFO"
+enable_performance_logging: false

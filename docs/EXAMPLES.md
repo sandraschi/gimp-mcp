@@ -1,256 +1,87 @@
-# Blender-MCP Examples
+# 🎨 GIMP-MCP Examples
 
-This document provides practical examples of how to use Blender-MCP tools for common tasks.
+This document provides practical examples of how to use GIMP-MCP tools for common tasks.
 
-## Table of Contents
-- [Basic Scene Setup](#basic-scene-setup)
-- [Material Creation](#material-creation)
-- [Animation](#animation)
-- [Physics Simulation](#physics-simulation)
-- [Rendering](#rendering)
-- [Exporting](#exporting)
+## 🖼️ File Operations
 
-## Basic Scene Setup
-
-### Create a New Scene with Basic Lighting
-
+### Get Image Information
+To get detailed information about an image file:
 ```python
-# Create a new scene
-await create_scene(name="MyScene")
-
-# Add a camera
-await create_camera(
-    name="MainCamera",
-    location=(5, -5, 3),
-    rotation=(1.0, 0.0, 0.8)
-)
-
-# Add a sun light
-await create_light(
-    name="Sun",
-    light_type='SUN',
-    location=(0, 0, 10),
-    energy=2.0,
-    rotation=(0.6, 0, 0.8)
-)
-
-# Add a ground plane
-await create_plane(
-    name="Ground",
-    size=10.0,
-    location=(0, 0, 0)
-)
+# Call the gimp_file:get_image_info tool
+await use_tool('gimp_file', 'get_image_info', {
+    'input_path': 'C:/Images/photo.jpg'
+})
 ```
 
-## Material Creation
-
-### Create and Assign a Metallic Material
-
+### Convert Image Format
+To convert an image from one format to another (e.g., JPEG to WebP):
 ```python
-# Create a metallic material
-await create_material(
-    name="Chrome",
-    material_type='PRINCIPLED',
-    color=(0.8, 0.8, 0.8),
-    metallic=1.0,
-    roughness=0.1
-)
-
-# Create a sphere
-await create_sphere(
-    name="MetalSphere",
-    location=(0, 0, 1),
-    radius=1.0
-)
-
-# Assign the material
-await assign_material(
-    object_name="MetalSphere",
-    material_name="Chrome"
-)
+# Call the gimp_file:convert_format tool
+await use_tool('gimp_file', 'convert_format', {
+    'input_path': 'C:/Images/photo.jpg',
+    'output_path': 'C:/Images/photo.webp',
+    'output_format': 'webp',
+    'quality': 85
+})
 ```
 
-## Animation
+## 📐 Transform Operations
 
-### Create a Simple Bouncing Ball Animation
-
+### Resize an Image
+To resize an image to specific dimensions while maintaining the aspect ratio:
 ```python
-# Create a sphere
-await create_sphere(
-    name="Ball",
-    location=(0, 0, 5),
-    radius=0.5
-)
-
-# Add a ground plane
-await create_plane(
-    name="Ground",
-    size=10.0,
-    location=(0, 0, 0)
-)
-
-# Add rigid body physics to the ball
-await setup_rigid_body(
-    object_name="Ball",
-    type='ACTIVE',
-    mass=1.0,
-    friction=0.5,
-    bounce=0.8
-)
-
-# Add rigid body to ground
-await setup_rigid_body(
-    object_name="Ground",
-    type='PASSIVE',
-    friction=0.5,
-    bounce=0.5
-)
-
-# Bake physics simulation
-await bake_physics_simulation(
-    frame_start=1,
-    frame_end=100,
-    step=1
-)
+# Call the gimp_transform:resize_image tool
+await use_tool('gimp_transform', 'resize_image', {
+    'input_path': 'C:/Images/photo.jpg',
+    'output_path': 'C:/Images/resized.jpg',
+    'width': 1920,
+    'height': 1080,
+    'maintain_aspect': True
+})
 ```
 
-## Physics Simulation
-
-### Create a Cloth Simulation
-
+### Crop an Image
+To crop a specific region of an image:
 ```python
-# Create a plane for cloth
-await create_plane(
-    name="Cloth",
-    size=2.0,
-    location=(0, 0, 3),
-    rotation=(0, 0, 0)
-)
-
-# Add cloth simulation
-await setup_cloth_simulation(
-    object_name="Cloth",
-    quality_preset='MEDIUM',
-    mass=0.3,
-    bending_stiffness=0.5,
-    use_collision=True,
-    use_self_collision=True
-)
-
-# Create a sphere as a collision object
-await create_sphere(
-    name="CollisionSphere",
-    location=(0, 0, 1),
-    radius=0.8
-)
-
-# Add collision to the sphere
-await setup_collision(
-    object_name="CollisionSphere",
-    type='PASSIVE',
-    friction=0.5
-)
-
-# Bake the simulation
-await bake_physics_simulation(
-    frame_start=1,
-    frame_end=100,
-    step=1
-)
+# Call the gimp_transform:crop_image tool
+await use_tool('gimp_transform', 'crop_image', {
+    'input_path': 'C:/Images/photo.jpg',
+    'output_path': 'C:/Images/cropped.jpg',
+    'x': 100,
+    'y': 100,
+    'width': 800,
+    'height': 600
+})
 ```
 
-## Rendering
+## 🌈 Color Adjustments
 
-### Set Up and Render a Scene
-
+### Adjust Brightness and Contrast
+To improve the tonal quality of an image:
 ```python
-# Set up render engine (Cycles)
-await set_render_engine(engine='CYCLES')
-
-# Set render resolution
-await set_render_resolution(
-    resolution_x=1920,
-    resolution_y=1080,
-    resolution_percentage=100
-)
-
-# Set up samples
-await set_render_samples(
-    render_samples=256,
-    preview_samples=32,
-    use_adaptive_sampling=True,
-    adaptive_threshold=0.01
-)
-
-# Set up denoising
-await set_render_denoising(
-    use_denoising=True,
-    denoiser='OPENIMAGEDENOISE'
-)
-
-# Set up output
-await setup_render_output(
-    filepath="//renders/render_"
-    file_format='PNG',
-    color_mode='RGBA',
-    quality=90
-)
-
-# Render animation
-await render_animation(
-    frame_start=1,
-    frame_end=100,
-    frame_step=1
-)
+# Call the gimp_color:adjust_brightness_contrast tool
+await use_tool('gimp_color', 'adjust_brightness_contrast', {
+    'input_path': 'C:/Images/photo.jpg',
+    'output_path': 'C:/Images/adjusted.jpg',
+    'brightness': 0.2,
+    'contrast': 0.1
+})
 ```
 
-## Exporting
+## ✨ Filters and Effects
 
-### Export for Game Engines
-
-#### Export to FBX (Unity/Unreal)
-
+### Apply Gaussian Blur
+To apply a smooth blur to an image:
 ```python
-await export_fbx(
-    filepath="/path/to/export/model.fbx",
-    use_selection=False,
-    global_scale=1.0,
-    apply_unit_scale=True,
-    bake_anim=True,
-    bake_anim_use_nla_strips=True,
-    bake_anim_use_all_actions=False,
-    add_leaf_bones=True,
-    primary_bone_axis='Y',
-    secondary_bone_axis='X'
-)
+# Call the gimp_filter:apply_blur tool
+await use_tool('gimp_filter', 'apply_blur', {
+    'input_path': 'C:/Images/photo.jpg',
+    'output_path': 'C:/Images/blurred.jpg',
+    'radius': 5.0,
+    'method': 'gaussian'
+})
 ```
 
-#### Export to glTF (Web/Three.js)
+---
 
-```python
-await export_gltf(
-    filepath="/path/to/export/scene.glb",
-    export_format='GLB',
-    export_textures=True,
-    export_materials='EXPORT',
-    export_animations=True,
-    export_skins=True,
-    export_morph=True,
-    export_yup=True
-)
-```
-
-### Export for 3D Printing (STL)
-
-```python
-await export_stl(
-    filepath="/path/to/export/object.stl",
-    use_selection=True,
-    use_mesh_modifiers=True,
-    ascii=False,
-    use_scene_unit=True,
-    global_scale=1.0
-)
-```
-
-These examples demonstrate common workflows using Blender-MCP tools. For more detailed information about each tool's parameters, please refer to the [Tool Reference](TOOL_REFERENCE.md) documentation.
+**These examples demonstrate common workflows using GIMP-MCP tools.** For more detailed information about each tool's parameters, please refer to the [Tool Reference](TOOL_REFERENCE.md) documentation.
