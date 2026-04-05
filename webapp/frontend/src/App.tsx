@@ -1,14 +1,49 @@
-import { useState } from 'react';
-import { Navbar } from './components/Navbar';
-import { Sidebar } from './components/Sidebar';
+import { useState, useEffect } from 'react';
+import { AppLayout } from './components/AppLayout';
 import ImageEditor from './pages/image-editor';
 import BatchProcessor from './pages/batch-processor';
 import LayerManager from './pages/layer-manager';
 import SystemStatus from './pages/system-status';
 import ScriptFuConsole from './pages/script-fu-console';
+import ToolsExplorer from './pages/ToolsExplorer';
+
+export interface GimpSystemStatus {
+  status: string;
+  live_mode: {
+    mode: 'live' | 'headless' | 'offline';
+    last_check?: string;
+    details?: string;
+  };
+  config?: {
+    gimp_executable: string;
+    max_concurrent_processes: number;
+  };
+  server_name?: string;
+  version?: string;
+}
 
 function App() {
   const [currentPage, setCurrentPage] = useState('image-editor');
+  const [systemStatus, setSystemStatus] = useState<GimpSystemStatus | null>(null);
+
+  useEffect(() => {
+    const fetchStatus = async () => {
+      try {
+        const response = await fetch('/api/health');
+        if (response.ok) {
+          const data = await response.json();
+          setSystemStatus(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch system status:', error);
+        setSystemStatus(prev => prev ? { ...prev, status: 'unreachable' } : null);
+      }
+    };
+
+    fetchStatus();
+    const interval = setInterval(fetchStatus, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   const renderPage = () => {
     switch (currentPage) {
@@ -18,8 +53,10 @@ function App() {
         return <BatchProcessor />;
       case 'layer-manager':
         return <LayerManager />;
+      case 'tools-explorer':
+        return <ToolsExplorer />;
       case 'system-status':
-        return <SystemStatus />;
+        return <SystemStatus status={systemStatus} />;
       case 'script-fu-console':
         return <ScriptFuConsole />;
       default:
@@ -28,15 +65,13 @@ function App() {
   };
 
   return (
-    <div className="flex h-screen bg-background text-foreground overflow-hidden">
-      <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} />
-      <div className="flex-1 flex flex-col min-w-0">
-        <Navbar currentPage={currentPage} />
-        <main className="flex-1 overflow-auto p-6 scrollbar-thin scrollbar-thumb-accent scrollbar-track-transparent">
-          {renderPage()}
-        </main>
-      </div>
-    </div>
+    <AppLayout 
+      currentPage={currentPage} 
+      onNavigate={setCurrentPage}
+      systemStatus={systemStatus}
+    >
+      {renderPage()}
+    </AppLayout>
   );
 }
 

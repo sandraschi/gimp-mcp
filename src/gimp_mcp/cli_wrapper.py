@@ -9,12 +9,8 @@ import asyncio
 import logging
 import os
 import platform
-import shlex
-import subprocess
-import tempfile
-import yaml
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional
 
 from .config import GimpConfig
 
@@ -51,12 +47,25 @@ class GimpCliWrapper:
         self.logger = logging.getLogger(__name__)
         self.system = platform.system().lower()
         
-        # Validate GIMP executable
+        # Validate GIMP executable (non-fatal warning during init)
+        self._available = False
         if not self.config.gimp_executable:
-            raise GimpCliError("GIMP executable not configured")
-        
-        if not Path(self.config.gimp_executable).exists():
-            raise GimpCliError(f"GIMP executable not found: {self.config.gimp_executable}")
+            self.logger.warning(
+                "GIMP executable not configured and auto-detection failed. "
+                "Headless CLI operations will be unavailable."
+            )
+        elif not Path(self.config.gimp_executable).exists():
+            self.logger.warning(
+                f"GIMP executable not found at: {self.config.gimp_executable}. "
+                "Headless CLI operations will be unavailable."
+            )
+        else:
+            self._available = True
+            self.logger.info(f"Using GIMP executable: {self.config.gimp_executable}")
+
+    def is_available(self) -> bool:
+        """Check if GIMP CLI is available for execution."""
+        return self._available
     
     async def execute_script_fu(self, script_content: str, timeout: Optional[int] = None) -> str:
         """
@@ -187,7 +196,7 @@ class GimpCliWrapper:
         Path(output_abs).parent.mkdir(parents=True, exist_ok=True)
         
         # Determine quality setting
-        qual = quality or self.config.default_quality
+        quality or self.config.default_quality
         
         script = f"""
 (let* ((image (car (gimp-file-load RUN-NONINTERACTIVE "{input_abs}" "{input_abs}")))
@@ -299,7 +308,7 @@ class GimpCliWrapper:
             
             # Return stdout
             output = stdout.decode('utf-8', errors='replace') if stdout else ""
-            self.logger.debug(f"GIMP command completed successfully")
+            self.logger.debug("GIMP command completed successfully")
             return output
             
         except (GimpTimeoutError, GimpExecutionError):

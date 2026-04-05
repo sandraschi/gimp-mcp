@@ -1,10 +1,10 @@
 """
-GIMP MCP Server - FastMCP 2.13+ Portmanteau Architecture
+GIMP MCP Server - FastMCP 3.1.1+ Portmanteau Architecture
 
 This module serves as the main entry point for the GIMP MCP server, providing
 an interface between the MCP protocol and GIMP's functionality.
 
-PORTMANTEAU ARCHITECTURE (v3.0.0):
+PORTMANTEAU ARCHITECTURE (v3.1.1):
 Instead of 50+ individual tools, GIMP MCP consolidates related operations into 8
 master portmanteau tools. Each tool handles a specific domain with multiple operations.
 
@@ -19,12 +19,8 @@ Tools:
 - gimp_system: System operations (status, help, cache)
 """
 
-import argparse
 import asyncio
-import json
 import logging
-import os
-import signal
 import sys
 from pathlib import Path
 from typing import Optional, Dict, Any
@@ -35,17 +31,9 @@ from .transport import run_server, run_server_async
 from .config import GimpConfig, load_config
 from .gimp_detector import GimpDetector
 from .cli_wrapper import GimpCliWrapper
+from .interaction_manager import GimpInteractionManager
 from .logging_config import (
     setup_logging,
-    get_logger,
-    log_server_start,
-    log_server_stop,
-    log_tool_registration,
-    log_gimp_detection,
-    log_config_load,
-    log_operation_start,
-    log_operation_success,
-    log_operation_error,
 )
 
 # Import portmanteau tools (v3.0.0 architecture)
@@ -64,18 +52,8 @@ from .tools import (
 # Import agentic workflow tools
 from .agentic import register_agentic_tools
 
-# Legacy imports for backwards compatibility
-from .tools_legacy import (
-    FileOperationTools,
-    TransformTools,
-    ColorAdjustmentTools,
-    FilterTools,
-    BatchProcessingTools,
-    HelpTools,
-    LayerManagementTools,
-    ImageAnalysisTools,
-    PerformanceTools,
-)
+# Legacy imports for backwards compatibility (reserved for future use if needed)
+# from .tools_legacy import ...
 
 # Configure structured logging
 logger = setup_logging(component="main")
@@ -94,10 +72,10 @@ class GimpMCPServer:
 
         # Initialize FastMCP with the server name
         self.mcp = FastMCP(
-            "GIMP MCP Server",
-            instructions="""You are GIMP MCP Server, a comprehensive FastMCP 2.14.3 server for professional image editing using GIMP.
+            "GIMP MCP Fleet Server",
+            instructions="""You are GIMP MCP Server, a comprehensive FastMCP 3.1.1 server for professional image editing using GIMP.
 
-FASTMCP 2.14.3 FEATURES:
+FASTMCP 3.1.1 FEATURES:
 - Conversational tool returns for natural AI interaction
 - Sampling capabilities for agentic workflows and complex image processing operations
 - Portmanteau design preventing tool explosion while maintaining full functionality
@@ -140,6 +118,7 @@ Each portmanteau tool handles multiple related operations through an 'operation'
 
         self.logger = logging.getLogger(__name__)
         self.cli_wrapper: Optional[GimpCliWrapper] = None
+        self.interaction_manager: Optional[GimpInteractionManager] = None
 
     def _validate_configuration(self) -> bool:
         """
@@ -251,17 +230,23 @@ Each portmanteau tool handles multiple related operations through an 'operation'
                 # Initialize CLI wrapper
                 try:
                     self.cli_wrapper = GimpCliWrapper(self.config)
-                    logger.info("Initialized GIMP CLI wrapper")
+                    self.interaction_manager = GimpInteractionManager(self.config, self.cli_wrapper)
+                    logger.info("Initialized GIMP interaction manager (Live + Headless)")
                 except Exception as e:
-                    logger.error(f"Failed to initialize GIMP CLI wrapper: {e}")
+                    logger.error(f"Failed to initialize GIMP interaction manager: {e}")
                     self.cli_wrapper = None
+                    self.interaction_manager = None
             else:
                 logger.warning("GIMP not found. Running in limited functionality mode")
                 self.cli_wrapper = None
+                self.interaction_manager = None
 
             # Register portmanteau tools (v3.0.0 architecture)
             logger.info("Registering portmanteau tools...")
             portmanteau_registered = self._register_portmanteau_tools()
+
+            # Register custom FastAPI routes for the dashboard
+            self._register_api_routes()
 
             if portmanteau_registered:
                 logger.info(f"Successfully registered {len(PORTMANTEAU_TOOLS)} portmanteau tools")
@@ -309,7 +294,7 @@ Each portmanteau tool handles multiple related operations through an 'operation'
                     quality=quality,
                     compression=compression,
                     progressive=progressive,
-                    cli_wrapper=self.cli_wrapper,
+                    cli_wrapper=self.interaction_manager or self.cli_wrapper,
                     config=self.config,
                 )
 
@@ -340,7 +325,7 @@ Each portmanteau tool handles multiple related operations through an 'operation'
                     degrees=degrees,
                     direction=direction,
                     fill_color=fill_color,
-                    cli_wrapper=self.cli_wrapper,
+                    cli_wrapper=self.interaction_manager or self.cli_wrapper,
                     config=self.config,
                 )
 
@@ -373,7 +358,7 @@ Each portmanteau tool handles multiple related operations through an 'operation'
                     levels=levels,
                     threshold=threshold,
                     mode=mode,
-                    cli_wrapper=self.cli_wrapper,
+                    cli_wrapper=self.interaction_manager or self.cli_wrapper,
                     config=self.config,
                 )
 
@@ -396,7 +381,7 @@ Each portmanteau tool handles multiple related operations through an 'operation'
                     amount=amount,
                     method=method,
                     effect=effect,
-                    cli_wrapper=self.cli_wrapper,
+                    cli_wrapper=self.interaction_manager or self.cli_wrapper,
                     config=self.config,
                 )
 
@@ -421,7 +406,7 @@ Each portmanteau tool handles multiple related operations through an 'operation'
                     opacity=opacity,
                     blend_mode=blend_mode,
                     visible=visible,
-                    cli_wrapper=self.cli_wrapper,
+                    cli_wrapper=self.interaction_manager or self.cli_wrapper,
                     config=self.config,
                 )
 
@@ -442,7 +427,7 @@ Each portmanteau tool handles multiple related operations through an 'operation'
                     include_histogram=include_histogram,
                     analysis_type=analysis_type,
                     report_format=report_format,
-                    cli_wrapper=self.cli_wrapper,
+                    cli_wrapper=self.interaction_manager or self.cli_wrapper,
                     config=self.config,
                 )
 
@@ -469,7 +454,7 @@ Each portmanteau tool handles multiple related operations through an 'operation'
                     quality=quality,
                     file_pattern=file_pattern,
                     max_workers=max_workers,
-                    cli_wrapper=self.cli_wrapper,
+                    cli_wrapper=self.interaction_manager or self.cli_wrapper,
                     config=self.config,
                 )
 
@@ -486,7 +471,7 @@ Each portmanteau tool handles multiple related operations through an 'operation'
                     topic=topic,
                     level=level,
                     cache_action=cache_action,
-                    cli_wrapper=self.cli_wrapper,
+                    cli_wrapper=self.interaction_manager or self.cli_wrapper,
                     config=self.config,
                 )
 
@@ -501,6 +486,21 @@ Each portmanteau tool handles multiple related operations through an 'operation'
                 "gimp_batch": gimp_batch_tool,
                 "gimp_system": gimp_system_tool,
             }
+
+            # Add GIMP Live Status tool
+            @self.mcp.tool()
+            async def gimp_live_status() -> Dict[str, Any]:
+                """Check the status of the GIMP Live session bridge."""
+                if not self.interaction_manager:
+                    return {"success": False, "mode": "offline", "message": "GIMP MCP interaction layer not initialized"}
+                
+                status = await self.interaction_manager.get_status()
+                return {
+                    "success": True,
+                    "mode": status["mode"],
+                    "message": f"GIMP is currently running in {status['mode']} mode",
+                    "data": status
+                }
 
             # Register agentic workflow tools
             register_agentic_tools(self.mcp)
@@ -610,6 +610,43 @@ Each portmanteau tool handles multiple related operations through an 'operation'
         logger.info("Starting stdio server")
         run_server(self.mcp, server_name="GIMP MCP Server")
 
+    def _register_api_routes(self) -> None:
+        """Register custom FastAPI routes for the web dashboard."""
+        from fastapi import Response
+        import json
+
+        app = self.mcp.http_app
+
+        @app.get("/api/health")
+        @app.get("/api/status")
+        async def get_health():
+            """Return server health and GIMP connectivity status."""
+            if not self.tools:
+                return Response(
+                    content=json.dumps({"status": "initializing", "message": "Server is still starting up"}),
+                    media_type="application/json"
+                )
+            
+            # Use the internal server's health check if available
+            # We'll need a handle to the GimpMcpServer instance from server.py 
+            # Or just implement it here since we have config and interaction_manager
+            
+            status = "healthy"
+            live_status = {"mode": "offline"}
+            if self.interaction_manager:
+                live_status = await self.interaction_manager.get_status()
+            
+            return {
+                "status": status,
+                "live_mode": live_status,
+                "config": {
+                    "gimp_executable": self.config.gimp_executable,
+                    "max_concurrent_processes": self.config.max_concurrent_processes,
+                },
+                "server_name": "GIMP MCP Fleet Server",
+                "version": "3.1.1"
+            }
+
 
 async def main_async():
     # Configure basic logging first to capture early messages
@@ -673,7 +710,7 @@ async def main_async():
         await run_server_async(server.mcp, args=args, server_name="GIMP MCP Server")
     except KeyboardInterrupt:
         logger.info("Server stopped by user")
-    except Exception as e:
+    except Exception:
         logger.exception("Server error:")
         return 1
 

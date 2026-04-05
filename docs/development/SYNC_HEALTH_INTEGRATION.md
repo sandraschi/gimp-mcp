@@ -291,7 +291,7 @@ groups:
 
 ## Real-World Example
 
-Complete working example from blender-mcp:
+Complete working example from GIMP-MCP-mcp:
 
 ```python
 from fastmcp import FastMCP
@@ -299,7 +299,7 @@ from sync_health import SyncHealthMonitor
 from pathlib import Path
 import asyncio
 
-mcp = FastMCP("blender-mcp")
+mcp = FastMCP("GIMP-MCP-mcp")
 
 # Global sync monitor
 sync_monitor = None
@@ -376,5 +376,5 @@ async def force_rescan() -> str:
 
 - [MCP Sync Debugging Guide](./MCP_SYNC_DEBUGGING_GUIDE.md)
 - [Test Suite](../../tests/test_sync_health.py)
-- [Sync Health Module](../../src/blender_mcp/sync_health.py)
+- [Sync Health Module](../../src/GIMP-MCP_mcp/sync_health.py)
 

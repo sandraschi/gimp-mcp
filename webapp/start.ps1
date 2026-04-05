@@ -1,37 +1,38 @@
-$ErrorActionPreference = "Stop"
+﻿# Webapp Start - Standardized SOTA (Auto-Repaired V2.5)
+$WebPort = 10772
+$BackendPort = 10773
+$ProjectRoot = Split-Path -Parent $PSScriptRoot
 
-# Configuration
-$VENV_PATH = "$PSScriptRoot\backend\venv"
-$PYTHON = "$VENV_PATH\Scripts\python.exe"
-# Backend Source: backend/src/gimp_mcp
-$env:PYTHONPATH = "$PSScriptRoot\backend\src"
-$MODULE = "gimp_mcp.main"
-$PORT = 10773
-$BIND_HOST = "127.0.0.1"
-
-# Check venv
-if (-not (Test-Path $VENV_PATH)) {
-    Write-Host "Creating virtual environment..." -ForegroundColor Cyan
-    python -m venv $VENV_PATH
-    & "$VENV_PATH\Scripts\pip.exe" install -e "$PSScriptRoot\backend"
+# 1. Kill any process squatting on the ports
+Write-Host "Checking for port squatters on $WebPort and $BackendPort..." -ForegroundColor Yellow
+$pids = Get-NetTCPConnection -LocalPort $WebPort, $BackendPort -ErrorAction SilentlyContinue | Where-Object { $_.OwningProcess -gt 4 } | Select-Object -ExpandProperty OwningProcess -Unique
+foreach ($p in $pids) {
+    Write-Host "Found squatter (PID: $p). Terminating..." -ForegroundColor Red
+    try { Stop-Process -Id $p -Force -ErrorAction Stop } catch { Write-Host "Warning: Could not terminate PID $p." -ForegroundColor Gray }
 }
 
-# Kill existing process on port
-$existing = Get-NetTCPConnection -LocalPort $PORT -ErrorAction SilentlyContinue
-if ($existing) {
-    Write-Host "Killing process on port $PORT..." -ForegroundColor Yellow
-    Stop-Process -Id $existing.OwningProcess -Force -ErrorAction SilentlyContinue
-}
+# 2. Setup
+Set-Location $PSScriptRoot
+if (-not (Test-Path "node_modules")) { npm install }
 
-# Start Backend
-Write-Host "Starting Backend on port $PORT..." -ForegroundColor Green
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "& '$PYTHON' -m $MODULE --http --port $PORT --host $BIND_HOST"
+# 3. Start the Python backend (Background)
+Write-Host "Starting Python backend on port $BackendPort ..." -ForegroundColor Cyan
 
-# Start Frontend
-Write-Host "Starting Frontend on port 10772..." -ForegroundColor Green
-$FrontendDir = "$PSScriptRoot\frontend"
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$FrontendDir'; npm run dev"
+# uv --project finds package; CWD stays webapp.
+$backendCmd = "Set-Location '$PSScriptRoot'; uv run --project '$ProjectRoot' uvicorn gimp_mcp.http_app:app --host 127.0.0.1 --port $BackendPort --log-level info"
 
-# Launch Browser
-Start-Sleep -Seconds 3
-Start-Process "http://localhost:10772"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", $backendCmd -WindowStyle Normal
+
+# 4. Run server (Vite dev)
+Write-Host "Starting Vite frontend on port $WebPort ..." -ForegroundColor Green
+
+# 4b. Launch background task to open browser once frontend is ready (Auto-opened by Antigravity)
+$frontendUrl = "http://127.0.0.1:$WebPort/"
+$pollAndOpen = "for (`$i = 0; `$i -lt 60; `$i++) { try { `$null = Invoke-WebRequest -Uri '$frontendUrl' -TimeoutSec 2 -UseBasicParsing -ErrorAction Stop; Start-Process '$frontendUrl'; exit } catch { Start-Sleep -Seconds 1 } }"
+Start-Process powershell -ArgumentList "-NoProfile", "-WindowStyle", "Hidden", "-Command", $pollAndOpen
+
+Write-Host "Browser will open automatically when Vite is ready." -ForegroundColor Gray
+npm run dev -- --port $WebPort --host
+
+
+

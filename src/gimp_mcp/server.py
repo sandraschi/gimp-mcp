@@ -15,6 +15,7 @@ from fastmcp import FastMCP
 
 from .cli_wrapper import GimpCliWrapper
 from .config import GimpConfig
+from .interaction_manager import GimpInteractionManager
 from .plugins import PluginManager, GimpPlugin
 
 # Import all tool categories from legacy tools
@@ -60,8 +61,9 @@ class GimpMcpServer:
         self.config = config
         self.logger = logging.getLogger(__name__)
         
-        # Initialize GIMP CLI wrapper
+        # Initialize GIMP CLI wrapper and Interaction Manager
         self.cli_wrapper = GimpCliWrapper(config)
+        self.interaction_manager = GimpInteractionManager(config, self.cli_wrapper)
         
         # Initialize plugin manager
         self.plugin_manager = PluginManager(self.cli_wrapper, config)
@@ -85,7 +87,8 @@ class GimpMcpServer:
         for plugin_class in CORE_PLUGINS:
             try:
                 plugin_name = plugin_class.get_plugin_name()
-                plugin_instance = plugin_class(self.cli_wrapper, self.config)
+                # Pass interaction_manager as the execution wrapper
+                plugin_instance = plugin_class(self.interaction_manager, self.config)
                 self.plugin_manager.plugins[plugin_name] = plugin_instance
                 self.logger.debug(f"Registered core plugin: {plugin_name}")
             except Exception as e:
@@ -130,7 +133,7 @@ class GimpMcpServer:
         # If help tools weren't loaded as a plugin, create a default instance
         if not hasattr(self, 'help_tools'):
             self.help_tools = HelpTools(
-                self.cli_wrapper,
+                self.interaction_manager,
                 self.config,
                 tool_categories=tool_categories
             )
@@ -196,7 +199,8 @@ class GimpMcpServer:
                 "batch_operations_enabled": self.config.enable_batch_operations,
                 "performance_optimization_enabled": getattr(self.config, 'enable_performance_optimization', False),
                 "plugins": plugin_info,
-                "total_plugins": len(self.plugin_manager.plugins)
+                "total_plugins": len(self.plugin_manager.plugins),
+                "live_mode": await self.interaction_manager.get_status()
             }
             
         except Exception as e:

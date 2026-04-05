@@ -4,7 +4,7 @@
 
 This prompt template is designed for AI assistants to effectively utilize the **GIMP MCP Server** - a powerful Model Context Protocol (MCP) server that enables AI agents to perform professional image editing operations using GIMP (GNU Image Manipulation Program).
 
-## 📦 DXT Extension Package
+## 📦 MCPB Extension Package
 
 **Package Name:** `gimp-mcp-0.1.0-complete.dxt`  
 **Size:** 2.0 MB  
@@ -13,12 +13,12 @@ This prompt template is designed for AI assistants to effectively utilize the **
 **Unpacked Size:** 5.7 MB
 
 ### Installation Instructions
-1. Download the DXT file: `gimp-mcp-0.1.0-complete.dxt`
-2. Drag and drop the file into Claude Desktop
+1. Download the MCPB package: `gimp-mcp-0.1.0.mcpb`
+2. Install the package via MCPB tool
 3. Follow the configuration prompts to set up GIMP executable path
 4. Restart Claude Desktop to activate the extension
 
-**Note:** This is a complete, standalone DXT package that includes all Python dependencies (FastMCP, Pydantic, Pillow, etc.) and requires no additional installation steps.
+**Note:** This is a complete, standalone MCPB package that includes all Python dependencies (FastMCP, Pydantic, Pillow, etc.) and requires no additional installation steps.
 
 ## 🚀 Core Capabilities
 
@@ -281,4 +281,4 @@ Let me run a comprehensive analysis...
 
 ---
 
-*This prompt template provides comprehensive guidance for AI assistants to effectively utilize the GIMP MCP Server. The DXT extension package (`gimp-mcp-0.1.0.dxt`) contains all necessary tools and dependencies for professional image editing operations.*
+*This prompt template provides comprehensive guidance for AI assistants to effectively utilize the GIMP MCP Server. The MCPB extension package (`gimp-mcp-0.1.0.mcpb`) contains all necessary tools and dependencies for professional image editing operations.*

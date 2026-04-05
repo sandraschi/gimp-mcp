@@ -1,4 +1,4 @@
-import { Terminal, Play, Save, Trash } from 'lucide-react';
+import { Play, Save } from 'lucide-react';
 
 export default function ScriptFuConsole() {
     return (
@@ -9,8 +9,8 @@ export default function ScriptFuConsole() {
                     <p className="text-muted-foreground">Execute Scheme scripts directly in GIMP</p>
                 </div>
                 <div className="flex gap-2">
-                    <button className="bg-secondary hover:bg-secondary/80 p-2 rounded-md">
-                        <Trash className="w-4 h-4" />
+                    <button className="bg-secondary hover:bg-secondary/80 p-2 rounded-md" title="Clear console">
+                        <Play className="w-4 h-4 rotate-90" />
                     </button>
                     <button className="bg-secondary hover:bg-secondary/80 px-3 py-2 rounded-md text-sm font-medium flex items-center gap-2">
                         <Save className="w-4 h-4" /> Save

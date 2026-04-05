@@ -16,7 +16,7 @@
 ## 📁 **Complete Directory Tree**
 
 ```
-notepadpp-mcp/
+gimp-mcp/
 │
 ├── docs/                                   📚 All documentation
 │   │
@@ -39,12 +39,11 @@ notepadpp-mcp/
 │   │   ├── GLAMA_AI_RESCAN_GUIDE.md
 │   │   └── GLAMA_RESCAN_EMAIL.txt
 │   │
-│   ├── notepadpp/                          📝 Notepad++ reference (5 files, 39+ pages!)
-│   │   ├── README.md                       → Notepad++ hub
-│   │   ├── NOTEPADPP_COMPLETE_GUIDE.md     → 15+ pages complete reference
-│   │   ├── PLUGIN_ECOSYSTEM_COMPREHENSIVE.md → 12+ pages plugin guide
-│   │   ├── COMMUNITY_AND_SUPPORT.md        → 10+ pages community
-│   │   └── NOTEPADPP_COLOR_FIX_2025_10_08.md → Display fix
+│   ├── gimp/                               📝 GIMP reference (5 files)
+│   │   ├── README.md                       → GIMP hub
+│   │   ├── GIMP_COMPLETE_GUIDE.md          → Complete reference
+│   │   ├── TOOL_REFERENCE.md               → API guide
+│   │   └── GIMP_MCP_FUNCTIONALITY_PLAN.md  → Status
 │   │
 │   ├── development/                        💻 Development guides (7 files)
 │   │   ├── README.md                       → Development hub
@@ -97,7 +96,7 @@ notepadpp-mcp/
 |--------------|-------|------------|-------|-------|
 | **repository-protection** | 4 | ✅ | 20+ | Git safety & AI workflow |
 | **glama-platform** | 11 | ✅ | 50+ | Gold Status & platform |
-| **notepadpp** | 5 | ✅ | 39+ | Notepad++ reference |
+| **gimp** | 5 | ✅ | 39+ | GIMP reference |
 | **development** | 7 | ✅ | 25+ | Dev practices |
 | **mcp-technical** | 6 | ✅ | 30+ | MCP technical |
 | **mcpb-packaging** | 3 | ✅ | 20+ | MCPB distribution |
@@ -111,7 +110,7 @@ notepadpp-mcp/
 
 **Start Here**:
 1. [Main README](../README.md) - Project overview (5 min)
-2. [Notepad++ Complete Guide](notepadpp/NOTEPADPP_COMPLETE_GUIDE.md) - Understanding Notepad++ (30 min)
+2. [GIMP Complete Guide](gimp/GIMP_COMPLETE_GUIDE.md) - Understanding GIMP (30 min)
 3. [Installation](#) - Get up and running (10 min)
 
 **Total time**: 45 minutes to understand the project
@@ -155,7 +154,7 @@ notepadpp-mcp/
 
 ## 📚 **Documentation Highlights**
 
-### **Notepad++ Reference** (NEW! 39+ pages)
+### **GIMP Reference** (NEW!)
 
 **Comprehensive coverage**:
 - ✅ 22-year history (2003-2025)
@@ -217,7 +216,7 @@ notepadpp-mcp/
 Go directly to topic subdirectory:
 - `docs/repository-protection/` for Git safety
 - `docs/glama-platform/` for Gold Status
-- `docs/notepadpp/` for Notepad++ reference
+- `docs/gimp/` for GIMP reference
 - `docs/development/` for dev guides
 - `docs/mcp-technical/` for MCP technical
 - `docs/mcpb-packaging/` for packaging
@@ -254,7 +253,7 @@ Links to all major documentation sections with clear categories.
 |----------|-------|-------|---------|
 | `docs/repository-protection/` | 4 | 20+ | Git safety |
 | `docs/glama-platform/` | 11 | 50+ | Quality |
-| `docs/notepadpp/` | 5 | 39+ | Reference |
+| `docs/gimp/` | 5 | 39+ | Reference |
 | `docs/development/` | 7 | 25+ | Dev guides |
 | `docs/mcp-technical/` | 6 | 30+ | MCP tech |
 | `docs/mcpb-packaging/` | 3 | 20+ | Packaging |
@@ -324,7 +323,7 @@ Links to all major documentation sections with clear categories.
 
 ### **New Documentation Created**
 
-**39+ pages of Notepad++ reference**:
+**Comprehensive GIMP reference**:
 - Complete history (22 years)
 - All features documented
 - 1,400+ plugin ecosystem
@@ -353,7 +352,7 @@ Links to all major documentation sections with clear categories.
 |------|-------|------|
 | **Protect my repo** | [repository-protection/](repository-protection/README.md) | 15 min |
 | **Understand Gold Status** | [glama-platform/](glama-platform/README.md) | 20 min |
-| **Learn about Notepad++** | [notepadpp/](notepadpp/README.md) | 1 hour |
+| **Learn about GIMP** | [gimp/](gimp/README.md) | 1 hour |
 | **Develop features** | [development/](development/README.md) | 30 min |
 | **Deploy MCP server** | [mcp-technical/](mcp-technical/README.md) | 45 min |
 | **Package for distribution** | [mcpb-packaging/](mcpb-packaging/README.md) | 3 hours |
@@ -500,7 +499,7 @@ Links to all major documentation sections with clear categories.
 
 ## 🎊 **Summary**
 
-**The notepadpp-mcp documentation is now**:
+**The gimp-mcp documentation is now**:
 
 ✅ **Comprehensive** - 206+ pages covering everything  
 ✅ **Organized** - 6 logical subdirectories  
@@ -526,8 +525,8 @@ Git/GitHub/Backups?
 Quality/Gold Status?
   └─> docs/glama-platform/
 
-Notepad++ info?
-  └─> docs/notepadpp/
+GIMP info?
+  └─> docs/gimp/
 
 Development practices?
   └─> docs/development/
@@ -546,7 +545,7 @@ Everything?
 
 *Complete Documentation Structure*  
 *Created: October 8, 2025*  
-*Total Files: 49*  
+*Total Files: 18*  
 *Total Pages: 206+*  
 *Total Words: 60,000+*  
 *Subdirectories: 6*  

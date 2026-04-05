@@ -1,8 +1,8 @@
-# Loguru Logging Guide for Blender MCP
+# Loguru Logging Guide for GIMP-MCP MCP
 
 ## Overview
 
-Blender MCP uses **Loguru** for structured, colorful, and highly configurable logging throughout the application. This guide explains how logging works, how to view logs, and how to troubleshoot logging issues.
+GIMP-MCP MCP uses **Loguru** for structured, colorful, and highly configurable logging throughout the application. This guide explains how logging works, how to view logs, and how to troubleshoot logging issues.
 
 ## What is Loguru?
 
@@ -14,7 +14,7 @@ Blender MCP uses **Loguru** for structured, colorful, and highly configurable lo
 - **Multiple handlers**: Console, files, rotation, filtering, etc.
 - **No configuration needed**: Works out of the box with sensible defaults
 
-## Loguru Configuration in Blender MCP
+## Loguru Configuration in GIMP-MCP MCP
 
 ### Default Configuration
 
@@ -43,7 +43,7 @@ def setup_logging(log_level: str = "INFO"):
 ### Log Format Explained
 
 ```
-2024-01-15 14:30:25.123 | INFO     | blender_mcp.server:main:94 - [START] Starting Blender MCP Server
+2024-01-15 14:30:25.123 | INFO     | GIMP-MCP_mcp.server:main:94 - [START] Starting GIMP-MCP MCP Server
 │          │        │     │         │          │         │      │
 │          │        │     │         │          │         │      └─ Log message
 │          │        │     │         │          │         └─ Line number
@@ -60,17 +60,17 @@ def setup_logging(log_level: str = "INFO"):
 
 **Basic logging (INFO level):**
 ```bash
-python -m blender_mcp
+python -m GIMP-MCP_mcp
 ```
 
 **Debug logging (DEBUG level):**
 ```bash
-python -m blender_mcp --debug
+python -m GIMP-MCP_mcp --debug
 ```
 
 **HTTP server mode:**
 ```bash
-python -m blender_mcp --http --debug
+python -m GIMP-MCP_mcp --http --debug
 ```
 
 ### 2. When Running via Claude Desktop
@@ -102,17 +102,17 @@ tail -f ~/.config/Claude/logs/*.log
 
 ```bash
 # Direct MCP server execution
-mcp run blender-mcp
+mcp run GIMP-MCP-mcp
 
 # With debug logging
-LOG_LEVEL=DEBUG mcp run blender-mcp
+LOG_LEVEL=DEBUG mcp run GIMP-MCP-mcp
 ```
 
 ### 4. Programmatic Log Access
 
 ```python
-from blender_mcp.app import get_app
-from blender_mcp.server import setup_logging
+from GIMP-MCP_mcp.app import get_app
+from GIMP-MCP_mcp.server import setup_logging
 
 # Setup logging
 setup_logging("DEBUG")
@@ -134,7 +134,7 @@ print(logs)
 
 ## Log Levels
 
-Blender MCP uses standard Python logging levels:
+GIMP-MCP MCP uses standard Python logging levels:
 
 | Level | Numeric | Description | When to Use |
 |-------|---------|-------------|-------------|
@@ -149,17 +149,17 @@ Blender MCP uses standard Python logging levels:
 #### Via Command Line
 ```bash
 # Debug mode (most verbose)
-python -m blender_mcp --debug
+python -m GIMP-MCP_mcp --debug
 
 # Default INFO level
-python -m blender_mcp
+python -m GIMP-MCP_mcp
 ```
 
 #### Via Environment Variable
 ```bash
 # Override log level
-LOG_LEVEL=WARNING python -m blender_mcp
-LOG_LEVEL=DEBUG python -m blender_mcp
+LOG_LEVEL=WARNING python -m GIMP-MCP_mcp
+LOG_LEVEL=DEBUG python -m GIMP-MCP_mcp
 ```
 
 #### Programmatically
@@ -180,7 +180,7 @@ setup_logging(log_level)
 ### Console Output (Primary)
 - **Destination**: `sys.stderr` (standard error stream)
 - **Format**: Colored, structured output
-- **Visibility**: Console/terminal where Blender MCP is running
+- **Visibility**: Console/terminal where GIMP-MCP MCP is running
 
 ### Claude Desktop Integration
 - **Windows**: Claude Desktop console window
@@ -200,32 +200,32 @@ When used through MCP protocol, logs are handled by the MCP client (Claude Deskt
 **Check if server is running:**
 ```bash
 # Check if process is running
-ps aux | grep blender_mcp
+ps aux | grep GIMP-MCP_mcp
 netstat -tlnp | grep :8000  # For HTTP mode
 ```
 
 **Enable debug logging:**
 ```bash
-python -m blender_mcp --debug
+python -m GIMP-MCP_mcp --debug
 ```
 
 **Check stderr vs stdout:**
 ```bash
 # Logs go to stderr, not stdout
-python -m blender_mcp 2>&1  # Redirect stderr to stdout
+python -m GIMP-MCP_mcp 2>&1  # Redirect stderr to stdout
 ```
 
 ### Problem: Logs Too Verbose
 
 **Reduce log level:**
 ```bash
-LOG_LEVEL=WARNING python -m blender_mcp
+LOG_LEVEL=WARNING python -m GIMP-MCP_mcp
 ```
 
 **Filter specific modules:**
 ```python
 # In your code
-logger.disable("blender_mcp.utils.blender_executor")  # Disable executor logs
+logger.disable("GIMP-MCP_mcp.utils.GIMP-MCP_executor")  # Disable executor logs
 ```
 
 ### Problem: Missing Log Context
@@ -260,9 +260,9 @@ logger.add(sys.stderr, colorize=True)  # Explicitly enable colors
 ```json
 {
   "mcpServers": {
-    "blender-mcp": {
+    "GIMP-MCP-mcp": {
       "command": "python",
-      "args": ["-m", "blender_mcp", "--debug"],
+      "args": ["-m", "GIMP-MCP_mcp", "--debug"],
       "env": {
         "LOG_LEVEL": "DEBUG"
       }
@@ -284,16 +284,16 @@ logger.add(sys.stderr, colorize=True)  # Explicitly enable colors
 logger.debug(f"Processing {len(items)} items")
 
 # INFO: User-facing operations, major events
-logger.info("Starting Blender scene export")
+logger.info("Starting GIMP-MCP scene export")
 
 # WARNING: Recoverable issues
-logger.warning("Blender not found in PATH, using configured executable")
+logger.warning("GIMP-MCP not found in PATH, using configured executable")
 
 # ERROR: Operation failures
 logger.error(f"Failed to create material: {str(e)}")
 
 # CRITICAL: System failures
-logger.critical("Blender executable not found, cannot continue")
+logger.critical("GIMP-MCP executable not found, cannot continue")
 ```
 
 ### Structured Logging
@@ -330,21 +330,21 @@ if logger.level("DEBUG").no <= logger._core.level:
 
 ### Startup Logs
 ```
-2024-01-15 14:30:25.123 | INFO     | blender_mcp.server:main:94 - [START] Starting Blender MCP Server
-2024-01-15 14:30:25.124 | INFO     | blender_mcp.server:main:95 - Python version: 3.10.0
-2024-01-15 14:30:25.125 | INFO     | blender_mcp.server:main:96 - Running in stdio mode
+2024-01-15 14:30:25.123 | INFO     | GIMP-MCP_mcp.server:main:94 - [START] Starting GIMP-MCP MCP Server
+2024-01-15 14:30:25.124 | INFO     | GIMP-MCP_mcp.server:main:95 - Python version: 3.10.0
+2024-01-15 14:30:25.125 | INFO     | GIMP-MCP_mcp.server:main:96 - Running in stdio mode
 ```
 
 ### Operation Logs
 ```
-2024-01-15 14:30:26.456 | INFO     | blender_mcp.handlers.mesh_handler:create_cube:44 - Successfully created cube 'MyCube'
-2024-01-15 14:30:26.789 | INFO     | blender_mcp.handlers.lighting_handler:create_sun_light:39 - Creating sun light 'Sun' at (0, 0, 10) with energy 5.0
+2024-01-15 14:30:26.456 | INFO     | GIMP-MCP_mcp.handlers.mesh_handler:create_cube:44 - Successfully created cube 'MyCube'
+2024-01-15 14:30:26.789 | INFO     | GIMP-MCP_mcp.handlers.lighting_handler:create_sun_light:39 - Creating sun light 'Sun' at (0, 0, 10) with energy 5.0
 ```
 
 ### Error Logs
 ```
-2024-01-15 14:30:27.123 | ERROR    | blender_mcp.utils.blender_executor:execute_script:487 - Blender process failed with return code 1: script_id_123
-2024-01-15 14:30:27.456 | WARNING  | blender_mcp.utils.blender_executor:_process_script_output:563 - Script completed without success marker: script_id_123
+2024-01-15 14:30:27.123 | ERROR    | GIMP-MCP_mcp.utils.GIMP-MCP_executor:execute_script:487 - GIMP-MCP process failed with return code 1: script_id_123
+2024-01-15 14:30:27.456 | WARNING  | GIMP-MCP_mcp.utils.GIMP-MCP_executor:_process_script_output:563 - Script completed without success marker: script_id_123
 ```
 
 ## Advanced Configuration
@@ -353,7 +353,7 @@ if logger.level("DEBUG").no <= logger._core.level:
 ```python
 # Add file handler
 logger.add(
-    "blender_mcp.log",
+    "GIMP-MCP_mcp.log",
     rotation="10 MB",      # Rotate when file reaches 10MB
     retention="1 week",    # Keep logs for 1 week
     level="DEBUG"
@@ -385,16 +385,16 @@ logger.log("TRACE", "Very detailed trace information")
 ### Commands
 ```bash
 # Normal operation
-python -m blender_mcp
+python -m GIMP-MCP_mcp
 
 # Debug mode
-python -m blender_mcp --debug
+python -m GIMP-MCP_mcp --debug
 
 # HTTP server
-python -m blender_mcp --http --port 8000 --debug
+python -m GIMP-MCP_mcp --http --port 8000 --debug
 
 # Check logs
-tail -f blender_mcp.log
+tail -f GIMP-MCP_mcp.log
 ```
 
 ### Environment Variables
@@ -415,4 +415,4 @@ logger.error("Error message")
 logger.critical("Critical message")
 ```
 
-This logging system provides comprehensive visibility into Blender MCP operations, making debugging and monitoring much easier.
+This logging system provides comprehensive visibility into GIMP-MCP MCP operations, making debugging and monitoring much easier.

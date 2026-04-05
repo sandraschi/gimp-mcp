@@ -1,0 +1,38 @@
+# GIMP MCP Server (v3.1.1)
+
+> [!NOTE]
+> **SOTA 2026 Core Manifest**  
+> **Framework:** FastMCP 3.1.1  
+> **Architecture:** Portmanteau (8 Tools)  
+
+Professional image editing through Model Context Protocol (MCP) using GIMP.
+
+## Core Services
+
+- **gimp_file**: File operations (load, save, convert, info, validate).
+- **gimp_transform**: Geometric transformations (resize, crop, rotate, flip, scale, perspective).
+- **gimp_color**: Color adjustments (brightness, contrast, levels, curves, HSL, balance).
+- **gimp_filter**: Professional filters and effects (blur, sharpen, noise, artistic).
+- **gimp_layer**: Layer management (create, delete, merge, flatten, opacity).
+- **gimp_analysis**: Image analysis (quality, statistics, histogram, compare).
+- **gimp_batch**: High-performance multi-image processing.
+- **gimp_system**: Server health, diagnostics, and documentation.
+
+## Technical Context
+
+- **Entry Point**: `uv run gimp_mcp`
+- **Dashboard**: `http://localhost:10772`
+- **API**: `http://localhost:10773`
+- **Configuration**: `config.yaml` with smart GIMP detection.
+- **Standards**: FastMCP 3.1.1 SOTA compliant.
+
+## Documentation Index
+
+- [Installation Guide](docs/installation.md)
+- [Implementation Roadmap](docs/IMPLEMENTATION_ROADMAP.md)
+- [Development Status Report](docs/DEVELOPMENT_STATUS_REPORT.md)
+- [Usage Examples](docs/EXAMPLES.md)
+
+## Portmanteau Patterns
+
+Use category-first dispatching. Instead of 50+ individual tools, all operations are grouped into 8 master tools. AI assistants should first call `gimp_system(operation="tools")` or check the `Tools Explorer` dashboard to introspect available operations and their schemas.

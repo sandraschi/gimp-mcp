@@ -141,7 +141,7 @@ requires-python = ">=3.10"
 
 **Update `requirements.txt`**:
 ```python
-# Notepad++ MCP Server Requirements
+# GIMP-MCP MCP Server Requirements
 # Compatible with Python 3.10+
 # Windows only
 

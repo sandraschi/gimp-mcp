@@ -18,6 +18,7 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
         { id: 'image-editor', icon: Image, label: 'Editor' },
         { id: 'batch-processor', icon: Copy, label: 'Batch' },
         { id: 'layer-manager', icon: Layers, label: 'Layers' },
+        { id: 'tools-explorer', icon: Wand2, label: 'Tools' },
         { id: 'system-status', icon: Activity, label: 'Status' },
         { id: 'script-fu-console', icon: Terminal, label: 'Script-Fu' },
     ];
