@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Tuple
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -19,9 +19,9 @@ class TransformResult(BaseModel):
     success: bool
     operation: str
     message: str
-    data: Dict[str, Any] = Field(default_factory=dict)
+    data: dict[str, Any] = Field(default_factory=dict)
     execution_time_ms: float = 0.0
-    error: Optional[str] = None
+    error: str | None = None
 
 
 async def gimp_transform(
@@ -38,15 +38,15 @@ async def gimp_transform(
     input_path: str,
     output_path: str,
     # Resize parameters
-    width: Optional[int] = None,
-    height: Optional[int] = None,
+    width: int | None = None,
+    height: int | None = None,
     maintain_aspect: bool = True,
     interpolation: str = "lanczos",
     # Crop parameters
     x: int = 0,
     y: int = 0,
-    crop_width: Optional[int] = None,
-    crop_height: Optional[int] = None,
+    crop_width: int | None = None,
+    crop_height: int | None = None,
     # Rotate parameters
     angle: float = 0.0,
     fill_color: str = "transparent",
@@ -56,14 +56,14 @@ async def gimp_transform(
     # Scale parameters
     scale_factor: float = 1.0,
     # Perspective parameters
-    corners: Optional[List[Tuple[int, int]]] = None,
+    corners: list[tuple[int, int]] | None = None,
     # Common parameters
     overwrite: bool = False,
     preserve_metadata: bool = True,
     # Injected dependencies
     cli_wrapper: Any = None,
     config: Any = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Comprehensive geometric transformation portmanteau for GIMP MCP.
 
     PORTMANTEAU PATTERN RATIONALE:
@@ -279,7 +279,7 @@ async def gimp_transform(
         return TransformResult(
             success=False,
             operation=operation,
-            message=f"Transform failed: {str(e)}",
+            message=f"Transform failed: {e!s}",
             error=str(e),
             execution_time_ms=round(execution_time, 2),
         ).model_dump()

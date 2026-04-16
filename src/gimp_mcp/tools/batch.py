@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -19,28 +19,26 @@ class BatchResult(BaseModel):
     success: bool
     operation: str
     message: str
-    data: Dict[str, Any] = Field(default_factory=dict)
+    data: dict[str, Any] = Field(default_factory=dict)
     execution_time_ms: float = 0.0
-    error: Optional[str] = None
+    error: str | None = None
 
 
 async def gimp_batch(
-    operation: Literal[
-        "resize", "convert", "process", "watermark", "rename", "optimize"
-    ],
+    operation: Literal["resize", "convert", "process", "watermark", "rename", "optimize"],
     input_directory: str,
     output_directory: str,
     # Resize parameters
-    width: Optional[int] = None,
-    height: Optional[int] = None,
+    width: int | None = None,
+    height: int | None = None,
     maintain_aspect: bool = True,
     # Convert parameters
     output_format: str = "jpg",
     quality: int = 90,
     # Process parameters (chain of operations)
-    operations_chain: Optional[List[Dict[str, Any]]] = None,
+    operations_chain: list[dict[str, Any]] | None = None,
     # Watermark parameters
-    watermark_path: Optional[str] = None,
+    watermark_path: str | None = None,
     watermark_position: str = "bottom-right",
     watermark_opacity: float = 0.5,
     watermark_scale: float = 0.2,
@@ -48,7 +46,7 @@ async def gimp_batch(
     rename_pattern: str = "{name}_{index:04d}",
     # Optimize parameters
     optimize_quality: int = 85,
-    optimize_max_size_kb: Optional[int] = None,
+    optimize_max_size_kb: int | None = None,
     # Common
     file_pattern: str = "*.jpg",
     recursive: bool = False,
@@ -57,7 +55,7 @@ async def gimp_batch(
     # Dependencies
     cli_wrapper: Any = None,
     config: Any = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Comprehensive batch processing portmanteau for GIMP MCP.
 
     PORTMANTEAU PATTERN RATIONALE:
@@ -201,9 +199,7 @@ async def gimp_batch(
             ".tif",
             ".webp",
         }
-        files = [
-            f for f in files if f.suffix.lower() in image_extensions and f.is_file()
-        ]
+        files = [f for f in files if f.suffix.lower() in image_extensions and f.is_file()]
 
         if not files:
             return BatchResult(
@@ -261,17 +257,11 @@ async def gimp_batch(
 
                 # Process based on operation
                 if operation == "resize":
-                    success = await _batch_resize(
-                        file_path, output_path, width, height, maintain_aspect
-                    )
+                    success = await _batch_resize(file_path, output_path, width, height, maintain_aspect)
                 elif operation == "convert":
-                    success = await _batch_convert(
-                        file_path, output_path, output_format, quality
-                    )
+                    success = await _batch_convert(file_path, output_path, output_format, quality)
                 elif operation == "process":
-                    success = await _batch_process(
-                        file_path, output_path, operations_chain or []
-                    )
+                    success = await _batch_process(file_path, output_path, operations_chain or [])
                 elif operation == "watermark":
                     success = await _batch_watermark(
                         file_path,
@@ -284,9 +274,7 @@ async def gimp_batch(
                 elif operation == "rename":
                     success = await _batch_rename(file_path, output_path)
                 elif operation == "optimize":
-                    success = await _batch_optimize(
-                        file_path, output_path, optimize_quality, optimize_max_size_kb
-                    )
+                    success = await _batch_optimize(file_path, output_path, optimize_quality, optimize_max_size_kb)
                 else:
                     success = False
 
@@ -304,9 +292,7 @@ async def gimp_batch(
                     failed += 1
 
             except Exception as e:
-                results.append(
-                    {"file": str(file_path), "status": "error", "error": str(e)}
-                )
+                results.append({"file": str(file_path), "status": "error", "error": str(e)})
                 failed += 1
 
         execution_time = (time.time() - start_time) * 1000
@@ -330,15 +316,13 @@ async def gimp_batch(
         return BatchResult(
             success=False,
             operation=operation,
-            message=f"Batch operation failed: {str(e)}",
+            message=f"Batch operation failed: {e!s}",
             error=str(e),
             execution_time_ms=round(execution_time, 2),
         ).model_dump()
 
 
-async def _batch_resize(
-    input_path: Path, output_path: Path, width, height, maintain_aspect
-) -> bool:
+async def _batch_resize(input_path: Path, output_path: Path, width, height, maintain_aspect) -> bool:
     """Resize single image."""
     from PIL import Image
 
@@ -378,9 +362,7 @@ async def _batch_resize(
     return True
 
 
-async def _batch_convert(
-    input_path: Path, output_path: Path, format: str, quality: int
-) -> bool:
+async def _batch_convert(input_path: Path, output_path: Path, format: str, quality: int) -> bool:
     """Convert single image."""
     from PIL import Image
 
@@ -401,9 +383,7 @@ async def _batch_convert(
     return True
 
 
-async def _batch_process(
-    input_path: Path, output_path: Path, operations: List[Dict]
-) -> bool:
+async def _batch_process(input_path: Path, output_path: Path, operations: list[dict]) -> bool:
     """Process image with chain of operations."""
     from PIL import Image
 
@@ -504,9 +484,7 @@ async def _batch_rename(input_path: Path, output_path: Path) -> bool:
     return True
 
 
-async def _batch_optimize(
-    input_path: Path, output_path: Path, quality: int, max_size_kb: Optional[int]
-) -> bool:
+async def _batch_optimize(input_path: Path, output_path: Path, quality: int, max_size_kb: int | None) -> bool:
     """Optimize image for web."""
     from PIL import Image
 
@@ -524,9 +502,7 @@ async def _batch_optimize(
         # If max size specified, iteratively reduce quality
         if max_size_kb:
             current_quality = quality
-            while (
-                output_path.stat().st_size > max_size_kb * 1024 and current_quality > 20
-            ):
+            while output_path.stat().st_size > max_size_kb * 1024 and current_quality > 20:
                 current_quality -= 5
                 with Image.open(input_path) as img2:
                     if img2.mode == "RGBA":

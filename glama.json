@@ -2,10 +2,11 @@
   "$schema": "https://glama.ai/mcp/schemas/server.json",
   "maintainers": ["sandraschi"],
   "name": "gimp-mcp",
-  "description": "FastMCP 3.1.1 SOTA server for professional image editing using GIMP. 8 portmanteau tools consolidating 50+ operations for file operations, transforms, color adjustments, filters, and layers.",
+  "version": "4.0.0",
+  "description": "FastMCP 4.0.0 SOTA server for professional image editing using GIMP. 8 portmanteau tools consolidating 50+ operations for file operations, transforms, color adjustments, filters, and layers.",
   "type": "mcp_server",
   "status": "beta",
-  "framework": "FastMCP 3.1.1+",
+  "framework": "FastMCP 4.0.0+",
   "tools": 8,
   "transport": ["stdio"],
   "keywords": [

@@ -17,14 +17,14 @@ TOOLS:
 - gimp_system: System operations (status, help, cache)
 """
 
-from .file_operations import gimp_file
-from .transform import gimp_transform
-from .color import gimp_color
-from .filter import gimp_filter
-from .layer import gimp_layer
 from .analysis import gimp_analysis
 from .batch import gimp_batch
+from .color import gimp_color
+from .file_operations import gimp_file
+from .filter import gimp_filter
+from .layer import gimp_layer
 from .system import gimp_system
+from .transform import gimp_transform
 
 __all__ = [
     "gimp_file",

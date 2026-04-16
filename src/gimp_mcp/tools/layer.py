@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
-from typing import Any, Dict, Literal, Optional
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -19,9 +19,9 @@ class LayerResult(BaseModel):
     success: bool
     operation: str
     message: str
-    data: Dict[str, Any] = Field(default_factory=dict)
+    data: dict[str, Any] = Field(default_factory=dict)
     execution_time_ms: float = 0.0
-    error: Optional[str] = None
+    error: str | None = None
 
 
 async def gimp_layer(
@@ -41,11 +41,11 @@ async def gimp_layer(
     output_path: str,
     # Layer identification
     layer_index: int = 0,
-    layer_name: Optional[str] = None,
+    layer_name: str | None = None,
     # Create parameters
     layer_type: str = "normal",
-    width: Optional[int] = None,
-    height: Optional[int] = None,
+    width: int | None = None,
+    height: int | None = None,
     fill_color: str = "transparent",
     # Properties
     opacity: float = 100.0,
@@ -62,7 +62,7 @@ async def gimp_layer(
     # Dependencies
     cli_wrapper: Any = None,
     config: Any = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Comprehensive layer management portmanteau for GIMP MCP.
 
     PORTMANTEAU PATTERN RATIONALE:
@@ -194,13 +194,9 @@ async def gimp_layer(
                 cli_wrapper,
             )
         elif operation == "duplicate":
-            result = _duplicate_layer(
-                input_path_obj, output_path_obj, layer_index, layer_name, cli_wrapper
-            )
+            result = _duplicate_layer(input_path_obj, output_path_obj, layer_index, layer_name, cli_wrapper)
         elif operation == "delete":
-            result = _delete_layer(
-                input_path_obj, output_path_obj, layer_index, cli_wrapper
-            )
+            result = _delete_layer(input_path_obj, output_path_obj, layer_index, cli_wrapper)
         elif operation == "merge":
             result = _merge_layers(
                 input_path_obj,
@@ -211,9 +207,7 @@ async def gimp_layer(
                 cli_wrapper,
             )
         elif operation == "reorder":
-            result = _reorder_layer(
-                input_path_obj, output_path_obj, layer_index, new_position, cli_wrapper
-            )
+            result = _reorder_layer(input_path_obj, output_path_obj, layer_index, new_position, cli_wrapper)
         elif operation == "properties":
             result = _set_layer_properties(
                 input_path_obj,
@@ -226,13 +220,9 @@ async def gimp_layer(
                 cli_wrapper,
             )
         elif operation == "rename":
-            result = _rename_layer(
-                input_path_obj, output_path_obj, layer_index, layer_name, cli_wrapper
-            )
+            result = _rename_layer(input_path_obj, output_path_obj, layer_index, layer_name, cli_wrapper)
         elif operation == "visibility":
-            result = _toggle_visibility(
-                input_path_obj, output_path_obj, layer_index, visible, cli_wrapper
-            )
+            result = _toggle_visibility(input_path_obj, output_path_obj, layer_index, visible, cli_wrapper)
         else:
             return LayerResult(
                 success=False,
@@ -250,13 +240,13 @@ async def gimp_layer(
         return LayerResult(
             success=False,
             operation=operation,
-            message=f"Layer operation failed: {str(e)}",
+            message=f"Layer operation failed: {e!s}",
             error=str(e),
             execution_time_ms=round(execution_time, 2),
         ).model_dump()
 
 
-def _get_layer_info(input_path: Path) -> Dict[str, Any]:
+def _get_layer_info(input_path: Path) -> dict[str, Any]:
     """Get layer information from image file."""
     from PIL import Image
 
@@ -305,7 +295,7 @@ def _get_layer_info(input_path: Path) -> Dict[str, Any]:
     ).model_dump()
 
 
-def _flatten_layers(input_path: Path, output_path: Path) -> Dict[str, Any]:
+def _flatten_layers(input_path: Path, output_path: Path) -> dict[str, Any]:
     """Flatten all layers to single layer."""
     from PIL import Image
 
@@ -392,9 +382,7 @@ def _delete_layer(input_path, output_path, layer_index, cli_wrapper):
     ).model_dump()
 
 
-def _merge_layers(
-    input_path, output_path, layer_index, merge_down, merge_visible, cli_wrapper
-):
+def _merge_layers(input_path, output_path, layer_index, merge_down, merge_visible, cli_wrapper):
     """Merge layers."""
     if merge_visible:
         # Merge visible is essentially flatten for our purposes

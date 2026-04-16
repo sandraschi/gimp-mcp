@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
-from typing import Any, Dict, Literal, Optional
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -20,24 +20,24 @@ class FileOperationResult(BaseModel):
     success: bool
     operation: str
     message: str
-    data: Dict[str, Any] = Field(default_factory=dict)
+    data: dict[str, Any] = Field(default_factory=dict)
     execution_time_ms: float = 0.0
-    error: Optional[str] = None
+    error: str | None = None
 
 
 async def gimp_file(
     operation: Literal["load", "save", "convert", "info", "validate", "list_formats"],
-    input_path: Optional[str] = None,
-    output_path: Optional[str] = None,
-    format: Optional[str] = None,
+    input_path: str | None = None,
+    output_path: str | None = None,
+    format: str | None = None,
     quality: int = 95,
     metadata: bool = True,
     overwrite: bool = False,
-    compression: Optional[str] = None,
+    compression: str | None = None,
     # Injected dependencies
     cli_wrapper: Any = None,
     config: Any = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Comprehensive file management portmanteau for GIMP MCP.
 
     PORTMANTEAU PATTERN RATIONALE:
@@ -249,13 +249,13 @@ async def gimp_file(
         return FileOperationResult(
             success=False,
             operation=operation,
-            message=f"Operation failed: {str(e)}",
+            message=f"Operation failed: {e!s}",
             error=str(e),
             execution_time_ms=round(execution_time, 2),
         ).model_dump()
 
 
-def _list_formats(config: Any) -> Dict[str, Any]:
+def _list_formats(config: Any) -> dict[str, Any]:
     """List supported image formats."""
     read_formats = [
         "png",
@@ -319,9 +319,7 @@ def _list_formats(config: Any) -> Dict[str, Any]:
     ).model_dump()
 
 
-async def _load_image(
-    input_path: str, include_metadata: bool, cli_wrapper: Any, config: Any
-) -> Dict[str, Any]:
+async def _load_image(input_path: str, include_metadata: bool, cli_wrapper: Any, config: Any) -> dict[str, Any]:
     """Load image and return metadata."""
     from PIL import Image
 
@@ -385,14 +383,14 @@ async def _load_image(
 async def _save_image(
     input_path: str,
     output_path: str,
-    format: Optional[str],
+    format: str | None,
     quality: int,
     preserve_metadata: bool,
     overwrite: bool,
-    compression: Optional[str],
+    compression: str | None,
     cli_wrapper: Any,
     config: Any,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Save image to specified path and format."""
     from PIL import Image
 
@@ -460,24 +458,22 @@ async def _save_image(
             "quality": quality,
             "input_size_bytes": original_size,
             "output_size_bytes": output_size,
-            "compression_ratio": round(output_size / original_size, 3)
-            if original_size > 0
-            else 1.0,
+            "compression_ratio": round(output_size / original_size, 3) if original_size > 0 else 1.0,
         },
     ).model_dump()
 
 
 async def _convert_image(
     input_path: str,
-    output_path: Optional[str],
-    format: Optional[str],
+    output_path: str | None,
+    format: str | None,
     quality: int,
     preserve_metadata: bool,
     overwrite: bool,
-    compression: Optional[str],
+    compression: str | None,
     cli_wrapper: Any,
     config: Any,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Convert image to different format."""
     input_path_obj = Path(input_path)
 
@@ -506,16 +502,12 @@ async def _convert_image(
     )
 
 
-async def _get_image_info(
-    input_path: str, cli_wrapper: Any, config: Any
-) -> Dict[str, Any]:
+async def _get_image_info(input_path: str, cli_wrapper: Any, config: Any) -> dict[str, Any]:
     """Get image metadata without full load."""
     return await _load_image(input_path, True, cli_wrapper, config)
 
 
-async def _validate_image(
-    input_path: str, cli_wrapper: Any, config: Any
-) -> Dict[str, Any]:
+async def _validate_image(input_path: str, cli_wrapper: Any, config: Any) -> dict[str, Any]:
     """Validate image file integrity."""
     from PIL import Image
 
@@ -566,7 +558,7 @@ async def _validate_image(
         return FileOperationResult(
             success=False,
             operation="validate",
-            message=f"Validation failed: {str(e)}",
+            message=f"Validation failed: {e!s}",
             data={
                 "valid": False,
                 "issues": [str(e)],

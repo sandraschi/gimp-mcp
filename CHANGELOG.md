@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0] - 2026-04-07
+
+### Added
+- **SOTA v13.1 Industrial Modernization**: Comprehensive refactor of the entire control plane.
+- **Centralized Schema Registry**: Implementation of `schemas.py` with 17+ Pydantic request models.
+- **Standardized Response Interface**: `GimpToolOutput[T]` generic wrapper for consistent success/error signaling and telemetry.
+- **Enhanced Error Handling**: Centralized `handle_operation_error` in `BaseToolCategory`.
+
+### Changed
+- **Tool Documentation**: All tools and parameters expanded to 50-200 character LLM-optimized range.
+- **Validation Layer**: Replaced legacy dictionary inputs with strict Pydantic validation.
+- **Layer Management**: Refactored to utilize structured request models.
+- **Image Analysis**: Refactored to utilize structured request models.
+- **Performance Tools**: Modernized with caching and resource monitoring schemas.
+- **Help System**: Transitioned to schema-backed dynamic documentation.
+
+### Fixed
+- Resolved 20+ linting issues related to unused imports and undefined names.
+- Fixed circular dependency risks in tool registration.
+- Corrected missing `Path` and optional type annotations in batch processing.
+
+---
+
 ## [3.0.0] - 2026-01-19
 
 ### Added

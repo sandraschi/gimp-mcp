@@ -5,19 +5,18 @@ Provides comprehensive system monitoring, diagnostics, and status information
 for the GIMP MCP Server including tool health, system resources, and operational metrics.
 """
 
-import time
-import psutil
 import platform
-from pathlib import Path
-from typing import Dict, Any, Optional, List
-import logging
+import time
+from typing import Any
 
+import psutil
 from fastmcp import FastMCP
 
+from ..logging_config import get_logger, log_operation_error, log_operation_start, log_operation_success
 from .base import BaseToolCategory
-from ..logging_config import get_logger, log_operation_start, log_operation_success, log_operation_error
 
 logger = get_logger(__name__)
+
 
 class StatusTools(BaseToolCategory):
     """
@@ -41,7 +40,7 @@ class StatusTools(BaseToolCategory):
         instance = self
 
         @app.tool()
-        async def get_server_status() -> Dict[str, Any]:
+        async def get_server_status() -> dict[str, Any]:
             """
             Get comprehensive server status and health information.
 
@@ -57,7 +56,7 @@ class StatusTools(BaseToolCategory):
                     "resources": instance._get_resource_usage(),
                     "tools": instance._get_tool_status(),
                     "performance": instance._get_performance_metrics(),
-                    "timestamp": time.time()
+                    "timestamp": time.time(),
                 }
 
                 log_operation_success(operation_context, status)
@@ -69,7 +68,7 @@ class StatusTools(BaseToolCategory):
                 return instance.create_error_response("Failed to get server status")
 
         @app.tool()
-        async def get_system_info() -> Dict[str, Any]:
+        async def get_system_info() -> dict[str, Any]:
             """
             Get detailed system information and capabilities.
 
@@ -84,7 +83,7 @@ class StatusTools(BaseToolCategory):
                     "gimp": instance._get_gimp_status(),
                     "python": instance._get_python_info(),
                     "resources": instance._get_system_resources(),
-                    "configuration": instance._get_config_summary()
+                    "configuration": instance._get_config_summary(),
                 }
 
                 log_operation_success(operation_context, system_info)
@@ -96,7 +95,7 @@ class StatusTools(BaseToolCategory):
                 return instance.create_error_response("Failed to get system information")
 
         @app.tool()
-        async def check_tool_health() -> Dict[str, Any]:
+        async def check_tool_health() -> dict[str, Any]:
             """
             Perform comprehensive health check on all tools.
 
@@ -108,14 +107,16 @@ class StatusTools(BaseToolCategory):
 
                 health_check = {
                     "timestamp": time.time(),
-                    "categories_checked": len(instance.config.tool_categories) if hasattr(instance.config, 'tool_categories') else 0,
+                    "categories_checked": len(instance.config.tool_categories)
+                    if hasattr(instance.config, "tool_categories")
+                    else 0,
                     "health_status": "operational",  # Would be expanded with actual checks
                     "issues_found": [],
                     "recommendations": [
                         "All tools appear to be functioning normally",
                         "Monitor system resources during heavy operations",
-                        "Regular backups recommended for important work"
-                    ]
+                        "Regular backups recommended for important work",
+                    ],
                 }
 
                 instance._last_health_check = health_check
@@ -129,7 +130,7 @@ class StatusTools(BaseToolCategory):
                 return instance.create_error_response("Failed to check tool health")
 
         @app.tool()
-        async def get_performance_metrics(time_range: str = "all") -> Dict[str, Any]:
+        async def get_performance_metrics(time_range: str = "all") -> dict[str, Any]:
             """
             Get detailed performance metrics and statistics.
 
@@ -150,7 +151,7 @@ class StatusTools(BaseToolCategory):
                     "error_rate": (instance._error_count / max(instance._operation_count, 1)) * 100,
                     "average_response_time": 0.0,  # Would track actual response times
                     "memory_usage_mb": psutil.Process().memory_info().rss / 1024 / 1024,
-                    "cpu_percent": psutil.Process().cpu_percent(interval=0.1)
+                    "cpu_percent": psutil.Process().cpu_percent(interval=0.1),
                 }
 
                 log_operation_success(operation_context, metrics)
@@ -162,7 +163,7 @@ class StatusTools(BaseToolCategory):
                 return instance.create_error_response("Failed to get performance metrics")
 
         @app.tool()
-        async def diagnose_issues() -> Dict[str, Any]:
+        async def diagnose_issues() -> dict[str, Any]:
             """
             Run diagnostic checks and identify potential issues.
 
@@ -176,7 +177,7 @@ class StatusTools(BaseToolCategory):
                     "issues": instance._run_diagnostics(),
                     "recommendations": instance._get_recommendations(),
                     "system_checks": instance._get_system_checks(),
-                    "timestamp": time.time()
+                    "timestamp": time.time(),
                 }
 
                 log_operation_success(operation_context, diagnostics)
@@ -188,7 +189,7 @@ class StatusTools(BaseToolCategory):
                 return instance.create_error_response("Failed to run diagnostics")
 
         @app.tool()
-        async def get_operational_log(level: str = "INFO", limit: int = 50) -> Dict[str, Any]:
+        async def get_operational_log(level: str = "INFO", limit: int = 50) -> dict[str, Any]:
             """
             Get recent operational log entries.
 
@@ -212,10 +213,10 @@ class StatusTools(BaseToolCategory):
                             "timestamp": time.time(),
                             "level": "INFO",
                             "message": "Server operational",
-                            "component": "status_tools"
+                            "component": "status_tools",
                         }
                     ],
-                    "total_available": 1
+                    "total_available": 1,
                 }
 
                 log_operation_success(operation_context, logs)
@@ -226,17 +227,17 @@ class StatusTools(BaseToolCategory):
                 logger.error(f"Error getting operational log: {e}", exc_info=True)
                 return instance.create_error_response("Failed to get operational log")
 
-    def _get_server_info(self) -> Dict[str, Any]:
+    def _get_server_info(self) -> dict[str, Any]:
         """Get basic server information."""
         return {
             "name": "GIMP MCP Server",
-            "version": getattr(self.config, 'version', '1.0.0'),
+            "version": getattr(self.config, "version", "1.0.0"),
             "uptime_seconds": time.time() - self._start_time,
             "start_time": self._start_time,
-            "status": "running"
+            "status": "running",
         }
 
-    def _get_health_status(self) -> Dict[str, Any]:
+    def _get_health_status(self) -> dict[str, Any]:
         """Get comprehensive health status."""
         return {
             "overall_status": "healthy",
@@ -244,13 +245,13 @@ class StatusTools(BaseToolCategory):
             "components": {
                 "cli_wrapper": "available" if self.cli_wrapper else "unavailable",
                 "gimp_detector": "operational",
-                "tool_categories": len(self.config.tool_categories) if hasattr(self.config, 'tool_categories') else 9
+                "tool_categories": len(self.config.tool_categories) if hasattr(self.config, "tool_categories") else 9,
             },
             "warnings": [],
-            "errors": []
+            "errors": [],
         }
 
-    def _get_resource_usage(self) -> Dict[str, Any]:
+    def _get_resource_usage(self) -> dict[str, Any]:
         """Get current resource usage."""
         try:
             process = psutil.Process()
@@ -261,14 +262,14 @@ class StatusTools(BaseToolCategory):
                 "memory_mb": memory_info.rss / 1024 / 1024,
                 "cpu_percent": cpu_percent,
                 "threads": process.num_threads(),
-                "open_files": len(process.open_files()) if hasattr(process, 'open_files') else 0,
-                "connections": len(process.connections()) if hasattr(process, 'connections') else 0
+                "open_files": len(process.open_files()) if hasattr(process, "open_files") else 0,
+                "connections": len(process.connections()) if hasattr(process, "connections") else 0,
             }
         except Exception as e:
             logger.warning(f"Could not get resource usage: {e}")
             return {"error": "Resource monitoring unavailable"}
 
-    def _get_tool_status(self) -> Dict[str, Any]:
+    def _get_tool_status(self) -> dict[str, Any]:
         """Get tool registration and availability status."""
         return {
             "categories_registered": 9,  # Would be dynamic
@@ -282,20 +283,20 @@ class StatusTools(BaseToolCategory):
                 "image_analysis": {"status": "operational", "tools": 4},
                 "batch_processing": {"status": "operational", "tools": 2},
                 "performance": {"status": "operational", "tools": 4},
-                "help": {"status": "operational", "tools": 6}
-            }
+                "help": {"status": "operational", "tools": 6},
+            },
         }
 
-    def _get_performance_metrics(self) -> Dict[str, Any]:
+    def _get_performance_metrics(self) -> dict[str, Any]:
         """Get performance statistics."""
         return {
             "operations_per_second": self._operation_count / max(time.time() - self._start_time, 1),
             "error_rate_percent": (self._error_count / max(self._operation_count, 1)) * 100,
             "memory_efficiency": "good",  # Would analyze actual usage patterns
-            "response_time_avg": 0.5  # Would track actual response times
+            "response_time_avg": 0.5,  # Would track actual response times
         }
 
-    def _get_platform_info(self) -> Dict[str, Any]:
+    def _get_platform_info(self) -> dict[str, Any]:
         """Get platform and system information."""
         return {
             "system": platform.system(),
@@ -303,10 +304,10 @@ class StatusTools(BaseToolCategory):
             "version": platform.version(),
             "machine": platform.machine(),
             "processor": platform.processor(),
-            "python_version": platform.python_version()
+            "python_version": platform.python_version(),
         }
 
-    def _get_gimp_status(self) -> Dict[str, Any]:
+    def _get_gimp_status(self) -> dict[str, Any]:
         """Get GIMP installation and status."""
         try:
             # Would check actual GIMP status
@@ -314,27 +315,25 @@ class StatusTools(BaseToolCategory):
                 "installed": True,
                 "version": "2.10.34",  # Would detect actual version
                 "path": "/usr/bin/gimp",  # Would detect actual path
-                "script_fu_available": True
+                "script_fu_available": True,
             }
         except Exception:
-            return {
-                "installed": False,
-                "error": "GIMP detection failed"
-            }
+            return {"installed": False, "error": "GIMP detection failed"}
 
-    def _get_python_info(self) -> Dict[str, Any]:
+    def _get_python_info(self) -> dict[str, Any]:
         """Get Python environment information."""
         import sys
+
         return {
             "version": sys.version,
             "executable": sys.executable,
             "packages": {
                 "fastmcp": "2.12.4",
-                "psutil": psutil.__version__ if hasattr(psutil, '__version__') else "unknown"
-            }
+                "psutil": psutil.__version__ if hasattr(psutil, "__version__") else "unknown",
+            },
         }
 
-    def _get_system_resources(self) -> Dict[str, Any]:
+    def _get_system_resources(self) -> dict[str, Any]:
         """Get system resource information."""
         try:
             return {
@@ -342,21 +341,21 @@ class StatusTools(BaseToolCategory):
                 "cpu_percent": psutil.cpu_percent(interval=0.1),
                 "memory_total_gb": psutil.virtual_memory().total / 1024 / 1024 / 1024,
                 "memory_available_gb": psutil.virtual_memory().available / 1024 / 1024 / 1024,
-                "disk_free_gb": psutil.disk_usage('/').free / 1024 / 1024 / 1024
+                "disk_free_gb": psutil.disk_usage("/").free / 1024 / 1024 / 1024,
             }
         except Exception as e:
             return {"error": f"System resource check failed: {e}"}
 
-    def _get_config_summary(self) -> Dict[str, Any]:
+    def _get_config_summary(self) -> dict[str, Any]:
         """Get configuration summary."""
         return {
-            "allowed_directories": getattr(self.config, 'allowed_directories', []),
-            "max_file_size_mb": getattr(self.config, 'max_file_size_mb', 100),
-            "gimp_executable": getattr(self.config, 'gimp_executable', None),
-            "log_level": getattr(self.config, 'log_level', 'INFO')
+            "allowed_directories": getattr(self.config, "allowed_directories", []),
+            "max_file_size_mb": getattr(self.config, "max_file_size_mb", 100),
+            "gimp_executable": getattr(self.config, "gimp_executable", None),
+            "log_level": getattr(self.config, "log_level", "INFO"),
         }
 
-    def _run_diagnostics(self) -> List[Dict[str, Any]]:
+    def _run_diagnostics(self) -> list[dict[str, Any]]:
         """Run diagnostic checks."""
         issues = []
 
@@ -364,45 +363,48 @@ class StatusTools(BaseToolCategory):
         try:
             memory_percent = psutil.virtual_memory().percent
             if memory_percent > 90:
-                issues.append({
-                    "severity": "critical",
-                    "component": "memory",
-                    "message": f"High memory usage: {memory_percent}%",
-                    "recommendation": "Reduce image sizes or close other applications"
-                })
-        except:
-            pass
+                issues.append(
+                    {
+                        "severity": "critical",
+                        "component": "memory",
+                        "message": f"High memory usage: {memory_percent}%",
+                        "recommendation": "Reduce image sizes or close other applications",
+                    }
+                )
+        except Exception:
+             pass
 
         # Check disk space
         try:
-            disk_usage = psutil.disk_usage('/')
+            disk_usage = psutil.disk_usage("/")
             if disk_usage.percent > 95:
-                issues.append({
-                    "severity": "warning",
-                    "component": "disk",
-                    "message": f"Low disk space: {disk_usage.percent}% used",
-                    "recommendation": "Free up disk space or use different output directory"
-                })
-        except:
-            pass
+                issues.append(
+                    {
+                        "severity": "warning",
+                        "component": "disk",
+                        "message": f"Low disk space: {disk_usage.percent}% used",
+                        "recommendation": "Free up disk space or use different output directory",
+                    }
+                )
+        except Exception:
+             pass
 
         return issues
 
-    def _get_recommendations(self) -> List[str]:
+    def _get_recommendations(self) -> list[str]:
         """Get system recommendations."""
         return [
             "Monitor memory usage during large batch operations",
             "Ensure adequate disk space for output files",
             "Use smaller test images for development",
-            "Regularly clear cache and temporary files"
+            "Regularly clear cache and temporary files",
         ]
 
-    def _get_system_checks(self) -> Dict[str, Any]:
+    def _get_system_checks(self) -> dict[str, Any]:
         """Get system health checks."""
         return {
             "gimp_available": self.cli_wrapper is not None,
             "memory_sufficient": True,  # Would check actual thresholds
             "disk_space_sufficient": True,  # Would check actual thresholds
-            "network_available": True  # Would check if needed
+            "network_available": True,  # Would check if needed
         }
-
