@@ -10,6 +10,7 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
+
 async def test_ai_generation():
     """Test the AI image generation functionality."""
     try:
@@ -31,7 +32,7 @@ async def test_ai_generation():
 
         # Check if generate_image tool is registered
         tools = server.tools
-        if "generate_image" in [tool.__name__ if hasattr(tool, '__name__') else str(tool) for tool in tools.values()]:
+        if "generate_image" in [tool.__name__ if hasattr(tool, "__name__") else str(tool) for tool in tools.values()]:
             print("PASS: generate_image tool is registered")
         else:
             print("WARN: generate_image tool not found in registered tools")
@@ -45,7 +46,7 @@ async def test_ai_generation():
                 async def send(self, message):
                     print(f"Context message: {message}")
 
-            ctx = MockContext()
+            MockContext()
 
             # Test parameters
             test_params = {
@@ -54,7 +55,7 @@ async def test_ai_generation():
                 "dimensions": "256x256",
                 "model": "flux-dev",
                 "quality": "draft",
-                "max_iterations": 1
+                "max_iterations": 1,
             }
 
             print(f"Calling generate_image with params: {test_params}")
@@ -73,8 +74,10 @@ async def test_ai_generation():
     except Exception as e:
         print(f"FAIL: Test failed with error: {e}")
         import traceback
+
         traceback.print_exc()
         return False
+
 
 if __name__ == "__main__":
     success = asyncio.run(test_ai_generation())

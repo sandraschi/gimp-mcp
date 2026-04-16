@@ -7,10 +7,12 @@ ensuring consistent behavior and interface across all tool categories.
 """
 
 import logging
+import re
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Type, TypeVar, Callable, Union
+from collections.abc import Callable
 from functools import wraps
 from pathlib import Path
+from typing import Any, ClassVar, TypeVar
 
 from fastmcp import FastMCP
 
@@ -19,68 +21,122 @@ from ..config import GimpConfig
 
 logger = logging.getLogger(__name__)
 
+
+def _camel_case_to_snake(name: str) -> str:
+    return re.sub(r"(?<!^)(?=[A-Z])", "_", name).lower()
+
+
+_PLUGIN_NAME_OVERRIDES: dict[str, str] = {
+    # Server and health checks expect this key (see GimpMcpServer.register_tools).
+    "BatchProcessingTools": "batch_processing",
+}
+
+
+def plugin_id_for_class(cls: type) -> str:
+    """Return the plugin registry id for a tool category class."""
+    key = cls.__name__
+    if key in _PLUGIN_NAME_OVERRIDES:
+        return _PLUGIN_NAME_OVERRIDES[key]
+    explicit = getattr(cls, "PLUGIN_NAME", None)
+    if isinstance(explicit, str) and explicit.strip():
+        return explicit.strip()
+    return _camel_case_to_snake(key)
+
+
 # Type variable for tool methods
-T = TypeVar('T', bound=Callable[..., Any])
+T = TypeVar("T", bound=Callable[..., Any])
+
 
 def tool(
-    name: Optional[str] = None,
+    name: str | None = None,
     description: str = "",
-    parameters: Optional[Dict[str, Dict[str, Any]]] = None,
-    returns: Optional[Dict[str, Any]] = None,
-    examples: Optional[List[Dict[str, str]]] = None
+    parameters: dict[str, dict[str, Any]] | None = None,
+    returns: dict[str, Any] | None = None,
+    examples: list[dict[str, str]] | None = None,
 ) -> Callable[[T], T]:
     """
     Decorator for GIMP MCP tool methods.
-    
+
     This decorator enhances tool methods with metadata and documentation
     that can be used for API documentation, validation, and help systems.
-    
+
     Args:
         name: Tool name (defaults to function name)
         description: Detailed description of the tool
         parameters: Parameter specifications
         returns: Return value specification
         examples: List of usage examples
-        
+
     Returns:
         Decorated function with added metadata
     """
+
     def decorator(func: T) -> T:
         # Set or update function metadata
-        if not hasattr(func, '_tool_metadata'):
+        if not hasattr(func, "_tool_metadata"):
             func._tool_metadata = {}
-            
-        func._tool_metadata.update({
-            'name': name or func.__name__,
-            'description': description or func.__doc__ or "",
-            'parameters': parameters or {},
-            'returns': returns or {},
-            'examples': examples or []
-        })
-        
+
+        func._tool_metadata.update(
+            {
+                "name": name or func.__name__,
+                "description": description or func.__doc__ or "",
+                "parameters": parameters or {},
+                "returns": returns or {},
+                "examples": examples or [],
+            }
+        )
+
         # Preserve the original function's docstring and metadata
         @wraps(func)
         def wrapper(*args, **kwargs):
             return func(*args, **kwargs)
-            
+
         return wrapper  # type: ignore
+
     return decorator
+
 
 class BaseToolCategory(ABC):
     """
     Base class for all GIMP MCP tool categories.
-    
+
     This class provides common functionality like error handling, validation,
     and consistent patterns across all tool implementations. All tool categories
     should inherit from this class and implement the required abstract methods.
-    
+
     Attributes:
         cli_wrapper: Instance of GimpCliWrapper for executing GIMP commands
         config: Server configuration
         logger: Logger instance for the tool category
     """
-    
-    def __init__(self, cli_wrapper: Optional[GimpCliWrapper], config: GimpConfig):
+
+    PLUGIN_NAME: ClassVar[str] = ""
+    PLUGIN_DESCRIPTION: ClassVar[str] = ""
+
+    @classmethod
+    def get_plugin_name(cls) -> str:
+        """Registry id for :class:`~gimp_mcp.plugins.PluginManager` (see core plugin loading)."""
+        return plugin_id_for_class(cls)
+
+    @classmethod
+    def get_plugin_description(cls) -> str:
+        """Short description for plugin listings."""
+        desc = cls.PLUGIN_DESCRIPTION.strip() if cls.PLUGIN_DESCRIPTION else ""
+        if desc:
+            return desc
+        doc = (cls.__doc__ or "").strip()
+        if doc:
+            return doc.split("\n")[0].strip()
+        return cls.__name__
+
+    def __init__(
+        self,
+        cli_wrapper: GimpCliWrapper | None,
+        config: GimpConfig,
+        *,
+        tool_categories: dict[str, Any] | None = None,
+        **_: Any,
+    ):
         """
         Initialize base tool category with dependencies and robust error handling.
 
@@ -109,31 +165,34 @@ class BaseToolCategory(ABC):
         # CLI wrapper can be None in limited functionality mode
         self.cli_wrapper = cli_wrapper
         self.config = config
+        self.tool_categories = tool_categories or {}
 
         # Initialize logger with error handling
         try:
             from ..logging_config import get_logger
+
             self.logger = get_logger(self.__class__.__name__)
         except ImportError:
             # Fallback to standard logging if structured logging unavailable
             import logging
+
             self.logger = logging.getLogger(self.__class__.__name__)
             self.logger.warning("Structured logging unavailable, using standard logging")
 
         self.logger.info(f"Initialized {self.__class__.__name__} tool category")
-    
+
     @abstractmethod
     def register_tools(self, app: FastMCP) -> None:
         """
         Register all tools in this category with the FastMCP application.
-        
+
         This method is responsible for setting up all the tool endpoints
         and their corresponding handlers. Each tool method should be decorated
         with @app.tool() and the appropriate metadata.
-        
+
         Args:
             app: FastMCP application instance to register tools with
-            
+
         Example:
             ```python
             @app.tool()
@@ -143,31 +202,31 @@ class BaseToolCategory(ABC):
             ```
         """
         pass
-    
+
     def validate_file_path(self, file_path: str, must_exist: bool = True) -> bool:
         """
         Validate file path for security and accessibility.
-        
+
         Args:
             file_path: Path to validate
             must_exist: Whether file must exist
-            
+
         Returns:
             bool: True if path is valid
         """
         try:
             from pathlib import Path
-            
+
             path = Path(file_path).resolve()
-            
+
             # Check if file exists (if required)
             if must_exist and not path.exists():
                 return False
-            
+
             # Check if parent directory exists (for output files)
             if not must_exist and not path.parent.exists():
                 return False
-            
+
             # Security: Check if path is within allowed directories
             if self.config.allowed_directories:
                 allowed = any(
@@ -176,35 +235,37 @@ class BaseToolCategory(ABC):
                 )
                 if not allowed:
                     return False
-            
+
             return True
-            
+
         except Exception as e:
             self.logger.debug(f"Path validation failed for {file_path}: {e}")
             return False
-    
-    def create_error_response(self, error_msg: str, details: Optional[Dict] = None) -> Dict[str, Any]:
+
+    def create_error_response(self, error_msg: str, details: dict | None = None) -> dict[str, Any]:
         """
         Create standardized error response.
-        
+
         Args:
             error_msg: Error message
             details: Optional error details
-            
+
         Returns:
             Dict[str, Any]: Error response
         """
-        response = {
-            "success": False,
-            "error": error_msg
-        }
-        
+        response = {"success": False, "error": error_msg}
+
         if details:
             response["details"] = details
-        
+
         return response
-    
-    def create_success_response(self, data: Any = None, message: str = "Operation completed successfully", metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+
+    def create_success_response(
+        self,
+        data: Any = None,
+        message: str = "Operation completed successfully",
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """
         Create comprehensive success response with optional metadata.
 
@@ -218,11 +279,7 @@ class BaseToolCategory(ABC):
         """
         import time
 
-        response = {
-            "success": True,
-            "message": message,
-            "timestamp": time.time()
-        }
+        response = {"success": True, "message": message, "timestamp": time.time()}
 
         if data is not None:
             response["data"] = data
@@ -232,7 +289,13 @@ class BaseToolCategory(ABC):
 
         return response
 
-    def create_error_response(self, message: str, error_code: Optional[str] = None, details: Optional[Dict[str, Any]] = None, recoverable: bool = True) -> Dict[str, Any]:
+    def create_error_response(
+        self,
+        message: str,
+        error_code: str | None = None,
+        details: dict[str, Any] | None = None,
+        recoverable: bool = True,
+    ) -> dict[str, Any]:
         """
         Create comprehensive error response with detailed diagnostic information.
 
@@ -248,12 +311,7 @@ class BaseToolCategory(ABC):
         import time
         import traceback
 
-        response = {
-            "success": False,
-            "error": message,
-            "timestamp": time.time(),
-            "recoverable": recoverable
-        }
+        response = {"success": False, "error": message, "timestamp": time.time(), "recoverable": recoverable}
 
         if error_code:
             response["error_code"] = error_code
@@ -262,12 +320,12 @@ class BaseToolCategory(ABC):
             response["details"] = details
 
         # Add stack trace in debug mode
-        if hasattr(self.config, 'debug_mode') and getattr(self.config, 'debug_mode', False):
+        if hasattr(self.config, "debug_mode") and getattr(self.config, "debug_mode", False):
             response["stack_trace"] = traceback.format_exc()
 
         return response
 
-    def validate_file_path(self, file_path: Union[str, Path], operation: str = "access") -> Path:
+    def validate_file_path(self, file_path: str | Path, operation: str = "access") -> Path:
         """
         Validate and normalize file paths with comprehensive security checks.
 
@@ -302,10 +360,9 @@ class BaseToolCategory(ABC):
                     raise ValueError(f"Parent path is not a directory: {path.parent}")
 
             # Security check: ensure path is within allowed directories
-            allowed_dirs = getattr(self.config, 'allowed_directories', [])
+            allowed_dirs = getattr(self.config, "allowed_directories", [])
             if allowed_dirs:
-                path_allowed = any(path.is_relative_to(Path(allowed_dir).resolve())
-                                 for allowed_dir in allowed_dirs)
+                path_allowed = any(path.is_relative_to(Path(allowed_dir).resolve()) for allowed_dir in allowed_dirs)
                 if not path_allowed:
                     raise PermissionError(f"Access denied: {path} is outside allowed directories")
 
@@ -315,7 +372,9 @@ class BaseToolCategory(ABC):
             self.logger.error(f"File path validation failed for {file_path}: {e}")
             raise
 
-    def handle_operation_error(self, operation: str, error: Exception, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def handle_operation_error(
+        self, operation: str, error: Exception, context: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """
         Handle operation errors with appropriate logging and response generation.
 
@@ -327,11 +386,7 @@ class BaseToolCategory(ABC):
         Returns:
             Standardized error response
         """
-        error_details = {
-            "operation": operation,
-            "error_type": type(error).__name__,
-            "error_message": str(error)
-        }
+        error_details = {"operation": operation, "error_type": type(error).__name__, "error_message": str(error)}
 
         if context:
             error_details["context"] = context
@@ -347,8 +402,8 @@ class BaseToolCategory(ABC):
         recoverable = isinstance(error, recoverable_errors)
 
         return self.create_error_response(
-            message=f"Operation '{operation}' failed: {str(error)}",
+            message=f"Operation '{operation}' failed: {error!s}",
             error_code=type(error).__name__,
             details=error_details,
-            recoverable=recoverable
+            recoverable=recoverable,
         )

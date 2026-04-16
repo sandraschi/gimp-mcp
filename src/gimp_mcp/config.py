@@ -9,34 +9,33 @@ import logging
 import os
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 import yaml
 from pydantic import BaseModel, Field, field_validator
 
 logger = logging.getLogger(__name__)
 
+
 class GimpConfig(BaseModel):
     """
     Configuration model for GIMP MCP Server.
     """
-    
+
     # GIMP Configuration
-    gimp_executable: Optional[str] = Field(
-        default=None,
-        description="Path to GIMP executable (auto-detected if None)"
-    )
-    
-    def detect_gimp_executable(self) -> Optional[str]:
+    gimp_executable: str | None = Field(default=None, description="Path to GIMP executable (auto-detected if None)")
+
+    def detect_gimp_executable(self) -> str | None:
         """
         Detect GIMP executable path based on current operating system.
-        
+
         Returns:
             Optional[str]: Path to GIMP executable if found, otherwise None.
         """
         import platform
+
         system = platform.system().lower()
-        
+
         if system == "windows":
             # Common GIMP installation paths on Windows
             paths = [
@@ -48,25 +47,27 @@ class GimpConfig(BaseModel):
                 r"C:\Program Files\GIMP 2\bin\gimp-2.10.exe",
                 # GIMP in PATH via where.exe check fallback
             ]
-            
+
             for path in paths:
                 if Path(path).exists():
                     return path
-            
+
             # Try finding in PATH
             try:
                 import shutil
+
                 path = shutil.which("gimp-console-2.10") or shutil.which("gimp-2.10") or shutil.which("gimp")
                 if path:
                     return path
             except Exception:
                 pass
-                
+
         elif system == "linux":
             # Common Linux locations or via PATH
             import shutil
+
             return shutil.which("gimp") or "/usr/bin/gimp" or "/usr/local/bin/gimp"
-            
+
         elif system == "darwin":  # macOS
             paths = [
                 "/Applications/GIMP.app/Contents/MacOS/gimp",
@@ -75,147 +76,75 @@ class GimpConfig(BaseModel):
             for path in paths:
                 if Path(path).exists():
                     return path
-            
+
         return None
-    
+
     # Performance Settings
     max_concurrent_processes: int = Field(
-        default=3,
-        ge=1,
-        le=10,
-        description="Maximum number of concurrent GIMP processes"
+        default=3, ge=1, le=10, description="Maximum number of concurrent GIMP processes"
     )
-    
-    process_timeout: int = Field(
-        default=30,
-        ge=5,
-        le=300,
-        description="Timeout for GIMP operations in seconds"
-    )
-    
+
+    process_timeout: int = Field(default=30, ge=5, le=300, description="Timeout for GIMP operations in seconds")
+
     # File Handling
     temp_directory: str = Field(
-        default_factory=lambda: tempfile.gettempdir(),
-        description="Directory for temporary files"
+        default_factory=lambda: tempfile.gettempdir(), description="Directory for temporary files"
     )
-    
-    max_file_size_mb: int = Field(
-        default=100,
-        ge=1,
-        le=1000,
-        description="Maximum file size in MB"
-    )
-    
-    preserve_metadata: bool = Field(
-        default=True,
-        description="Preserve EXIF and other metadata when possible"
-    )
-    
-    auto_cleanup: bool = Field(
-        default=True,
-        description="Automatically clean up temporary files"
-    )
-    
-    cleanup_interval: int = Field(
-        default=3600,
-        ge=60,
-        description="Cleanup interval in seconds"
-    )
-    
+
+    max_file_size_mb: int = Field(default=100, ge=1, le=1000, description="Maximum file size in MB")
+
+    preserve_metadata: bool = Field(default=True, description="Preserve EXIF and other metadata when possible")
+
+    auto_cleanup: bool = Field(default=True, description="Automatically clean up temporary files")
+
+    cleanup_interval: int = Field(default=3600, ge=60, description="Cleanup interval in seconds")
+
     # Image Processing Defaults
-    default_quality: int = Field(
-        default=95,
-        ge=1,
-        le=100,
-        description="Default JPEG quality (1-100)"
+    default_quality: int = Field(default=95, ge=1, le=100, description="Default JPEG quality (1-100)")
+
+    default_interpolation: str = Field(default="lanczos", description="Default interpolation method for resizing")
+
+    supported_formats: list[str] = Field(
+        default_factory=lambda: ["jpeg", "jpg", "png", "webp", "tiff", "tif", "bmp", "gif", "xcf", "psd", "svg", "pdf"],
+        description="List of supported image formats",
     )
-    
-    default_interpolation: str = Field(
-        default="lanczos",
-        description="Default interpolation method for resizing"
-    )
-    
-    supported_formats: List[str] = Field(
-        default_factory=lambda: [
-            "jpeg", "jpg", "png", "webp", "tiff", "tif", 
-            "bmp", "gif", "xcf", "psd", "svg", "pdf"
-        ],
-        description="List of supported image formats"
-    )
-    
+
     # Batch Processing
-    enable_batch_operations: bool = Field(
-        default=True,
-        description="Enable batch processing capabilities"
-    )
-    
+    enable_batch_operations: bool = Field(default=True, description="Enable batch processing capabilities")
+
     # Plugin System
-    enable_plugins: bool = Field(
-        default=True,
-        description="Enable plugin system"
-    )
-    
+    enable_plugins: bool = Field(default=True, description="Enable plugin system")
+
     # Bridge Configuration
     enable_live_mode: bool = Field(
-        default=True,
-        description="Enable real-time 'Live' interaction mode with running GIMP instance"
+        default=True, description="Enable real-time 'Live' interaction mode with running GIMP instance"
     )
-    
-    bridge_host: str = Field(
-        default="127.0.0.1",
-        description="Host for the GIMP Live Bridge"
-    )
-    
-    bridge_port: int = Field(
-        default=10774,
-        description="Port for the GIMP Live Bridge"
-    )
-    
-    plugin_dirs: List[str] = Field(
-        default_factory=list,
-        description="List of directories to search for plugins"
-    )
-    
-    disabled_plugins: List[str] = Field(
-        default_factory=list,
-        description="List of plugin names to disable"
-    )
-    
-    plugin_config: Dict[str, Dict[str, Any]] = Field(
-        default_factory=dict,
-        description="Plugin-specific configuration"
-    )
-    
-    batch_size_limit: int = Field(
-        default=50,
-        ge=1,
-        le=200,
-        description="Maximum number of files in a single batch"
-    )
-    
+
+    bridge_host: str = Field(default="127.0.0.1", description="Host for the GIMP Live Bridge")
+
+    bridge_port: int = Field(default=10774, description="Port for the GIMP Live Bridge")
+
+    plugin_dirs: list[str] = Field(default_factory=list, description="List of directories to search for plugins")
+
+    disabled_plugins: list[str] = Field(default_factory=list, description="List of plugin names to disable")
+
+    plugin_config: dict[str, dict[str, Any]] = Field(default_factory=dict, description="Plugin-specific configuration")
+
+    batch_size_limit: int = Field(default=50, ge=1, le=200, description="Maximum number of files in a single batch")
+
     # Logging and Debug
-    log_level: str = Field(
-        default="INFO",
-        description="Logging level (DEBUG, INFO, WARNING, ERROR)"
-    )
-    
-    enable_performance_logging: bool = Field(
-        default=False,
-        description="Enable detailed performance logging"
-    )
-    
+    log_level: str = Field(default="INFO", description="Logging level (DEBUG, INFO, WARNING, ERROR)")
+
+    enable_performance_logging: bool = Field(default=False, description="Enable detailed performance logging")
+
     # Security Settings
-    enable_file_validation: bool = Field(
-        default=True,
-        description="Enable file type validation"
+    enable_file_validation: bool = Field(default=True, description="Enable file type validation")
+
+    allowed_directories: list[str] = Field(
+        default_factory=list, description="List of allowed directories for file operations"
     )
-    
-    allowed_directories: List[str] = Field(
-        default_factory=list,
-        description="List of allowed directories for file operations"
-    )
-    
-    @field_validator('temp_directory')
+
+    @field_validator("temp_directory")
     @classmethod
     def validate_temp_directory(cls, v: str) -> str:
         """Validate and create temp directory if needed."""
@@ -227,8 +156,8 @@ class GimpConfig(BaseModel):
         except Exception as e:
             raise ValueError(f"Invalid temp directory: {v} - {e}")
         return str(path)
-    
-    @field_validator('default_interpolation')
+
+    @field_validator("default_interpolation")
     @classmethod
     def validate_interpolation(cls, v: str) -> str:
         """Validate interpolation method."""
@@ -236,8 +165,8 @@ class GimpConfig(BaseModel):
         if v.lower() not in valid_methods:
             raise ValueError(f"Invalid interpolation method: {v}. Must be one of {valid_methods}")
         return v.lower()
-    
-    @field_validator('log_level')
+
+    @field_validator("log_level")
     @classmethod
     def validate_log_level(cls, v: str) -> str:
         """Validate logging level."""
@@ -245,46 +174,46 @@ class GimpConfig(BaseModel):
         if v.upper() not in valid_levels:
             raise ValueError(f"Invalid log level: {v}. Must be one of {valid_levels}")
         return v.upper()
-    
+
     @classmethod
-    def load_from_file(cls, config_path: Union[str, Path]) -> 'GimpConfig':
+    def load_from_file(cls, config_path: str | Path) -> "GimpConfig":
         """
         Load configuration from YAML file.
-        
+
         Args:
             config_path: Path to configuration file
-            
+
         Returns:
             GimpConfig: Loaded configuration
-            
+
         Raises:
             FileNotFoundError: If config file doesn't exist
             ValueError: If config file is invalid
         """
         path = Path(config_path)
-        
+
         if not path.exists():
             raise FileNotFoundError(f"Configuration file not found: {path}")
-        
+
         try:
-            with open(path, 'r', encoding='utf-8') as f:
+            with open(path, encoding="utf-8") as f:
                 config_data = yaml.safe_load(f)
-            
+
             if config_data is None:
                 config_data = {}
-                
+
             return cls(**config_data)
-            
+
         except yaml.YAMLError as e:
             raise ValueError(f"Invalid YAML in config file: {e}")
         except Exception as e:
             raise ValueError(f"Failed to load config: {e}")
-    
+
     @classmethod
-    def load_default(cls) -> 'GimpConfig':
+    def load_default(cls) -> "GimpConfig":
         """
         Load default configuration with auto-detection.
-        
+
         Returns:
             GimpConfig: Default configuration
         """
@@ -295,7 +224,7 @@ class GimpConfig(BaseModel):
             Path.home() / ".gimp-mcp" / "config.yaml",
             Path.home() / ".config" / "gimp-mcp" / "config.yaml",
         ]
-        
+
         for config_path in config_paths:
             if config_path.exists():
                 logger.info(f"Loading configuration from: {config_path}")
@@ -303,10 +232,10 @@ class GimpConfig(BaseModel):
                     return cls.load_from_file(config_path)
                 except Exception as e:
                     logger.warning(f"Failed to load config from {config_path}: {e}")
-        
+
         logger.info("Using default configuration")
         config = cls()
-        
+
         # Auto-detect GIMP executable if not provided
         if not config.gimp_executable:
             detected_path = config.detect_gimp_executable()
@@ -315,84 +244,79 @@ class GimpConfig(BaseModel):
                 config.gimp_executable = detected_path
             else:
                 logger.warning("GIMP executable not found in common locations. Please configure it manually.")
-                
+
         return config
-    
-    def save_to_file(self, config_path: Union[str, Path]) -> None:
+
+    def save_to_file(self, config_path: str | Path) -> None:
         """
         Save configuration to YAML file.
-        
+
         Args:
             config_path: Path to save configuration
         """
         path = Path(config_path)
         path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         # Convert to dict and remove None values
         config_dict = self.dict(exclude_none=True)
-        
+
         try:
-            with open(path, 'w', encoding='utf-8') as f:
-                yaml.dump(
-                    config_dict,
-                    f,
-                    default_flow_style=False,
-                    sort_keys=True,
-                    indent=2
-                )
+            with open(path, "w", encoding="utf-8") as f:
+                yaml.dump(config_dict, f, default_flow_style=False, sort_keys=True, indent=2)
             logger.info(f"Configuration saved to: {path}")
-            
+
         except Exception as e:
             logger.error(f"Failed to save config to {path}: {e}")
             raise
-    
+
     def create_temp_subdirectory(self, name: str) -> Path:
         """
         Create a subdirectory in the temp directory.
-        
+
         Args:
             name: Subdirectory name
-            
+
         Returns:
             Path: Path to created subdirectory
         """
         subdir = Path(self.temp_directory) / name
         subdir.mkdir(parents=True, exist_ok=True)
         return subdir
-    
+
     def is_format_supported(self, format_name: str) -> bool:
         """
         Check if an image format is supported.
-        
+
         Args:
             format_name: Format name to check
-            
+
         Returns:
             bool: True if format is supported
         """
         return format_name.lower() in [fmt.lower() for fmt in self.supported_formats]
-    
+
     def get_temp_file_path(self, suffix: str = "") -> Path:
         """
         Generate a unique temporary file path.
-        
+
         Args:
             suffix: File suffix/extension
-            
+
         Returns:
             Path: Unique temporary file path
         """
         import uuid
+
         filename = f"gimp_mcp_{uuid.uuid4().hex[:8]}{suffix}"
         return Path(self.temp_directory) / filename
-    
-    def validate_file_size(self, file_path: Union[str, Path]) -> bool:
+
+    def validate_file_size(self, file_path: str | Path) -> bool:
         """
         Validate file size against configured limits.
-        
+
         Args:
             file_path: Path to file to validate
-            
+
         Returns:
             bool: True if file size is acceptable
         """
@@ -404,16 +328,16 @@ class GimpConfig(BaseModel):
             return False
 
 
-def load_config(config_path: Optional[Union[str, Path]] = None) -> GimpConfig:
+def load_config(config_path: str | Path | None = None) -> GimpConfig:
     """
     Load configuration from file or create a default config if it doesn't exist.
-    
+
     Args:
         config_path: Optional path to configuration file. If None, uses default location.
-        
+
     Returns:
         GimpConfig: Loaded configuration
-        
+
     Raises:
         ValueError: If the config file is invalid
     """
@@ -424,12 +348,12 @@ def load_config(config_path: Optional[Union[str, Path]] = None) -> GimpConfig:
         config_path = config_dir / "config.yaml"
     else:
         config_path = Path(config_path)
-    
+
     # Create default config if it doesn't exist
     if not config_path.exists():
         logger.info(f"Config file not found at {config_path}, creating default config")
         create_default_config_file(config_path)
-    
+
     try:
         # Load and validate the config
         return GimpConfig.load_from_file(config_path)
@@ -439,10 +363,10 @@ def load_config(config_path: Optional[Union[str, Path]] = None) -> GimpConfig:
         return GimpConfig.load_default()
 
 
-def create_default_config_file(config_path: Union[str, Path]) -> None:
+def create_default_config_file(config_path: str | Path) -> None:
     """
     Create a default configuration file with comments.
-    
+
     Args:
         config_path: Path where to create the config file
     """
@@ -471,7 +395,7 @@ default_interpolation: "lanczos"  # Interpolation method for resizing
 # Supported formats (add/remove as needed)
 supported_formats:
   - "jpeg"
-  - "jpg" 
+  - "jpg"
   - "png"
   - "webp"
   - "tiff"
@@ -506,11 +430,11 @@ enable_file_validation: true
 #   - "/home/user/images"
 #   - "/var/www/uploads"
 """.strip()
-    
+
     path = Path(config_path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    
-    with open(path, 'w', encoding='utf-8') as f:
+
+    with open(path, "w", encoding="utf-8") as f:
         f.write(config_content)
-    
+
     logger.info(f"Created default configuration file: {path}")

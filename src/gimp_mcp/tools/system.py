@@ -11,7 +11,7 @@ import platform
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, Literal, Optional
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -22,9 +22,9 @@ class SystemResult(BaseModel):
     success: bool
     operation: str
     message: str
-    data: Dict[str, Any] = Field(default_factory=dict)
+    data: dict[str, Any] = Field(default_factory=dict)
     execution_time_ms: float = 0.0
-    error: Optional[str] = None
+    error: str | None = None
 
 
 async def gimp_system(
@@ -39,21 +39,21 @@ async def gimp_system(
         "version",
     ],
     # Help parameters
-    topic: Optional[str] = None,
+    topic: str | None = None,
     level: str = "basic",
     # Cache parameters
     cache_action: str = "status",
     cache_type: str = "all",
     # Config parameters
-    config_key: Optional[str] = None,
-    config_value: Optional[Any] = None,
+    config_key: str | None = None,
+    config_value: Any | None = None,
     # Performance parameters
-    operation_type: Optional[str] = None,
+    operation_type: str | None = None,
     time_range_hours: int = 24,
     # Dependencies
     cli_wrapper: Any = None,
     config: Any = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Comprehensive system management portmanteau for GIMP MCP.
 
     PORTMANTEAU PATTERN RATIONALE:
@@ -169,13 +169,13 @@ async def gimp_system(
         return SystemResult(
             success=False,
             operation=operation,
-            message=f"System operation failed: {str(e)}",
+            message=f"System operation failed: {e!s}",
             error=str(e),
             execution_time_ms=round(execution_time, 2),
         ).model_dump()
 
 
-async def _get_status(cli_wrapper, config) -> Dict[str, Any]:
+async def _get_status(cli_wrapper, config) -> dict[str, Any]:
     """Get server and GIMP status."""
     import psutil
 
@@ -191,9 +191,7 @@ async def _get_status(cli_wrapper, config) -> Dict[str, Any]:
             "platform_version": platform.version(),
             "python_version": platform.python_version(),
             "cpu_count": os.cpu_count(),
-            "memory_available_gb": round(
-                psutil.virtual_memory().available / (1024**3), 2
-            ),
+            "memory_available_gb": round(psutil.virtual_memory().available / (1024**3), 2),
             "memory_total_gb": round(psutil.virtual_memory().total / (1024**3), 2),
         },
         "gimp": {
@@ -216,15 +214,12 @@ async def _get_status(cli_wrapper, config) -> Dict[str, Any]:
     return SystemResult(
         success=True,
         operation="status",
-        message="Server running"
-        + (
-            " with GIMP" if status_data["gimp"]["available"] else " (GIMP not detected)"
-        ),
+        message="Server running" + (" with GIMP" if status_data["gimp"]["available"] else " (GIMP not detected)"),
         data=status_data,
     ).model_dump()
 
 
-def _get_help(topic: Optional[str], level: str) -> Dict[str, Any]:
+def _get_help(topic: str | None, level: str) -> dict[str, Any]:
     """Get help information."""
     help_topics = {
         "overview": {
@@ -392,14 +387,10 @@ POST-PROCESSING OPTIONS:
     }
 
     if topic and topic in help_topics:
-        help_content = help_topics[topic].get(
-            level, help_topics[topic].get("basic", "")
-        )
+        help_content = help_topics[topic].get(level, help_topics[topic].get("basic", ""))
     else:
         # List all topics
-        help_content = help_topics.get("overview", {}).get(
-            level, help_topics["overview"]["basic"]
-        )
+        help_content = help_topics.get("overview", {}).get(level, help_topics["overview"]["basic"])
 
     return SystemResult(
         success=True,
@@ -414,7 +405,7 @@ POST-PROCESSING OPTIONS:
     ).model_dump()
 
 
-async def _run_diagnostics(cli_wrapper, config) -> Dict[str, Any]:
+async def _run_diagnostics(cli_wrapper, config) -> dict[str, Any]:
     """Run diagnostic checks."""
     checks = []
 
@@ -432,9 +423,7 @@ async def _run_diagnostics(cli_wrapper, config) -> Dict[str, Any]:
     for pkg in required_packages:
         try:
             __import__(pkg.lower().replace("pil", "PIL"))
-            checks.append(
-                {"name": f"Package: {pkg}", "status": "pass", "message": "Installed"}
-            )
+            checks.append({"name": f"Package: {pkg}", "status": "pass", "message": "Installed"})
         except ImportError:
             checks.append(
                 {
@@ -447,7 +436,7 @@ async def _run_diagnostics(cli_wrapper, config) -> Dict[str, Any]:
     # Disk space
     import shutil
 
-    total, used, free = shutil.disk_usage("/")
+    _total, _used, free = shutil.disk_usage("/")
     free_gb = free / (1024**3)
     checks.append(
         {
@@ -479,9 +468,7 @@ async def _run_diagnostics(cli_wrapper, config) -> Dict[str, Any]:
         {
             "name": "GIMP Installation",
             "status": "pass" if gimp_found else "warn",
-            "message": "Found"
-            if gimp_found
-            else "Not detected (some features limited)",
+            "message": "Found" if gimp_found else "Not detected (some features limited)",
         }
     )
 
@@ -501,7 +488,7 @@ async def _run_diagnostics(cli_wrapper, config) -> Dict[str, Any]:
     ).model_dump()
 
 
-def _manage_cache(action: str, cache_type: str, config) -> Dict[str, Any]:
+def _manage_cache(action: str, cache_type: str, config) -> dict[str, Any]:
     """Manage caches."""
     import tempfile
 
@@ -556,7 +543,7 @@ def _manage_cache(action: str, cache_type: str, config) -> Dict[str, Any]:
     ).model_dump()
 
 
-def _manage_config(key: Optional[str], value: Optional[Any], config) -> Dict[str, Any]:
+def _manage_config(key: str | None, value: Any | None, config) -> dict[str, Any]:
     """View or modify configuration."""
     if key is None:
         # Return all config
@@ -584,9 +571,7 @@ def _manage_config(key: Optional[str], value: Optional[Any], config) -> Dict[str
     ).model_dump()
 
 
-def _get_performance(
-    operation_type: Optional[str], time_range_hours: int
-) -> Dict[str, Any]:
+def _get_performance(operation_type: str | None, time_range_hours: int) -> dict[str, Any]:
     """Get performance metrics."""
     import psutil
 
@@ -614,7 +599,7 @@ def _get_performance(
     ).model_dump()
 
 
-def _list_tools() -> Dict[str, Any]:
+def _list_tools() -> dict[str, Any]:
     """List available tools."""
     tools = [
         {
@@ -741,7 +726,7 @@ def _list_tools() -> Dict[str, Any]:
     ).model_dump()
 
 
-def _get_version() -> Dict[str, Any]:
+def _get_version() -> dict[str, Any]:
     """Get version information."""
     return SystemResult(
         success=True,

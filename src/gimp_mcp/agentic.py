@@ -5,13 +5,12 @@ FastMCP 2.14.3 sampling capabilities for autonomous image editing workflows.
 Provides conversational tool returns and intelligent orchestration.
 """
 
-import asyncio
-import os
-import json
 import hashlib
-from pathlib import Path
-from typing import Any, Dict, List, Optional
+import json
+import os
 from datetime import datetime
+from pathlib import Path
+from typing import Any
 
 # Import mcp dynamically to avoid circular imports
 from .logging_config import get_logger
@@ -33,10 +32,10 @@ def register_agentic_tools(mcp_instance=None):
         dimensions: str = "1024x1024",
         model: str = "flux-dev",
         quality: str = "standard",
-        reference_images: Optional[List[str]] = None,
-        post_processing: Optional[List[str]] = None,
-        max_iterations: int = 3
-    ) -> Dict[str, Any]:
+        reference_images: list[str] | None = None,
+        post_processing: list[str] | None = None,
+        max_iterations: int = 3,
+    ) -> dict[str, Any]:
         """
         Generate images using AI with conversational refinement and GIMP post-processing.
 
@@ -67,14 +66,14 @@ def register_agentic_tools(mcp_instance=None):
 
             # Parse dimensions
             try:
-                width, height = map(int, dimensions.split('x'))
+                width, height = map(int, dimensions.split("x"))
                 if width < 64 or height < 64 or width > 8192 or height > 8192:
                     raise ValueError("Dimensions must be between 64x64 and 8192x8192")
-            except ValueError as e:
+            except ValueError:
                 return {
                     "success": False,
                     "error": f"Invalid dimensions format: {dimensions}. Use 'WIDTHxHEIGHT'",
-                    "message": "Please specify dimensions as '1024x1024' or similar."
+                    "message": "Please specify dimensions as '1024x1024' or similar.",
                 }
 
             # Validate style preset
@@ -84,7 +83,7 @@ def register_agentic_tools(mcp_instance=None):
                     "success": False,
                     "error": f"Invalid style preset: {style_preset}",
                     "valid_options": valid_styles,
-                    "message": f"Choose from: {', '.join(valid_styles)}"
+                    "message": f"Choose from: {', '.join(valid_styles)}",
                 }
 
             # Validate model
@@ -94,7 +93,7 @@ def register_agentic_tools(mcp_instance=None):
                     "success": False,
                     "error": f"Invalid model: {model}",
                     "valid_options": valid_models,
-                    "message": f"Choose from: {', '.join(valid_models)}"
+                    "message": f"Choose from: {', '.join(valid_models)}",
                 }
 
             # Validate quality
@@ -104,7 +103,7 @@ def register_agentic_tools(mcp_instance=None):
                     "success": False,
                     "error": f"Invalid quality: {quality}",
                     "valid_options": valid_qualities,
-                    "message": f"Choose from: {', '.join(valid_qualities)}"
+                    "message": f"Choose from: {', '.join(valid_qualities)}",
                 }
 
             # Phase 2: AI Image Generation
@@ -118,14 +117,14 @@ def register_agentic_tools(mcp_instance=None):
                 width=width,
                 height=height,
                 model=model,
-                quality=quality
+                quality=quality,
             )
 
             if not generation_result["success"]:
                 return {
                     "success": False,
                     "error": generation_result["error"],
-                    "message": "Failed to generate base image. Try simplifying the description or changing parameters."
+                    "message": "Failed to generate base image. Try simplifying the description or changing parameters.",
                 }
 
             base_image_path = generation_result["image_path"]
@@ -135,9 +134,7 @@ def register_agentic_tools(mcp_instance=None):
                 await ctx.send(f"🎨 Applying GIMP post-processing: {', '.join(post_processing)}")
 
                 processed_image_path = await _apply_gimp_processing(
-                    base_image_path=base_image_path,
-                    post_processing=post_processing,
-                    quality_settings=quality
+                    base_image_path=base_image_path, post_processing=post_processing, quality_settings=quality
                 )
 
                 if processed_image_path:
@@ -169,12 +166,12 @@ def register_agentic_tools(mcp_instance=None):
                     "reference_images": reference_images or [],
                     "iterations_used": 1,
                     "processing_time": "simulated",
-                    "file_size": os.path.getsize(enhanced_image_path) if os.path.exists(enhanced_image_path) else 0
-                }
+                    "file_size": os.path.getsize(enhanced_image_path) if os.path.exists(enhanced_image_path) else 0,
+                },
             )
 
             # Generate summary
-            image_hash = hashlib.md5(open(enhanced_image_path, 'rb').read()).hexdigest()[:8]
+            image_hash = hashlib.md5(open(enhanced_image_path, "rb").read()).hexdigest()[:8]
 
             result = {
                 "success": True,
@@ -192,8 +189,8 @@ def register_agentic_tools(mcp_instance=None):
                     "Use gimp_color tool for further color adjustments",
                     "Apply gimp_filter for artistic effects",
                     "Use gimp_layer to add text or overlays",
-                    "Export with gimp_file in different formats"
-                ]
+                    "Export with gimp_file in different formats",
+                ],
             }
 
             await ctx.send(f"✅ Image generated successfully! Saved as: {enhanced_image_path.name}")
@@ -203,16 +200,16 @@ def register_agentic_tools(mcp_instance=None):
             logger.error(f"AI image generation failed: {e}", exc_info=True)
             return {
                 "success": False,
-                "error": f"Image generation failed: {str(e)}",
-                "message": "An unexpected error occurred during image generation. Try simplifying your request or contact support."
+                "error": f"Image generation failed: {e!s}",
+                "message": "An unexpected error occurred during image generation. Try simplifying your request or contact support.",
             }
 
     @mcp_instance.tool()
     async def agentic_gimp_workflow(
         workflow_prompt: str,
-        available_tools: List[str],
+        available_tools: list[str],
         max_iterations: int = 5,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Execute agentic GIMP workflows using FastMCP 2.14.3 sampling with tools.
 
         This tool demonstrates SEP-1577 by enabling the server's LLM to autonomously
@@ -234,12 +231,6 @@ def register_agentic_tools(mcp_instance=None):
         """
         try:
             # Parse workflow prompt and determine optimal tool sequence
-            workflow_analysis = {
-                "prompt": workflow_prompt,
-                "available_tools": available_tools,
-                "max_iterations": max_iterations,
-                "analysis": "LLM will autonomously orchestrate GIMP image editing operations"
-            }
 
             # This would use FastMCP 2.14.3 sampling to execute complex workflows
             # For now, return a conversational response about capabilities
@@ -255,8 +246,8 @@ def register_agentic_tools(mcp_instance=None):
                     "Complex multi-step workflows",
                     "Conversational responses",
                     "Error recovery and validation",
-                    "Parallel processing support"
-                ]
+                    "Parallel processing support",
+                ],
             }
 
             return result
@@ -264,17 +255,17 @@ def register_agentic_tools(mcp_instance=None):
         except Exception as e:
             return {
                 "success": False,
-                "error": f"Failed to execute agentic workflow: {str(e)}",
-                "message": "An error occurred while setting up the agentic workflow."
+                "error": f"Failed to execute agentic workflow: {e!s}",
+                "message": "An error occurred while setting up the agentic workflow.",
             }
 
     @mcp_instance.tool()
     async def intelligent_image_processing(
-        images: List[Dict[str, Any]],
+        images: list[dict[str, Any]],
         processing_goal: str,
-        available_operations: List[str],
+        available_operations: list[str],
         processing_strategy: str = "adaptive",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Intelligent batch image processing using FastMCP 2.14.3 sampling with tools.
 
         This tool uses the client's LLM to intelligently decide how to process batches
@@ -296,12 +287,12 @@ def register_agentic_tools(mcp_instance=None):
             Intelligent batch processing results
         """
         try:
-            processing_plan = {
+            {
                 "goal": processing_goal,
                 "image_count": len(images),
                 "available_operations": available_operations,
                 "strategy": processing_strategy,
-                "analysis": "LLM will analyze each image and choose optimal processing operations"
+                "analysis": "LLM will analyze each image and choose optimal processing operations",
             }
 
             result = {
@@ -317,8 +308,8 @@ def register_agentic_tools(mcp_instance=None):
                     "Automatic operation selection",
                     "Adaptive batching strategies",
                     "Quality validation",
-                    "Error recovery"
-                ]
+                    "Error recovery",
+                ],
             }
 
             return result
@@ -326,15 +317,15 @@ def register_agentic_tools(mcp_instance=None):
         except Exception as e:
             return {
                 "success": False,
-                "error": f"Failed to initiate intelligent processing: {str(e)}",
-                "message": "An error occurred while setting up intelligent image processing."
+                "error": f"Failed to initiate intelligent processing: {e!s}",
+                "message": "An error occurred while setting up intelligent image processing.",
             }
 
     @mcp_instance.tool()
     async def conversational_gimp_assistant(
         user_query: str,
         context_level: str = "comprehensive",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Conversational GIMP assistant with natural language responses.
 
         Provides human-like interaction for GIMP image editing with detailed
@@ -352,7 +343,7 @@ def register_agentic_tools(mcp_instance=None):
             response_templates = {
                 "basic": "I can help you edit images with GIMP.",
                 "comprehensive": "I'm your GIMP image editing assistant. I can help you manipulate photos, apply effects, manage layers, adjust colors, and process images in batches.",
-                "detailed": "Welcome to GIMP MCP! I'm equipped with comprehensive image editing capabilities including file operations, geometric transforms, color adjustments, filters and effects, layer management, image analysis, and batch processing workflows."
+                "detailed": "Welcome to GIMP MCP! I'm equipped with comprehensive image editing capabilities including file operations, geometric transforms, color adjustments, filters and effects, layer management, image analysis, and batch processing workflows.",
             }
 
             result = {
@@ -366,15 +357,15 @@ def register_agentic_tools(mcp_instance=None):
                     "Apply filters and effects",
                     "Adjust colors and tones",
                     "Manage image layers",
-                    "Process images in batches"
+                    "Process images in batches",
                 ],
                 "next_steps": [
                     "Use 'gimp_file' to load and save images",
                     "Use 'gimp_color' to adjust brightness and colors",
                     "Use 'gimp_filter' to apply artistic effects",
                     "Use 'gimp_layer' to manage image layers",
-                    "Use 'gimp_batch' for processing multiple images"
-                ]
+                    "Use 'gimp_batch' for processing multiple images",
+                ],
             }
 
             return result
@@ -382,21 +373,17 @@ def register_agentic_tools(mcp_instance=None):
         except Exception as e:
             return {
                 "success": False,
-                "error": f"Failed to provide conversational assistance: {str(e)}",
-                "message": "I encountered an error while processing your request."
+                "error": f"Failed to provide conversational assistance: {e!s}",
+                "message": "I encountered an error while processing your request.",
             }
 
 
 # Helper functions for AI image generation
 
+
 async def _generate_base_image(
-    description: str,
-    style_preset: str,
-    width: int,
-    height: int,
-    model: str,
-    quality: str
-) -> Dict[str, Any]:
+    description: str, style_preset: str, width: int, height: int, model: str, quality: str
+) -> dict[str, Any]:
     """
     Generate base image using AI model.
 
@@ -427,24 +414,16 @@ async def _generate_base_image(
                 "description": description,
                 "style_preset": style_preset,
                 "dimensions": f"{width}x{height}",
-                "quality": quality
-            }
+                "quality": quality,
+            },
         }
 
     except Exception as e:
         logger.error(f"Base image generation failed: {e}")
-        return {
-            "success": False,
-            "error": f"Failed to generate base image: {str(e)}"
-        }
+        return {"success": False, "error": f"Failed to generate base image: {e!s}"}
 
 
-async def _create_placeholder_image(
-    image_path: Path,
-    width: int,
-    height: int,
-    description: str
-) -> None:
+async def _create_placeholder_image(image_path: Path, width: int, height: int, description: str) -> None:
     """
     Create a placeholder image for demonstration.
 
@@ -460,17 +439,18 @@ async def _create_placeholder_image(
 
         # Convert HSV to RGB
         import colorsys
+
         r, g, b = colorsys.hsv_to_rgb(hue, 0.7, 0.9)
         r, g, b = int(r * 255), int(g * 255), int(b * 255)
 
-        img = Image.new('RGB', (width, height), color=(r, g, b))
+        img = Image.new("RGB", (width, height), color=(r, g, b))
         draw = ImageDraw.Draw(img)
 
         # Add description text
         try:
             font_size = min(width, height) // 20
             font = ImageFont.truetype("arial.ttf", font_size)
-        except:
+        except Exception:
             font = ImageFont.load_default()
 
         # Add text overlay
@@ -486,23 +466,19 @@ async def _create_placeholder_image(
         shadow_color = (0, 0, 0, 128)
         text_color = (255, 255, 255, 255)
 
-        draw.text((x+2, y+2), text, fill=shadow_color, font=font)
+        draw.text((x + 2, y + 2), text, fill=shadow_color, font=font)
         draw.text((x, y), text, fill=text_color, font=font)
 
-        img.save(image_path, 'PNG')
+        img.save(image_path, "PNG")
 
     except Exception as e:
         logger.error(f"Failed to create placeholder image: {e}")
         # Fallback: create a simple solid color image
-        img = Image.new('RGB', (width, height), color=(128, 128, 128))
-        img.save(image_path, 'PNG')
+        img = Image.new("RGB", (width, height), color=(128, 128, 128))
+        img.save(image_path, "PNG")
 
 
-async def _apply_gimp_processing(
-    base_image_path: str,
-    post_processing: List[str],
-    quality_settings: str
-) -> Optional[str]:
+async def _apply_gimp_processing(base_image_path: str, post_processing: list[str], quality_settings: str) -> str | None:
     """
     Apply GIMP post-processing operations to the generated image.
 
@@ -524,9 +500,7 @@ async def _apply_gimp_processing(
         current_path = base_image_path
 
         for operation in post_processing:
-            operation_result = await _apply_single_gimp_operation(
-                current_path, operation, quality_settings
-            )
+            operation_result = await _apply_single_gimp_operation(current_path, operation, quality_settings)
             if operation_result:
                 current_path = operation_result
             else:
@@ -535,6 +509,7 @@ async def _apply_gimp_processing(
         # Copy final result to processed path if different
         if current_path != str(processed_path):
             import shutil
+
             shutil.copy2(current_path, processed_path)
 
         return str(processed_path)
@@ -544,11 +519,7 @@ async def _apply_gimp_processing(
         return None
 
 
-async def _apply_single_gimp_operation(
-    image_path: str,
-    operation: str,
-    quality: str
-) -> Optional[str]:
+async def _apply_single_gimp_operation(image_path: str, operation: str, quality: str) -> str | None:
     """
     Apply a single GIMP operation to an image.
 
@@ -566,15 +537,16 @@ async def _apply_single_gimp_operation(
         return None
 
 
-async def _assess_image_quality(image_path: str) -> Dict[str, Any]:
+async def _assess_image_quality(image_path: str) -> dict[str, Any]:
     """
     Assess the quality of a generated image.
 
     Returns quality metrics and analysis.
     """
     try:
-        from PIL import Image
         import math
+
+        from PIL import Image
 
         img = Image.open(image_path)
         width, height = img.size
@@ -602,21 +574,15 @@ async def _assess_image_quality(image_path: str) -> Dict[str, Any]:
             "pixels": pixels,
             "color_depth": "RGB",
             "format": "PNG",
-            "compression": "none"
+            "compression": "none",
         }
 
     except Exception as e:
         logger.error(f"Quality assessment failed: {e}")
-        return {
-            "overall_quality": 5.0,
-            "error": f"Assessment failed: {str(e)}"
-        }
+        return {"overall_quality": 5.0, "error": f"Assessment failed: {e!s}"}
 
 
-async def _enhance_image_quality(
-    image_path: str,
-    quality_metrics: Dict[str, Any]
-) -> str:
+async def _enhance_image_quality(image_path: str, quality_metrics: dict[str, Any]) -> str:
     """
     Apply quality enhancements based on assessment.
 
@@ -639,9 +605,9 @@ async def _save_image_to_repository(
     model_used: str,
     quality_level: str,
     dimensions: str,
-    processing_steps: List[str],
-    quality_metrics: Dict[str, Any],
-    generation_metadata: Dict[str, Any]
+    processing_steps: list[str],
+    quality_metrics: dict[str, Any],
+    generation_metadata: dict[str, Any],
 ) -> None:
     """
     Save generated image to repository with comprehensive metadata.
@@ -657,6 +623,7 @@ async def _save_image_to_repository(
         # Copy image to repository
         repo_image_path = repo_dir / f"{image_id}.png"
         import shutil
+
         shutil.copy2(image_path, repo_image_path)
 
         # Create metadata
@@ -672,12 +639,12 @@ async def _save_image_to_repository(
             "generation_metadata": generation_metadata,
             "created_at": datetime.now().isoformat(),
             "file_path": str(repo_image_path),
-            "file_size": os.path.getsize(repo_image_path)
+            "file_size": os.path.getsize(repo_image_path),
         }
 
         # Save metadata
         metadata_path = repo_dir / f"{image_id}.json"
-        with open(metadata_path, 'w') as f:
+        with open(metadata_path, "w") as f:
             json.dump(metadata, f, indent=2, default=str)
 
         logger.info(f"Saved image to repository: {image_id}")

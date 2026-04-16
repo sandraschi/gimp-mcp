@@ -10,7 +10,7 @@ import colorsys
 import math
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Tuple
+from typing import Any, Literal
 
 import numpy as np
 from PIL import Image, ImageEnhance, ImageOps
@@ -23,9 +23,9 @@ class ColorResult(BaseModel):
     success: bool
     operation: str
     message: str
-    data: Dict[str, Any] = Field(default_factory=dict)
+    data: dict[str, Any] = Field(default_factory=dict)
     execution_time_ms: float = 0.0
-    error: Optional[str] = None
+    error: str | None = None
 
 
 async def gimp_color(
@@ -56,11 +56,11 @@ async def gimp_color(
     output_white: float = 1.0,
     channel: str = "value",
     # Curves
-    control_points: Optional[List[Tuple[float, float]]] = None,
+    control_points: list[tuple[float, float]] | None = None,
     # Color Balance
-    cyan_red: Tuple[float, float, float] = (0, 0, 0),
-    magenta_green: Tuple[float, float, float] = (0, 0, 0),
-    yellow_blue: Tuple[float, float, float] = (0, 0, 0),
+    cyan_red: tuple[float, float, float] = (0, 0, 0),
+    magenta_green: tuple[float, float, float] = (0, 0, 0),
+    yellow_blue: tuple[float, float, float] = (0, 0, 0),
     preserve_luminosity: bool = True,
     # Hue/Saturation
     hue: float = 0.0,
@@ -80,7 +80,7 @@ async def gimp_color(
     # Dependencies
     cli_wrapper: Any = None,
     config: Any = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Comprehensive color adjustment portmanteau for GIMP MCP.
 
     PORTMANTEAU PATTERN RATIONALE:
@@ -237,15 +237,11 @@ async def gimp_color(
             elif operation == "curves":
                 result = _curves(img, control_points, channel)
             elif operation == "color_balance":
-                result = _color_balance(
-                    img, cyan_red, magenta_green, yellow_blue, preserve_luminosity
-                )
+                result = _color_balance(img, cyan_red, magenta_green, yellow_blue, preserve_luminosity)
             elif operation == "hue_saturation":
                 result = _hue_saturation(img, hue, saturation, lightness)
             elif operation == "colorize":
-                result = _colorize(
-                    img, colorize_hue, colorize_saturation, colorize_lightness
-                )
+                result = _colorize(img, colorize_hue, colorize_saturation, colorize_lightness)
             elif operation == "threshold":
                 result = _threshold(img, threshold_value)
             elif operation == "posterize":
@@ -295,15 +291,13 @@ async def gimp_color(
         return ColorResult(
             success=False,
             operation=operation,
-            message=f"Color adjustment failed: {str(e)}",
+            message=f"Color adjustment failed: {e!s}",
             error=str(e),
             execution_time_ms=round(execution_time, 2),
         ).model_dump()
 
 
-def _brightness_contrast(
-    img: Image.Image, brightness: float, contrast: float
-) -> Image.Image:
+def _brightness_contrast(img: Image.Image, brightness: float, contrast: float) -> Image.Image:
     """Adjust brightness and contrast.
 
     Args:
@@ -375,7 +369,7 @@ def _levels(
 
 def _curves(
     img: Image.Image,
-    control_points: Optional[List[Tuple[float, float]]],
+    control_points: list[tuple[float, float]] | None,
     channel: str,
 ) -> Image.Image:
     """Apply curves adjustment with cubic interpolation.
@@ -439,9 +433,9 @@ def _curves(
 
 def _color_balance(
     img: Image.Image,
-    cyan_red: Tuple[float, float, float],
-    magenta_green: Tuple[float, float, float],
-    yellow_blue: Tuple[float, float, float],
+    cyan_red: tuple[float, float, float],
+    magenta_green: tuple[float, float, float],
+    yellow_blue: tuple[float, float, float],
     preserve_luminosity: bool,
 ) -> Image.Image:
     """Adjust color balance for shadows, midtones, and highlights.
@@ -469,10 +463,8 @@ def _color_balance(
     midtones = np.clip(midtones, 0, 1)
 
     # Apply adjustments per tonal range
-    for i, (cr, mg, yb) in enumerate([(cyan_red, magenta_green, yellow_blue)]):
-        for j, (adj, mask) in enumerate(
-            zip([cr[0], cr[1], cr[2]], [shadows, midtones, highlights])
-        ):
+    for i, (cr, _mg, _yb) in enumerate([(cyan_red, magenta_green, yellow_blue)]):
+        for j, (adj, mask) in enumerate(zip([cr[0], cr[1], cr[2]], [shadows, midtones, highlights], strict=False)):
             # cr affects R, mg affects G, yb affects B
             if i == 0:  # cyan_red -> R channel
                 arr[:, :, 0] += adj * 2.55 * mask
@@ -634,7 +626,7 @@ def _posterize(img: Image.Image, levels: int) -> Image.Image:
     # levels=2 -> 1 bit, levels=4 -> 2 bits, levels=256 -> 8 bits
     # Calculate bits needed: bits = ceil(log2(levels))
     levels = max(2, min(256, levels))
-    bits = max(1, min(8, int(math.ceil(math.log2(levels)))))
+    bits = max(1, min(8, math.ceil(math.log2(levels))))
     return ImageOps.posterize(img.convert("RGB"), bits)
 
 

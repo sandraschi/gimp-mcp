@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
-from typing import Any, Dict, Literal, Optional
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -19,9 +19,9 @@ class FilterResult(BaseModel):
     success: bool
     operation: str
     message: str
-    data: Dict[str, Any] = Field(default_factory=dict)
+    data: dict[str, Any] = Field(default_factory=dict)
     execution_time_ms: float = 0.0
-    error: Optional[str] = None
+    error: str | None = None
 
 
 async def gimp_filter(
@@ -72,7 +72,7 @@ async def gimp_filter(
     # Dependencies
     cli_wrapper: Any = None,
     config: Any = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Comprehensive filter and effects portmanteau for GIMP MCP.
 
     PORTMANTEAU PATTERN RATIONALE:
@@ -196,23 +196,17 @@ async def gimp_filter(
             if operation == "blur":
                 result = _apply_blur(img, blur_method, blur_radius, blur_angle)
             elif operation == "sharpen":
-                result = _apply_sharpen(
-                    img, sharpen_method, sharpen_amount, sharpen_threshold
-                )
+                result = _apply_sharpen(img, sharpen_method, sharpen_amount, sharpen_threshold)
             elif operation == "noise":
                 result = _apply_noise(img, noise_method, noise_amount, noise_monochrome)
             elif operation == "edge_detect":
                 result = _apply_edge_detect(img, edge_method, edge_amount, edge_invert)
             elif operation == "artistic":
-                result = _apply_artistic(
-                    img, artistic_effect, artistic_size, artistic_intensity
-                )
+                result = _apply_artistic(img, artistic_effect, artistic_size, artistic_intensity)
             elif operation == "enhance":
                 result = _apply_enhance(img, enhance_method, enhance_amount)
             elif operation == "distort":
-                result = _apply_distort(
-                    img, distort_effect, distort_amplitude, distort_wavelength
-                )
+                result = _apply_distort(img, distort_effect, distort_amplitude, distort_wavelength)
             elif operation == "light_shadow":
                 result = _apply_light_shadow(img, light_effect, light_amount)
             else:
@@ -251,7 +245,7 @@ async def gimp_filter(
         return FilterResult(
             success=False,
             operation=operation,
-            message=f"Filter failed: {str(e)}",
+            message=f"Filter failed: {e!s}",
             error=str(e),
             execution_time_ms=round(execution_time, 2),
         ).model_dump()
@@ -299,14 +293,10 @@ def _apply_blur(img, method, radius, angle):
 
 def _apply_sharpen(img, method, amount, threshold):
     """Apply sharpening filter."""
-    from PIL import ImageFilter, ImageEnhance
+    from PIL import ImageEnhance, ImageFilter
 
     if method == "unsharp_mask":
-        return img.filter(
-            ImageFilter.UnsharpMask(
-                radius=2, percent=int(amount * 100), threshold=int(threshold * 255)
-            )
-        )
+        return img.filter(ImageFilter.UnsharpMask(radius=2, percent=int(amount * 100), threshold=int(threshold * 255)))
     elif method == "high_pass":
         # High-pass sharpening
         blurred = img.filter(ImageFilter.GaussianBlur(2))
@@ -386,9 +376,8 @@ def _apply_edge_detect(img, method, amount, invert):
 
 def _apply_artistic(img, effect, size, intensity):
     """Apply artistic effect."""
-    from PIL import ImageFilter
     import numpy as np
-    from PIL import Image
+    from PIL import Image, ImageFilter
 
     if effect == "oilify":
         # Oil painting effect via median filter
@@ -429,7 +418,7 @@ def _apply_artistic(img, effect, size, intensity):
 
 def _apply_enhance(img, method, amount):
     """Apply enhancement filter."""
-    from PIL import ImageFilter, ImageEnhance
+    from PIL import ImageEnhance, ImageFilter
 
     if method == "sharpen":
         enhancer = ImageEnhance.Sharpness(img)
@@ -444,9 +433,10 @@ def _apply_enhance(img, method, amount):
 
 def _apply_distort(img, effect, amplitude, wavelength):
     """Apply distortion effect."""
+    import math
+
     import numpy as np
     from PIL import Image
-    import math
 
     arr = np.array(img)
     h, w = arr.shape[:2]

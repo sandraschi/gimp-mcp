@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gimp-mcp"
-version = "3.1.1"
-description = "FastMCP 3.1.1 SOTA server for professional image editing using GIMP - portmanteau architecture"
+version = "4.0.0"
+description = "FastMCP 4.0.0 SOTA server for professional image editing using GIMP - Industrial Modernization"
 readme = "README.md"
 authors = [
     {name = "Sandra Schipal", email = "sandra@sandraschi.dev"},
@@ -58,6 +58,7 @@ dependencies = [
     "pytest-asyncio>=0.23.8",
     "pytest-cov>=4.1.0",
     "fastapi>=0.129.0",
+    "prefab-ui>=0.14.0",
 ]
 
 [project.urls]
@@ -129,7 +130,7 @@ include = '\.pyi?$'
 
 [tool.isort]
 profile = "black"
-line_length = 100
+line-length = 100
 
 [tool.mypy]
 python_version = "3.10"
@@ -157,8 +158,8 @@ all = [
 [tool.fastmcp]
 name = "gimp-mcp"
 display_name = "GIMP MCP Server"
-version = "3.1.1"
-description = "FastMCP 3.1.1+ server for professional image editing using GIMP - portmanteau architecture"
+version = "4.0.0"
+description = "FastMCP 4.0.0 SOTA server for professional image editing using GIMP - Industrial Modernization"
 entry_point = "gimp_mcp.main:main"
 architecture = "portmanteau"
 
@@ -242,6 +243,49 @@ category = "batch"
 name = "batch_convert"
 description = "Convert multiple images to target format"
 category = "batch"
+
+# Layer Management Tools
+[[tool.dxt.tools]]
+name = "create_layer"
+description = "Create a new layer in an image"
+category = "layers"
+
+[[tool.dxt.tools]]
+name = "duplicate_layer"
+description = "Duplicate an existing layer"
+category = "layers"
+
+[[tool.dxt.tools]]
+name = "delete_layer"
+description = "Remove a layer from the image"
+category = "layers"
+
+[[tool.dxt.tools]]
+name = "merge_layers"
+description = "Merge multiple layers together"
+category = "layers"
+
+# Image Analysis Tools
+[[tool.dxt.tools]]
+name = "analyze_image_quality"
+description = "Perform deep image quality analysis"
+category = "analysis"
+
+[[tool.dxt.tools]]
+name = "extract_image_statistics"
+description = "Extract histogram and color statistics"
+category = "analysis"
+
+# Performance & System Tools
+[[tool.dxt.tools]]
+name = "optimize_image_processing"
+description = "Optimize image processing performance"
+category = "system"
+
+[[tool.dxt.tools]]
+name = "get_system_performance_info"
+description = "Get system resource usage and GIMP status"
+category = "system"
 
 [tool.dxt.config]
 log_level = "INFO"

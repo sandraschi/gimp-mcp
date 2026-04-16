@@ -7,22 +7,20 @@ Professional image editing through Model Context Protocol (MCP) using GIMP.
 [![FastMCP](https://img.shields.io/badge/FastMCP-3.1.1-blue)](https://github.com/jlowin/fastmcp)
 [![Python](https://img.shields.io/badge/Python-3.12%2B-green)](https://python.org)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
-[![Status](https://img.shields.io/badge/Status-SOTA_2026-purple)](#)
+[![Status](https://img.shields.io/badge/Status-v4.0.0_SOTA-purple)](#)
 
 ## Overview
 
 GIMP-MCP provides Claude and other AI agents with professional image editing capabilities through GIMP (GNU Image Manipulation Program). This MCP server enables powerful image processing operations via a clean, standardized interface.
 
-##  **Fleet Standard v3.1.1**
+###  **SOTA v14.0 Industrial Modernization**
+ 
+The GIMP MCP Server has been promoted to **SOTA v14.0 (March 2026)** industrial standards, featuring a complete control plane refactor for high-fidelity agentic workflows.
 
-The GIMP MCP Server has been upgraded to the **Fleet Standard** web application blueprints, providing a premium monitoring and control experience.
-
-- ** High-Fidelity UI**: Glassmorphism dashboard with consistent navigation and smooth animations.
-- ** Tools Explorer**: Dynamic introspection of all registered portmanteau tools and their schemas.
-- ** FastMCP 3.1.1**: Utilizes the latest SOTA asynchronous MCP patterns and improved tool discovery.
-- ** Dual-App Architecture**: 
-  - **Frontend**: Port **10772** (Vite + React + Tailwind)
-  - **Backend**: Port **10773** (FastAPI + FastMCP)
+- ** Pydantic validation**: Every tool now uses strict Pydantic `BaseModel` schemas for input validation.
+- ** Standardized Output**: Uses `GimpToolOutput[T]` generic wrapper for consistent telemetry and error handling.
+- ** Dual-Mode API**: Intelligent auto-switching between **Live Bridge** (interactive) and **Headless CLI** (batch).
+- ** FastMCP 3.1.1**: Leverages the latest asynchronous patterns and improved schema introspection.
 
 ##  **Portmanteau Architecture**
 
@@ -88,11 +86,11 @@ To start the webapp locally:
 
 ## Development Status
 
-**Current Version**: `v3.1.1` (FastMCP 3.1.1 / Fleet Standard)
--  100% Core tool implementation
--  Fleet Standard UI/UX integration
--  Portmanteau 8x architecture
--  SOTA 2026 Documentation
+**Current Version**: `v4.0.0` (SOTA v14.0 / Industrial Modernization)
+-  ✅ 100% Core tool implementation (Pydantic-backed)
+-  ✅ 100% Schema validation coverage
+-  ✅ 100% Standardized response formatting
+-  ✅ SOTA v14.0 Documentation & Changelog
 
 ## Technical Highlights
 - **Architecture**: Modular FastMCP server with plugin-based tool system.

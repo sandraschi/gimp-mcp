@@ -23,14 +23,15 @@ import asyncio
 import logging
 import sys
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Any
 
 from fastmcp import FastMCP
 
-from .transport import run_server, run_server_async
+# Import agentic workflow tools
+from .agentic import register_agentic_tools
+from .cli_wrapper import GimpCliWrapper
 from .config import GimpConfig, load_config
 from .gimp_detector import GimpDetector
-from .cli_wrapper import GimpCliWrapper
 from .interaction_manager import GimpInteractionManager
 from .logging_config import (
     setup_logging,
@@ -38,19 +39,17 @@ from .logging_config import (
 
 # Import portmanteau tools (v3.0.0 architecture)
 from .tools import (
-    gimp_file,
-    gimp_transform,
-    gimp_color,
-    gimp_filter,
-    gimp_layer,
+    PORTMANTEAU_TOOLS,
     gimp_analysis,
     gimp_batch,
+    gimp_color,
+    gimp_file,
+    gimp_filter,
+    gimp_layer,
     gimp_system,
-    PORTMANTEAU_TOOLS,
+    gimp_transform,
 )
-
-# Import agentic workflow tools
-from .agentic import register_agentic_tools
+from .transport import run_server, run_server_async
 
 # Legacy imports for backwards compatibility (reserved for future use if needed)
 # from .tools_legacy import ...
@@ -62,7 +61,7 @@ logger = setup_logging(component="main")
 class GimpMCPServer:
     """Main server class for GIMP MCP integration."""
 
-    def __init__(self, config_path: Optional[Path] = None):
+    def __init__(self, config_path: Path | None = None):
         """Initialize the GIMP MCP server.
 
         Args:
@@ -112,13 +111,11 @@ Each portmanteau tool handles multiple related operations through an 'operation'
         self.tools = {}  # Store tool instances for later reference
 
         # Set up logging
-        logging.basicConfig(
-            level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
+        logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
         self.logger = logging.getLogger(__name__)
-        self.cli_wrapper: Optional[GimpCliWrapper] = None
-        self.interaction_manager: Optional[GimpInteractionManager] = None
+        self.cli_wrapper: GimpCliWrapper | None = None
+        self.interaction_manager: GimpInteractionManager | None = None
 
     def _validate_configuration(self) -> bool:
         """
@@ -278,13 +275,13 @@ Each portmanteau tool handles multiple related operations through an 'operation'
             @self.mcp.tool()
             async def gimp_file_tool(
                 operation: str,
-                input_path: str = None,
-                output_path: str = None,
-                format: str = None,
+                input_path: str | None = None,
+                output_path: str | None = None,
+                format: str | None = None,
                 quality: int = 95,
                 compression: int = 6,
                 progressive: bool = False,
-            ) -> Dict[str, Any]:
+            ) -> dict[str, Any]:
                 """File operations: load, save, convert, info, validate, list_formats."""
                 return await gimp_file(
                     operation=operation,
@@ -303,15 +300,15 @@ Each portmanteau tool handles multiple related operations through an 'operation'
                 operation: str,
                 input_path: str,
                 output_path: str,
-                width: int = None,
-                height: int = None,
+                width: int | None = None,
+                height: int | None = None,
                 maintain_aspect: bool = True,
                 x: int = 0,
                 y: int = 0,
                 degrees: float = 0.0,
                 direction: str = "horizontal",
                 fill_color: str = "transparent",
-            ) -> Dict[str, Any]:
+            ) -> dict[str, Any]:
                 """Transforms: resize, crop, rotate, flip, scale, perspective, autocrop."""
                 return await gimp_transform(
                     operation=operation,
@@ -343,7 +340,7 @@ Each portmanteau tool handles multiple related operations through an 'operation'
                 levels: int = 8,
                 threshold: float = 0.5,
                 mode: str = "luminosity",
-            ) -> Dict[str, Any]:
+            ) -> dict[str, Any]:
                 """Color adjustments: brightness_contrast, levels, curves, hue_saturation, etc."""
                 return await gimp_color(
                     operation=operation,
@@ -371,7 +368,7 @@ Each portmanteau tool handles multiple related operations through an 'operation'
                 amount: float = 0.5,
                 method: str = "gaussian",
                 effect: str = "oilify",
-            ) -> Dict[str, Any]:
+            ) -> dict[str, Any]:
                 """Filters: blur, sharpen, noise, edge_detect, artistic, enhance, distort."""
                 return await gimp_filter(
                     operation=operation,
@@ -395,7 +392,7 @@ Each portmanteau tool handles multiple related operations through an 'operation'
                 opacity: float = 100.0,
                 blend_mode: str = "normal",
                 visible: bool = True,
-            ) -> Dict[str, Any]:
+            ) -> dict[str, Any]:
                 """Layer management: create, duplicate, delete, merge, flatten, reorder, info."""
                 return await gimp_layer(
                     operation=operation,
@@ -414,11 +411,11 @@ Each portmanteau tool handles multiple related operations through an 'operation'
             async def gimp_analysis_tool(
                 operation: str,
                 input_path: str,
-                compare_path: str = None,
+                compare_path: str | None = None,
                 include_histogram: bool = True,
                 analysis_type: str = "comprehensive",
                 report_format: str = "detailed",
-            ) -> Dict[str, Any]:
+            ) -> dict[str, Any]:
                 """Image analysis: quality, statistics, histogram, compare, detect_issues, report."""
                 return await gimp_analysis(
                     operation=operation,
@@ -436,13 +433,13 @@ Each portmanteau tool handles multiple related operations through an 'operation'
                 operation: str,
                 input_directory: str,
                 output_directory: str,
-                width: int = None,
-                height: int = None,
+                width: int | None = None,
+                height: int | None = None,
                 output_format: str = "jpg",
                 quality: int = 90,
                 file_pattern: str = "*.jpg",
                 max_workers: int = 4,
-            ) -> Dict[str, Any]:
+            ) -> dict[str, Any]:
                 """Batch processing: resize, convert, process, watermark, rename, optimize."""
                 return await gimp_batch(
                     operation=operation,
@@ -461,10 +458,10 @@ Each portmanteau tool handles multiple related operations through an 'operation'
             @self.mcp.tool()
             async def gimp_system_tool(
                 operation: str,
-                topic: str = None,
+                topic: str | None = None,
                 level: str = "basic",
                 cache_action: str = "status",
-            ) -> Dict[str, Any]:
+            ) -> dict[str, Any]:
                 """System: status, help, diagnostics, cache, config, performance, tools, version."""
                 return await gimp_system(
                     operation=operation,
@@ -489,17 +486,21 @@ Each portmanteau tool handles multiple related operations through an 'operation'
 
             # Add GIMP Live Status tool
             @self.mcp.tool()
-            async def gimp_live_status() -> Dict[str, Any]:
+            async def gimp_live_status() -> dict[str, Any]:
                 """Check the status of the GIMP Live session bridge."""
                 if not self.interaction_manager:
-                    return {"success": False, "mode": "offline", "message": "GIMP MCP interaction layer not initialized"}
-                
+                    return {
+                        "success": False,
+                        "mode": "offline",
+                        "message": "GIMP MCP interaction layer not initialized",
+                    }
+
                 status = await self.interaction_manager.get_status()
                 return {
                     "success": True,
                     "mode": status["mode"],
                     "message": f"GIMP is currently running in {status['mode']} mode",
-                    "data": status
+                    "data": status,
                 }
 
             # Register agentic workflow tools
@@ -521,16 +522,16 @@ Each portmanteau tool handles multiple related operations through an 'operation'
         try:
             # Import all tool categories from the legacy tools package
             from .tools_legacy import (
-                HelpTools,
-                StatusTools,
-                FileOperationTools,
-                TransformTools,
-                ColorAdjustmentTools,
-                LayerManagementTools,
-                ImageAnalysisTools,
-                FilterTools,
                 BatchProcessingTools,
+                ColorAdjustmentTools,
+                FileOperationTools,
+                FilterTools,
+                HelpTools,
+                ImageAnalysisTools,
+                LayerManagementTools,
                 PerformanceTools,
+                StatusTools,
+                TransformTools,
             )
 
             # Define tool categories with their constructors
@@ -556,9 +557,7 @@ Each portmanteau tool handles multiple related operations through an 'operation'
             # Log registration summary
             successful_count = sum(registration_results.values())
             total_count = len(registration_results)
-            logger.info(
-                f"Legacy tool registration: {successful_count}/{total_count} categories registered"
-            )
+            logger.info(f"Legacy tool registration: {successful_count}/{total_count} categories registered")
 
             # Register agentic workflow tools even with legacy tools
             try:
@@ -584,9 +583,7 @@ Each portmanteau tool handles multiple related operations through an 'operation'
         """
         # Check if we have tool categories registered
         if not self.tools:
-            logger.warning(
-                "No tool categories were registered. Running in limited functionality mode."
-            )
+            logger.warning("No tool categories were registered. Running in limited functionality mode.")
         else:
             tool_count = len(self.tools)
             logger.info(f"Starting HTTP server with {tool_count} tool categories registered")
@@ -599,9 +596,7 @@ Each portmanteau tool handles multiple related operations through an 'operation'
         """Run the server in stdio mode."""
         # Check if we have tool categories registered
         if not self.tools:
-            logger.warning(
-                "No tool categories were registered. Running in limited functionality mode."
-            )
+            logger.warning("No tool categories were registered. Running in limited functionality mode.")
         else:
             tool_count = len(self.tools)
             logger.info(f"Starting stdio server with {tool_count} tool categories registered")
@@ -612,8 +607,9 @@ Each portmanteau tool handles multiple related operations through an 'operation'
 
     def _register_api_routes(self) -> None:
         """Register custom FastAPI routes for the web dashboard."""
-        from fastapi import Response
         import json
+
+        from fastapi import Response
 
         app = self.mcp.http_app
 
@@ -624,18 +620,18 @@ Each portmanteau tool handles multiple related operations through an 'operation'
             if not self.tools:
                 return Response(
                     content=json.dumps({"status": "initializing", "message": "Server is still starting up"}),
-                    media_type="application/json"
+                    media_type="application/json",
                 )
-            
+
             # Use the internal server's health check if available
-            # We'll need a handle to the GimpMcpServer instance from server.py 
+            # We'll need a handle to the GimpMcpServer instance from server.py
             # Or just implement it here since we have config and interaction_manager
-            
+
             status = "healthy"
             live_status = {"mode": "offline"}
             if self.interaction_manager:
                 live_status = await self.interaction_manager.get_status()
-            
+
             return {
                 "status": status,
                 "live_mode": live_status,
@@ -644,7 +640,7 @@ Each portmanteau tool handles multiple related operations through an 'operation'
                     "max_concurrent_processes": self.config.max_concurrent_processes,
                 },
                 "server_name": "GIMP MCP Fleet Server",
-                "version": "3.1.1"
+                "version": "3.1.1",
             }
 
 

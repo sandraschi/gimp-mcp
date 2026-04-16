@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -19,9 +19,9 @@ class AnalysisResult(BaseModel):
     success: bool
     operation: str
     message: str
-    data: Dict[str, Any] = Field(default_factory=dict)
+    data: dict[str, Any] = Field(default_factory=dict)
     execution_time_ms: float = 0.0
-    error: Optional[str] = None
+    error: str | None = None
 
 
 async def gimp_analysis(
@@ -36,19 +36,19 @@ async def gimp_analysis(
         "metadata",
     ],
     input_path: str,
-    compare_path: Optional[str] = None,
+    compare_path: str | None = None,
     # Analysis options
     include_histogram: bool = True,
     include_color_info: bool = True,
     analysis_type: str = "comprehensive",
     # Issue detection
-    check_types: Optional[List[str]] = None,
+    check_types: list[str] | None = None,
     # Report options
     report_format: str = "detailed",
     # Dependencies
     cli_wrapper: Any = None,
     config: Any = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Comprehensive image analysis portmanteau for GIMP MCP.
 
     PORTMANTEAU PATTERN RATIONALE:
@@ -147,9 +147,7 @@ async def gimp_analysis(
         if operation == "quality":
             result = _analyze_quality(input_path_obj, analysis_type)
         elif operation == "statistics":
-            result = _get_statistics(
-                input_path_obj, include_histogram, include_color_info
-            )
+            result = _get_statistics(input_path_obj, include_histogram, include_color_info)
         elif operation == "histogram":
             result = _get_histogram(input_path_obj)
         elif operation == "compare":
@@ -186,16 +184,16 @@ async def gimp_analysis(
         return AnalysisResult(
             success=False,
             operation=operation,
-            message=f"Analysis failed: {str(e)}",
+            message=f"Analysis failed: {e!s}",
             error=str(e),
             execution_time_ms=round(execution_time, 2),
         ).model_dump()
 
 
-def _analyze_quality(input_path: Path, analysis_type: str) -> Dict[str, Any]:
+def _analyze_quality(input_path: Path, analysis_type: str) -> dict[str, Any]:
     """Analyze image quality."""
-    from PIL import Image
     import numpy as np
+    from PIL import Image
 
     with Image.open(input_path) as img:
         arr = np.array(img)
@@ -215,18 +213,14 @@ def _analyze_quality(input_path: Path, analysis_type: str) -> Dict[str, Any]:
             sharpness = np.var(lap)
         except ImportError:
             # Fallback: use gradient variance as sharpness proxy
-            sharpness = np.var(np.diff(gray.astype(float), axis=0)) + np.var(
-                np.diff(gray.astype(float), axis=1)
-            )
+            sharpness = np.var(np.diff(gray.astype(float), axis=0)) + np.var(np.diff(gray.astype(float), axis=1))
 
         # Noise estimation
         noise_estimate = np.std(np.diff(gray.astype(float))) / 1.4  # Approximate
 
         # Exposure analysis
         if len(arr.shape) == 3:
-            luminance = (
-                0.299 * arr[:, :, 0] + 0.587 * arr[:, :, 1] + 0.114 * arr[:, :, 2]
-            )
+            luminance = 0.299 * arr[:, :, 0] + 0.587 * arr[:, :, 1] + 0.114 * arr[:, :, 2]
         else:
             luminance = arr
 
@@ -240,9 +234,7 @@ def _analyze_quality(input_path: Path, analysis_type: str) -> Dict[str, Any]:
         # Quality scores (0-100)
         sharpness_score = min(100, sharpness / 100)
         noise_score = max(0, 100 - noise_estimate * 2)
-        exposure_score = max(
-            0, 100 - abs(mean_luminance - 128) * 0.5 - overexposed - underexposed
-        )
+        exposure_score = max(0, 100 - abs(mean_luminance - 128) * 0.5 - overexposed - underexposed)
 
         overall_score = sharpness_score * 0.4 + noise_score * 0.3 + exposure_score * 0.3
 
@@ -251,20 +243,12 @@ def _analyze_quality(input_path: Path, analysis_type: str) -> Dict[str, Any]:
             "sharpness": {
                 "score": round(sharpness_score, 1),
                 "value": round(sharpness, 2),
-                "assessment": "Sharp"
-                if sharpness_score > 60
-                else "Soft"
-                if sharpness_score > 30
-                else "Blurry",
+                "assessment": "Sharp" if sharpness_score > 60 else "Soft" if sharpness_score > 30 else "Blurry",
             },
             "noise": {
                 "score": round(noise_score, 1),
                 "estimate": round(noise_estimate, 2),
-                "assessment": "Clean"
-                if noise_score > 70
-                else "Moderate"
-                if noise_score > 40
-                else "Noisy",
+                "assessment": "Clean" if noise_score > 70 else "Moderate" if noise_score > 40 else "Noisy",
             },
             "exposure": {
                 "score": round(exposure_score, 1),
@@ -272,11 +256,7 @@ def _analyze_quality(input_path: Path, analysis_type: str) -> Dict[str, Any]:
                 "overexposed_percent": round(overexposed, 2),
                 "underexposed_percent": round(underexposed, 2),
                 "dynamic_range": int(dynamic_range),
-                "assessment": "Good"
-                if exposure_score > 70
-                else "Fair"
-                if exposure_score > 40
-                else "Poor",
+                "assessment": "Good" if exposure_score > 70 else "Fair" if exposure_score > 40 else "Poor",
             },
         }
 
@@ -288,12 +268,10 @@ def _analyze_quality(input_path: Path, analysis_type: str) -> Dict[str, Any]:
         ).model_dump()
 
 
-def _get_statistics(
-    input_path: Path, include_histogram: bool, include_color_info: bool
-) -> Dict[str, Any]:
+def _get_statistics(input_path: Path, include_histogram: bool, include_color_info: bool) -> dict[str, Any]:
     """Get image statistics."""
-    from PIL import Image
     import numpy as np
+    from PIL import Image
 
     with Image.open(input_path) as img:
         arr = np.array(img)
@@ -364,8 +342,8 @@ def _compute_histogram(arr, bands):
 
 def _analyze_colors(img):
     """Analyze dominant colors."""
-    from PIL import Image
     import numpy as np
+    from PIL import Image
 
     # Reduce to find dominant colors
     small = img.resize((100, 100), Image.Resampling.LANCZOS)
@@ -382,10 +360,7 @@ def _analyze_colors(img):
     quantized = (pixels // 32) * 32
     color_counts = Counter(map(tuple, quantized))
 
-    dominant = [
-        {"rgb": list(color), "count": count}
-        for color, count in color_counts.most_common(5)
-    ]
+    dominant = [{"rgb": list(color), "count": count} for color, count in color_counts.most_common(5)]
 
     return {
         "dominant_colors": dominant,
@@ -393,10 +368,10 @@ def _analyze_colors(img):
     }
 
 
-def _get_histogram(input_path: Path) -> Dict[str, Any]:
+def _get_histogram(input_path: Path) -> dict[str, Any]:
     """Get histogram data."""
-    from PIL import Image
     import numpy as np
+    from PIL import Image
 
     with Image.open(input_path) as img:
         arr = np.array(img)
@@ -416,10 +391,10 @@ def _get_histogram(input_path: Path) -> Dict[str, Any]:
         ).model_dump()
 
 
-def _compare_images(path1: Path, path2: Path) -> Dict[str, Any]:
+def _compare_images(path1: Path, path2: Path) -> dict[str, Any]:
     """Compare two images."""
-    from PIL import Image
     import numpy as np
+    from PIL import Image
 
     with Image.open(path1) as img1, Image.open(path2) as img2:
         # Resize to same size if needed
@@ -446,9 +421,7 @@ def _compare_images(path1: Path, path2: Path) -> Dict[str, Any]:
         cov = np.mean((arr1 - mean1) * (arr2 - mean2))
 
         c1, c2 = (0.01 * 255) ** 2, (0.03 * 255) ** 2
-        ssim = ((2 * mean1 * mean2 + c1) * (2 * cov + c2)) / (
-            (mean1**2 + mean2**2 + c1) * (std1**2 + std2**2 + c2)
-        )
+        ssim = ((2 * mean1 * mean2 + c1) * (2 * cov + c2)) / ((mean1**2 + mean2**2 + c1) * (std1**2 + std2**2 + c2))
 
         # Difference statistics
         diff = np.abs(arr1 - arr2)
@@ -469,10 +442,10 @@ def _compare_images(path1: Path, path2: Path) -> Dict[str, Any]:
         ).model_dump()
 
 
-def _detect_issues(input_path: Path, check_types: List[str]) -> Dict[str, Any]:
+def _detect_issues(input_path: Path, check_types: list[str]) -> dict[str, Any]:
     """Detect common image issues."""
-    from PIL import Image
     import numpy as np
+    from PIL import Image
 
     issues = []
     warnings = []
@@ -485,9 +458,7 @@ def _detect_issues(input_path: Path, check_types: List[str]) -> Dict[str, Any]:
         # Exposure check
         if check_all or "exposure" in check_types:
             if len(arr.shape) == 3:
-                luminance = (
-                    0.299 * arr[:, :, 0] + 0.587 * arr[:, :, 1] + 0.114 * arr[:, :, 2]
-                )
+                luminance = 0.299 * arr[:, :, 0] + 0.587 * arr[:, :, 1] + 0.114 * arr[:, :, 2]
             else:
                 luminance = arr
 
@@ -497,16 +468,12 @@ def _detect_issues(input_path: Path, check_types: List[str]) -> Dict[str, Any]:
             if overexposed > 5:
                 issues.append(f"Overexposed: {overexposed:.1f}% of pixels blown out")
             elif overexposed > 1:
-                warnings.append(
-                    f"Slight overexposure: {overexposed:.1f}% clipped highlights"
-                )
+                warnings.append(f"Slight overexposure: {overexposed:.1f}% clipped highlights")
 
             if underexposed > 5:
                 issues.append(f"Underexposed: {underexposed:.1f}% of pixels crushed")
             elif underexposed > 1:
-                warnings.append(
-                    f"Slight underexposure: {underexposed:.1f}% crushed shadows"
-                )
+                warnings.append(f"Slight underexposure: {underexposed:.1f}% crushed shadows")
 
         # Sharpness check
         if check_all or "sharpness" in check_types:
@@ -532,9 +499,7 @@ def _detect_issues(input_path: Path, check_types: List[str]) -> Dict[str, Any]:
             if noise_estimate > 20:
                 issues.append(f"High noise detected (estimate: {noise_estimate:.1f})")
             elif noise_estimate > 10:
-                warnings.append(
-                    f"Moderate noise detected (estimate: {noise_estimate:.1f})"
-                )
+                warnings.append(f"Moderate noise detected (estimate: {noise_estimate:.1f})")
 
         # Color check
         if check_all or "color" in check_types:
@@ -543,9 +508,7 @@ def _detect_issues(input_path: Path, check_types: List[str]) -> Dict[str, Any]:
                 g_mean = np.mean(arr[:, :, 1])
                 b_mean = np.mean(arr[:, :, 2])
 
-                color_bias = max(
-                    abs(r_mean - g_mean), abs(g_mean - b_mean), abs(r_mean - b_mean)
-                )
+                color_bias = max(abs(r_mean - g_mean), abs(g_mean - b_mean), abs(r_mean - b_mean))
                 if color_bias > 30:
                     dominant = (
                         "Red"
@@ -554,9 +517,7 @@ def _detect_issues(input_path: Path, check_types: List[str]) -> Dict[str, Any]:
                         if g_mean > r_mean and g_mean > b_mean
                         else "Blue"
                     )
-                    warnings.append(
-                        f"Possible color cast detected ({dominant} dominant)"
-                    )
+                    warnings.append(f"Possible color cast detected ({dominant} dominant)")
 
     return AnalysisResult(
         success=True,
@@ -567,14 +528,12 @@ def _detect_issues(input_path: Path, check_types: List[str]) -> Dict[str, Any]:
             "warnings": warnings,
             "issue_count": len(issues),
             "warning_count": len(warnings),
-            "checks_performed": check_types
-            if not check_all
-            else ["exposure", "sharpness", "noise", "color"],
+            "checks_performed": check_types if not check_all else ["exposure", "sharpness", "noise", "color"],
         },
     ).model_dump()
 
 
-def _generate_report(input_path: Path, report_format: str) -> Dict[str, Any]:
+def _generate_report(input_path: Path, report_format: str) -> dict[str, Any]:
     """Generate comprehensive analysis report."""
     # Combine multiple analyses
     quality = _analyze_quality(input_path, "comprehensive")
@@ -603,7 +562,7 @@ def _generate_report(input_path: Path, report_format: str) -> Dict[str, Any]:
     ).model_dump()
 
 
-def _analyze_color_profile(input_path: Path) -> Dict[str, Any]:
+def _analyze_color_profile(input_path: Path) -> dict[str, Any]:
     """Analyze color profile."""
     from PIL import Image
 
@@ -614,6 +573,7 @@ def _analyze_color_profile(input_path: Path) -> Dict[str, Any]:
         if "icc_profile" in img.info:
             try:
                 from io import BytesIO
+
                 from PIL import ImageCms
 
                 icc = img.info.get("icc_profile")
@@ -637,7 +597,7 @@ def _analyze_color_profile(input_path: Path) -> Dict[str, Any]:
         ).model_dump()
 
 
-def _extract_metadata(input_path: Path) -> Dict[str, Any]:
+def _extract_metadata(input_path: Path) -> dict[str, Any]:
     """Extract all metadata."""
     from PIL import Image
 
@@ -660,18 +620,12 @@ def _extract_metadata(input_path: Path) -> Dict[str, Any]:
                     tag = TAGS.get(tag_id, tag_id)
                     if isinstance(value, bytes):
                         value = value.decode("utf-8", errors="ignore")
-                    metadata["exif"][str(tag)] = str(value)[
-                        :200
-                    ]  # Truncate long values
+                    metadata["exif"][str(tag)] = str(value)[:200]  # Truncate long values
             except Exception as e:
                 metadata["exif_error"] = str(e)
 
         # Other info
-        metadata["info"] = {
-            k: str(v)[:200]
-            for k, v in img.info.items()
-            if k not in ("icc_profile", "exif")
-        }
+        metadata["info"] = {k: str(v)[:200] for k, v in img.info.items() if k not in ("icc_profile", "exif")}
 
         return AnalysisResult(
             success=True,
