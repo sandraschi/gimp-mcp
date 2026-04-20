@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "gimp-mcp"
 version = "4.0.0"
-description = "FastMCP 4.0.0 SOTA server for professional image editing using GIMP - Industrial Modernization"
+description = "FastMCP 3.2.0 SOTA server for professional image editing using GIMP - Industrial Modernization"
 readme = "README.md"
 authors = [
     {name = "Sandra Schipal", email = "sandra@sandraschi.dev"},
@@ -32,8 +32,8 @@ classifiers = [
 ]
 
 dependencies = [
-    # Core FastMCP dependencies - upgraded to 2.13+
-    "fastmcp>=3.1.1,<4",
+    # FastMCP 3.2+ (sampling, skills provider, prompts, prefab)
+    "fastmcp>=3.2.0,<4",
     "pydantic>=2.0.0,<3.0.0",
     "typing-extensions>=4.5.0,<5.0.0",
     # Image processing
@@ -159,7 +159,7 @@ all = [
 name = "gimp-mcp"
 display_name = "GIMP MCP Server"
 version = "4.0.0"
-description = "FastMCP 4.0.0 SOTA server for professional image editing using GIMP - Industrial Modernization"
+description = "FastMCP 3.2.0 SOTA — portmanteau tools, sampling, prompts, resources, skills, prefab, MCPB"
 entry_point = "gimp_mcp.main:main"
 architecture = "portmanteau"
 

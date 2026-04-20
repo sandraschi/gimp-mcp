@@ -1,5 +1,7 @@
 # GIMP MCP Server
 
+[![FastMCP Version](https://img.shields.io/badge/FastMCP-3.2.0-blue?style=flat-square&logo=python&logoColor=white)](https://github.com/sandraschi/fastmcp) [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff) [![Linted with Biome](https://img.shields.io/badge/Linted_with-Biome-60a5fa?style=flat-square&logo=biome&logoColor=white)](https://biomejs.dev/) [![Built with Just](https://img.shields.io/badge/Built_with-Just-000000?style=flat-square&logo=gnu-bash&logoColor=white)](https://github.com/casey/just)
+
 **By FlowEngineer sandraschi**
 
 Professional image editing through Model Context Protocol (MCP) using GIMP.
@@ -20,7 +22,7 @@ The GIMP MCP Server has been promoted to **SOTA v14.0 (March 2026)** industrial 
 - ** Pydantic validation**: Every tool now uses strict Pydantic `BaseModel` schemas for input validation.
 - ** Standardized Output**: Uses `GimpToolOutput[T]` generic wrapper for consistent telemetry and error handling.
 - ** Dual-Mode API**: Intelligent auto-switching between **Live Bridge** (interactive) and **Headless CLI** (batch).
-- ** FastMCP 3.1.1**: Leverages the latest asynchronous patterns and improved schema introspection.
+- ** FastMCP 3.2.0**: Leverages the latest asynchronous patterns and improved schema introspection.
 
 ##  **Portmanteau Architecture**
 
@@ -99,6 +101,17 @@ To start the webapp locally:
 
 ## Contributing
 See [ROADMAP](docs/IMPLEMENTATION_ROADMAP.md) for development guidelines.
+
+
+## 🛡️ Industrial Quality Stack
+
+This project adheres to **SOTA 14.1** industrial standards for high-fidelity agentic orchestration:
+
+- **Python (Core)**: [Ruff](https://astral.sh/ruff) for linting and formatting. Zero-tolerance for `print` statements in core handlers (`T201`).
+- **Webapp (UI)**: [Biome](https://biomejs.dev/) for sub-millisecond linting. Strict `noConsoleLog` enforcement.
+- **Protocol Compliance**: Hardened `stdout/stderr` isolation to ensure crash-resistant JSON-RPC communication.
+- **Automation**: [Justfile](./justfile) recipes for all fleet operations (`just lint`, `just fix`, `just dev`).
+- **Security**: Automated audits via `bandit` and `safety`.
 
 ## License
 MIT License - see LICENSE file for details.

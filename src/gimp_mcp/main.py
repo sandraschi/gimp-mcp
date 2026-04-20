@@ -1,10 +1,10 @@
 """
-GIMP MCP Server - FastMCP 3.1.1+ Portmanteau Architecture
+GIMP MCP Server - FastMCP 3.2 SOTA Portmanteau Architecture
 
 This module serves as the main entry point for the GIMP MCP server, providing
 an interface between the MCP protocol and GIMP's functionality.
 
-PORTMANTEAU ARCHITECTURE (v3.1.1):
+PORTMANTEAU ARCHITECTURE (v4.0.0):
 Instead of 50+ individual tools, GIMP MCP consolidates related operations into 8
 master portmanteau tools. Each tool handles a specific domain with multiple operations.
 
@@ -22,10 +22,14 @@ Tools:
 import asyncio
 import logging
 import sys
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
 from fastmcp import FastMCP
+from starlette.requests import Request
+from starlette.responses import JSONResponse
 
 # Import agentic workflow tools
 from .agentic import register_agentic_tools
@@ -49,6 +53,7 @@ from .tools import (
     gimp_system,
     gimp_transform,
 )
+from .sota_registration import get_sota_feature_manifest, register_fastmcp_32_surface
 from .transport import run_server, run_server_async
 
 # Legacy imports for backwards compatibility (reserved for future use if needed)
@@ -56,6 +61,17 @@ from .transport import run_server, run_server_async
 
 # Configure structured logging
 logger = setup_logging(component="main")
+
+
+@asynccontextmanager
+async def _gimp_mcp_lifespan(mcp: FastMCP) -> AsyncGenerator[None, None]:
+    """FastMCP 3.2 server lifespan hook."""
+    log = logging.getLogger(__name__)
+    log.info("GIMP MCP lifespan: startup")
+    try:
+        yield
+    finally:
+        log.info("GIMP MCP lifespan: shutdown")
 
 
 class GimpMCPServer:
@@ -69,15 +85,19 @@ class GimpMCPServer:
         """
         self.config = load_config(config_path) if config_path else GimpConfig()
 
-        # Initialize FastMCP with the server name
+        # Initialize FastMCP 3.2 SOTA instance
         self.mcp = FastMCP(
-            "GIMP MCP Fleet Server",
-            instructions="""You are GIMP MCP Server, a comprehensive FastMCP 3.1.1 server for professional image editing using GIMP.
+            name="gimp-mcp",
+            version="4.0.0",
+            lifespan=_gimp_mcp_lifespan,
+            instructions="""You are GIMP MCP Server — FastMCP 3.2 SOTA for professional image editing with GIMP.
 
-FASTMCP 3.1.1 FEATURES:
-- Conversational tool returns for natural AI interaction
-- Sampling capabilities for agentic workflows and complex image processing operations
-- Portmanteau design preventing tool explosion while maintaining full functionality
+FASTMCP 3.2 SURFACE:
+- Sampling (ctx.sample / agentic workflows) when the host supports MCP sampling
+- Prompts: gimp_edit_session, gimp_batch_folder_prep, gimp_color_grading_pass, gimp_agentic_sampling_hint
+- Resources: resource://gimp/documentation/*  |  Skills: skill://gimp-expert/SKILL.md
+- Prefab UI tools (gimp_capabilities_card) in capable clients
+- Portmanteau tools to limit tool explosion
 
 CORE CAPABILITIES:
 - **AI Image Generation**: Conversational image creation using advanced AI models with GIMP post-processing
@@ -105,6 +125,9 @@ PORTMANTEAU DESIGN:
 Tools are consolidated into logical groups to prevent tool explosion while maintaining full functionality.
 Each portmanteau tool handles multiple related operations through an 'operation' parameter.
 """,
+            strict_input_validation=True,
+            mask_error_details=True,
+            client_log_level="info",
         )
 
         # Set up tool registration
@@ -606,42 +629,40 @@ Each portmanteau tool handles multiple related operations through an 'operation'
         run_server(self.mcp, server_name="GIMP MCP Server")
 
     def _register_api_routes(self) -> None:
-        """Register custom FastAPI routes for the web dashboard."""
-        import json
+        """Register Starlette HTTP routes (health, SOTA manifest) on the FastMCP ASGI app."""
 
-        from fastapi import Response
+        server = self
 
-        app = self.mcp.http_app
-
-        @app.get("/api/health")
-        @app.get("/api/status")
-        async def get_health():
-            """Return server health and GIMP connectivity status."""
-            if not self.tools:
-                return Response(
-                    content=json.dumps({"status": "initializing", "message": "Server is still starting up"}),
-                    media_type="application/json",
+        @self.mcp.custom_route("/api/health", methods=["GET"])
+        async def api_health(_request: Request) -> Response:
+            if not server.tools:
+                return JSONResponse(
+                    {"status": "initializing", "message": "Server is still starting up"},
                 )
-
-            # Use the internal server's health check if available
-            # We'll need a handle to the GimpMcpServer instance from server.py
-            # Or just implement it here since we have config and interaction_manager
-
-            status = "healthy"
-            live_status = {"mode": "offline"}
-            if self.interaction_manager:
-                live_status = await self.interaction_manager.get_status()
-
-            return {
-                "status": status,
+            live_status: dict[str, Any] = {"mode": "offline"}
+            if server.interaction_manager:
+                live_status = await server.interaction_manager.get_status()
+            payload = {
+                "status": "healthy",
                 "live_mode": live_status,
                 "config": {
-                    "gimp_executable": self.config.gimp_executable,
-                    "max_concurrent_processes": self.config.max_concurrent_processes,
+                    "gimp_executable": server.config.gimp_executable,
+                    "max_concurrent_processes": server.config.max_concurrent_processes,
                 },
-                "server_name": "GIMP MCP Fleet Server",
-                "version": "3.1.1",
+                "server_name": "gimp-mcp",
+                "version": "4.0.0",
+                "fastmcp": "3.2",
+                "sota": get_sota_feature_manifest(),
             }
+            return JSONResponse(payload)
+
+        @self.mcp.custom_route("/api/status", methods=["GET"])
+        async def api_status(request: Request) -> Response:
+            return await api_health(request)
+
+        @self.mcp.custom_route("/api/sota", methods=["GET"])
+        async def api_sota(_request: Request) -> Response:
+            return JSONResponse(get_sota_feature_manifest())
 
 
 async def main_async():

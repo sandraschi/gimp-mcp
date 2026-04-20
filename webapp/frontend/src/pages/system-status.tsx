@@ -77,7 +77,7 @@ export default function SystemStatus({ status }: SystemStatusProps) {
                         { 
                             label: 'FastMCP Transport', 
                             status: 'connected', 
-                            msg: 'HTTP Streamable active (v3.1.1)' 
+                            msg: `HTTP Streamable — FastMCP 3.2 (${status?.fastmcp ? String(status.fastmcp) : 'see /api/sota'})` 
                         },
                         { 
                             label: 'Binary Path', 
