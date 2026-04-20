@@ -4,7 +4,8 @@ import {
     Terminal,
     Activity,
     Copy,
-    Wand2
+    Wand2,
+    Sparkles
 } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -20,6 +21,7 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
         { id: 'layer-manager', icon: Layers, label: 'Layers' },
         { id: 'tools-explorer', icon: Wand2, label: 'Tools' },
         { id: 'system-status', icon: Activity, label: 'Status' },
+        { id: 'fastmcp-sota', icon: Sparkles, label: 'FastMCP 3.2' },
         { id: 'script-fu-console', icon: Terminal, label: 'Script-Fu' },
     ];
 

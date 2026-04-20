@@ -1,0 +1,44 @@
+{
+  "manifest_version": "0.2",
+  "name": "gimp-mcp",
+  "version": "4.0.0",
+  "description": "GIMP MCP — FastMCP 3.2 SOTA: portmanteau tools, sampling, prompts, resources, skills, prefab, MCPB.",
+  "author": {
+    "name": "Sandra Schipal",
+    "email": "sandra@sandraschi.dev"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sandraschi/gimp-mcp"
+  },
+  "prompts": [
+    {
+      "name": "gimp_edit_session",
+      "description": "Plan a safe GIMP editing session for a stated goal."
+    },
+    {
+      "name": "gimp_batch_folder_prep",
+      "description": "Checklist for batch-processing a directory of images."
+    },
+    {
+      "name": "gimp_color_grading_pass",
+      "description": "Order of operations for a color grading pass."
+    },
+    {
+      "name": "gimp_agentic_sampling_hint",
+      "description": "When to use server-side sampling vs client tool loops."
+    }
+  ],
+  "server": {
+    "type": "python",
+    "entry_point": "src/gimp_mcp/mcp_server.py",
+    "mcp_config": {
+      "command": "uv",
+      "args": ["run", "python", "-m", "gimp_mcp.mcp_server"],
+      "env": {
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  }
+}

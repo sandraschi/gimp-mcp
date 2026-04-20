@@ -6,6 +6,7 @@ import LayerManager from './pages/layer-manager';
 import SystemStatus from './pages/system-status';
 import ScriptFuConsole from './pages/script-fu-console';
 import ToolsExplorer from './pages/ToolsExplorer';
+import FastmcpSotaPage from './pages/fastmcp-sota';
 
 export interface GimpSystemStatus {
   status: string;
@@ -20,6 +21,13 @@ export interface GimpSystemStatus {
   };
   server_name?: string;
   version?: string;
+  fastmcp?: string;
+  sota?: {
+    package?: string;
+    fastmcp?: string;
+    sota_target?: string;
+    features?: Record<string, unknown>;
+  };
 }
 
 function App() {
@@ -59,6 +67,8 @@ function App() {
         return <SystemStatus status={systemStatus} />;
       case 'script-fu-console':
         return <ScriptFuConsole />;
+      case 'fastmcp-sota':
+        return <FastmcpSotaPage />;
       default:
         return <ImageEditor />;
     }

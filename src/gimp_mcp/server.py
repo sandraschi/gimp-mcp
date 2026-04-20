@@ -15,6 +15,7 @@ from .cli_wrapper import GimpCliWrapper
 from .config import GimpConfig
 from .interaction_manager import GimpInteractionManager
 from .plugins import PluginManager
+from .sota_registration import register_fastmcp_32_surface
 from .tools_legacy.batch_processing import BatchProcessingTools
 from .tools_legacy.color_adjustments import ColorAdjustmentTools
 
@@ -146,6 +147,7 @@ class GimpMcpServer:
             app: FastMCP application instance
         """
         self.logger.info("Registering GIMP MCP tools...")
+        register_fastmcp_32_surface(app)
 
         # Register tools from all plugins
         self.plugin_manager.register_tools(app)

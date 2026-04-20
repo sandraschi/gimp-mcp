@@ -1,7 +1,7 @@
 """
 GIMP MCP Server - Professional Image Editing through Model Context Protocol
 
-This package provides a FastMCP 2.13+ server that enables AI agents like Claude
+This package provides a FastMCP 3.2+ server that enables AI agents like Claude
 to perform professional image editing operations using GIMP (GNU Image
 Manipulation Program).
 
@@ -23,7 +23,7 @@ Author: Sandra Schipal
 License: MIT
 """
 
-__version__ = "3.0.0"
+__version__ = "4.0.0"
 __author__ = "Sandra Schipal"
 __email__ = "sandra@sandraschi.dev"
 

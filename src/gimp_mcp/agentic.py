@@ -1,8 +1,8 @@
 """
 Agentic Workflow Tools for GIMP MCP
 
-FastMCP 2.14.3 sampling capabilities for autonomous image editing workflows.
-Provides conversational tool returns and intelligent orchestration.
+FastMCP 3.2: Context sampling (ctx.sample), client logging (ctx.info), and
+orchestration helpers for GIMP automation.
 """
 
 import hashlib
@@ -12,21 +12,26 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-# Import mcp dynamically to avoid circular imports
+from fastmcp import Context
+
 from .logging_config import get_logger
 
 logger = get_logger(__name__)
 
 
+async def _notify_client(ctx: Context | None, message: str) -> None:
+    if ctx is None:
+        return
+    await ctx.info(message)
+
+
 def register_agentic_tools(mcp_instance=None):
     """Register agentic workflow tools with sampling capabilities."""
-    # Import mcp dynamically to avoid circular imports
     if mcp_instance is None:
-        from .main import mcp as mcp_instance
+        raise TypeError("register_agentic_tools(mcp_instance) requires a FastMCP instance")
 
     @mcp_instance.tool()
     async def generate_image(
-        ctx: Any,
         description: str = "a simple landscape scene",
         style_preset: str = "photorealistic",
         dimensions: str = "1024x1024",
@@ -35,6 +40,7 @@ def register_agentic_tools(mcp_instance=None):
         reference_images: list[str] | None = None,
         post_processing: list[str] | None = None,
         max_iterations: int = 3,
+        ctx: Context | None = None,
     ) -> dict[str, Any]:
         """
         Generate images using AI with conversational refinement and GIMP post-processing.
@@ -107,7 +113,7 @@ def register_agentic_tools(mcp_instance=None):
                 }
 
             # Phase 2: AI Image Generation
-            await ctx.send(f"🤖 Generating AI image with {model} in {style_preset} style...")
+            await _notify_client(ctx, f"Generating AI image with {model} in {style_preset} style...")
 
             # For now, create a placeholder implementation
             # In production, this would integrate with actual AI models
@@ -131,7 +137,7 @@ def register_agentic_tools(mcp_instance=None):
 
             # Phase 3: GIMP Post-Processing
             if post_processing and len(post_processing) > 0:
-                await ctx.send(f"🎨 Applying GIMP post-processing: {', '.join(post_processing)}")
+                await _notify_client(ctx, f"Applying GIMP post-processing: {', '.join(post_processing)}")
 
                 processed_image_path = await _apply_gimp_processing(
                     base_image_path=base_image_path, post_processing=post_processing, quality_settings=quality
@@ -143,7 +149,7 @@ def register_agentic_tools(mcp_instance=None):
                 else:
                     final_image_path = base_image_path
                     processing_applied = []
-                    await ctx.send("⚠️ Post-processing failed, using original image")
+                    await _notify_client(ctx, "Post-processing failed, using original image")
             else:
                 final_image_path = base_image_path
                 processing_applied = []
@@ -193,7 +199,7 @@ def register_agentic_tools(mcp_instance=None):
                 ],
             }
 
-            await ctx.send(f"✅ Image generated successfully! Saved as: {enhanced_image_path.name}")
+            await _notify_client(ctx, f"Image generated successfully. Saved as: {enhanced_image_path.name}")
             return result
 
         except Exception as e:
@@ -209,48 +215,57 @@ def register_agentic_tools(mcp_instance=None):
         workflow_prompt: str,
         available_tools: list[str],
         max_iterations: int = 5,
+        ctx: Context | None = None,
     ) -> dict[str, Any]:
-        """Execute agentic GIMP workflows using FastMCP 2.14.3 sampling with tools.
+        """Execute agentic GIMP workflows using FastMCP 3.2 sampling when the host supports it.
 
-        This tool demonstrates SEP-1577 by enabling the server's LLM to autonomously
-        orchestrate complex GIMP image editing operations without client round-trips.
-
-        MASSIVE EFFICIENCY GAINS:
-        - LLM autonomously decides tool usage and sequencing
-        - No client mediation for multi-step workflows
-        - Structured validation and error recovery
-        - Parallel processing capabilities
+        Uses ``ctx.sample`` to obtain a concise multi-step plan; falls back with a clear
+        message when sampling is unavailable (stdio-only clients without sampling).
 
         Args:
             workflow_prompt: Description of the workflow to execute
-            available_tools: List of tool names to make available to the LLM
-            max_iterations: Maximum LLM-tool interaction loops (default: 5)
+            available_tools: Tool names the planner should stick to
+            max_iterations: Soft cap for steps in the plan text
+            ctx: FastMCP context (injected)
 
         Returns:
-            Structured response with workflow execution results
+            Structured response including an optional ``plan`` string from sampling.
         """
+        plan_text = ""
+        sampling_error: str | None = None
         try:
-            # Parse workflow prompt and determine optimal tool sequence
+            if ctx:
+                await ctx.info("Planning GIMP workflow via MCP sampling…")
+                try:
+                    res = await ctx.sample(
+                        (
+                            "You are a GIMP MCP planner. Given the user goal and allowed tools, "
+                            "output a numbered list of concrete steps (at most "
+                            f"{max_iterations} steps). Only reference these tools: {available_tools}.\n\n"
+                            f"Goal:\n{workflow_prompt}"
+                        ),
+                        max_tokens=900,
+                    )
+                    plan_text = (res.text or "").strip()
+                except Exception as se:  # noqa: BLE001 — host may not support sampling
+                    sampling_error = str(se)
+                    logger.debug("Sampling failed: %s", se, exc_info=True)
 
-            # This would use FastMCP 2.14.3 sampling to execute complex workflows
-            # For now, return a conversational response about capabilities
-            result = {
+            message = (
+                "Plan generated via server sampling."
+                if plan_text
+                else "Sampling unavailable or empty; use portmanteau tools from the client LLM."
+            )
+            return {
                 "success": True,
                 "operation": "agentic_workflow",
-                "message": "Agentic workflow initiated. The LLM can now autonomously orchestrate complex GIMP image editing operations using the specified tools.",
+                "message": message,
                 "workflow_prompt": workflow_prompt,
                 "available_tools": available_tools,
                 "max_iterations": max_iterations,
-                "capabilities": [
-                    "Autonomous tool orchestration",
-                    "Complex multi-step workflows",
-                    "Conversational responses",
-                    "Error recovery and validation",
-                    "Parallel processing support",
-                ],
+                "plan": plan_text,
+                "sampling_error": sampling_error,
             }
-
-            return result
 
         except Exception as e:
             return {
