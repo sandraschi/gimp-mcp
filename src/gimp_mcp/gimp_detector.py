@@ -46,12 +46,17 @@ class GimpDetector:
 
     def _detect_windows(self) -> str | None:
         """
-        Detect GIMP on Windows using registry and common paths.
+        Detect GIMP on Windows using process list, registry, and common paths.
 
         Returns:
             Optional[str]: Path to GIMP executable
         """
-        # Try registry first
+        # Try running process first (fastest, handles Windows Store GIMP)
+        proc_path = self._detect_from_running_process()
+        if proc_path:
+            return proc_path
+
+        # Try registry next
         registry_path = self._check_windows_registry()
         if registry_path and self._validate_executable(registry_path):
             return registry_path
@@ -62,18 +67,44 @@ class GimpDetector:
             r"C:\Program Files\GIMP 2\bin\gimp-2.10.exe",
             r"C:\Program Files (x86)\GIMP 3\bin\gimp-3.0.exe",
             r"C:\Program Files (x86)\GIMP 2\bin\gimp-2.10.exe",
-            r"C:\Users\{}\AppData\Local\Programs\GIMP 3\bin\gimp-3.0.exe".format(os.environ.get("USERNAME", "")),
+            r"C:\Users\{}\AppData\Local\Programs\GIMP 3\bin\gimp-3.exe".format(os.environ.get("USERNAME", "")),
+            r"C:\Users\{}\AppData\Local\Programs\GIMP 3\bin\gimp-console-3.exe".format(os.environ.get("USERNAME", "")),
         ]
 
         for path in common_paths:
             if self._validate_executable(path):
                 return path
 
+        # Try Windows Store package paths
+        store_base = Path(os.environ.get("LOCALAPPDATA", "")) / "Packages"
+        if store_base.is_dir():
+            for pkg_dir in store_base.iterdir():
+                if "GIMP" in pkg_dir.name:
+                    exe_candidate = pkg_dir / "VFS" / "ProgramFilesX64" / "GIMP" / "bin" / "gimp-3.exe"
+                    if exe_candidate.exists():
+                        return str(exe_candidate)
+
         # Try PATH environment
         path_executable = self._check_path_environment(["gimp-3.0.exe", "gimp-2.10.exe", "gimp.exe"])
         if path_executable:
             return path_executable
 
+        return None
+
+    def _detect_from_running_process(self) -> str | None:
+        """Detect GIMP from running process list using WMI."""
+        try:
+            import subprocess, json
+            result = subprocess.run(
+                ["powershell", "-NoProfile", "-Command",
+                 "Get-CimInstance Win32_Process -Filter \"name='gimp-3.exe'\" | Select-Object -ExpandProperty ExecutablePath"],
+                capture_output=True, text=True, timeout=10
+            )
+            path = result.stdout.strip()
+            if path and path.lower().endswith("gimp-3.exe") and os.path.exists(path):
+                return path
+        except Exception:
+            pass
         return None
 
     def _check_windows_registry(self) -> str | None:

@@ -22,7 +22,7 @@ from gi.repository import Gimp, GLib, GObject  # noqa: E402
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("GimpMcpBridge")
 
-PORT = 10774
+PORT = 10824
 HOST = "127.0.0.1"
 
 

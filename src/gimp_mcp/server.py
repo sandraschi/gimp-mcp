@@ -7,7 +7,9 @@ all GIMP image processing tools via the Model Context Protocol.
 
 import logging
 import os
-from typing import Any
+from typing import Annotated, Any
+
+from pydantic import Field
 
 from fastmcp import FastMCP
 
@@ -161,6 +163,33 @@ class GimpMcpServer:
         if hasattr(self.config, "enable_performance_optimization") and self.config.enable_performance_optimization:
             if "performance_tools" in self.plugin_manager.plugins:
                 self.plugin_manager.plugins["performance_tools"].register_tools(app)
+
+        from .tools.pdb_proxy import gimp_pdb as _gimp_pdb
+
+        @app.tool(annotations={"destructiveHint": True}, version="4.1.0")
+        async def gimp_pdb_call(
+            procedure: Annotated[str, Field(description="GIMP PDB procedure name (e.g. gimp_selection_all, plug_in_gauss).")],
+            args: Annotated[list[Any] | None, Field(description="List of arguments for the PDB procedure.")] = None,
+        ) -> dict[str, Any]:
+            """Call any GIMP PDB procedure by name.
+
+            Universal escape hatch to GIMP full Procedural Database with
+            over 1000+ procedures available without individual wrappers.
+
+            ## Return Format
+            {"success": bool, "message": str, "data": {...}, "procedure": str}
+
+            ## Examples
+            gimp_pdb_call(procedure="gimp_selection_all")
+            gimp_pdb_call(procedure="plug_in_gauss", args=[5.0])
+            """
+            return await _gimp_pdb(
+                procedure=procedure,
+                args=args or [],
+                interaction_manager=self.interaction_manager,
+                cli_wrapper=self.cli_wrapper,
+                config=self.config,
+            )
 
         self.logger.info(f"Registered tools from {len(self.plugin_manager.plugins)} plugins")
 
