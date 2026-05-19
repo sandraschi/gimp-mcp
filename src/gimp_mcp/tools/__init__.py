@@ -3,7 +3,7 @@ GIMP MCP Tools - FastMCP 2.13+ Portmanteau Architecture.
 
 Consolidated tools for reduced cognitive load and better discoverability.
 
-Instead of 50+ individual tools, GIMP MCP consolidates related operations into 8
+Instead of 50+ individual tools, GIMP MCP consolidates related operations into 17
 master tools. Each tool handles a specific domain with multiple operations.
 
 TOOLS:
@@ -15,16 +15,30 @@ TOOLS:
 - gimp_analysis: Image analysis (quality, statistics, compare)
 - gimp_batch: Batch processing (resize, convert, watermark)
 - gimp_system: System operations (status, help, cache)
+- gimp_workspace: Workspace state (list images, undo/redo, metadata, resolution)
+- gimp_channel: Channel management (create, delete, list, color, opacity)
+- gimp_gmic: G'MIC filter integration (list_categories, apply, apply_named)
+- gimp_gegl: GEGL operation wrapper (list_ops, apply)
+- gimp_color_management: ICC color management (profile_info, assign, convert, proofing)
 """
 
 from .analysis import gimp_analysis
+from .animation import gimp_animation
 from .batch import gimp_batch
+from .channel import gimp_channel
 from .color import gimp_color
+from .color_mgmt import gimp_color_management
 from .file_operations import gimp_file
 from .filter import gimp_filter
+from .gegl import gimp_gegl
+from .gmic import gimp_gmic
 from .layer import gimp_layer
+from .parasites import gimp_parasites
+from .paths import gimp_paths
+from .pdb_proxy import gimp_pdb
 from .system import gimp_system
 from .transform import gimp_transform
+from .workspace import gimp_workspace
 
 __all__ = [
     "gimp_file",
@@ -35,6 +49,15 @@ __all__ = [
     "gimp_analysis",
     "gimp_batch",
     "gimp_system",
+    "gimp_pdb",
+    "gimp_workspace",
+    "gimp_channel",
+    "gimp_animation",
+    "gimp_paths",
+    "gimp_parasites",
+    "gimp_gmic",
+    "gimp_gegl",
+    "gimp_color_management",
 ]
 
 # Tool metadata for discovery
@@ -150,6 +173,117 @@ PORTMANTEAU_TOOLS = [
             "tools",
             "version",
         ],
+    },
+    {
+        "name": "gimp_pdb",
+        "function": gimp_pdb,
+        "category": "pdb_proxy",
+        "operations": ["pdb_call"],
+        "description": "Generic GIMP PDB proxy — calls any procedure by name. Universal escape hatch to the full ~1000-procedure PDB.",
+    },
+    {
+        "name": "gimp_workspace",
+        "function": gimp_workspace,
+        "category": "workspace",
+        "operations": [
+            "list_images",
+            "current_image",
+            "undo_count",
+            "undo",
+            "redo",
+            "undo_group_start",
+            "undo_group_end",
+            "get_metadata",
+            "set_resolution",
+            "set_unit",
+        ],
+    },
+    {
+        "name": "gimp_channel",
+        "function": gimp_channel,
+        "category": "channel_management",
+        "operations": [
+            "create",
+            "delete",
+            "list",
+            "set_color",
+            "set_opacity",
+            "set_show_masked",
+            "duplicate",
+            "info",
+        ],
+    },
+    {
+        "name": "gimp_animation",
+        "function": gimp_animation,
+        "category": "animation",
+        "operations": [
+            "list_frames",
+            "set_frame_delay",
+            "optimize_for_gif",
+            "export_gif",
+            "frame_count",
+        ],
+    },
+    {
+        "name": "gimp_paths",
+        "function": gimp_paths,
+        "category": "vector_paths",
+        "operations": [
+            "create",
+            "delete",
+            "list",
+            "stroke",
+            "import_svg",
+            "export_svg",
+            "set_name",
+            "get_points",
+        ],
+    },
+    {
+        "name": "gimp_parasites",
+        "function": gimp_parasites,
+        "category": "xcf_parasites",
+        "operations": [
+            "list_image",
+            "list_drawable",
+            "attach_image",
+            "attach_drawable",
+            "detach_image",
+            "detach_drawable",
+            "get_image",
+            "get_drawable",
+            "get_animation_delay",
+        ],
+    },
+    {
+        "name": "gimp_gmic",
+        "function": gimp_gmic,
+        "category": "gmic_filters",
+        "operations": ["list_categories", "apply", "apply_named", "list_filters"],
+        "description": "G'MIC filter integration — 500+ filters via plug-in-gmic PDB procedure.",
+    },
+    {
+        "name": "gimp_gegl",
+        "function": gimp_gegl,
+        "category": "gegl_operations",
+        "operations": ["list_ops", "apply"],
+        "description": "GEGL operation wrapper — GIMP 3 non-destructive editing engine.",
+    },
+    {
+        "name": "gimp_color_management",
+        "function": gimp_color_management,
+        "category": "color_management",
+        "operations": [
+            "profile_info",
+            "assign_profile",
+            "convert_profile",
+            "get_effective_profile",
+            "soft_proofing",
+            "simulation_profile",
+            "list_profiles",
+        ],
+        "description": "ICC color management — profile info, assignment, conversion, soft proofing.",
     },
 ]
 

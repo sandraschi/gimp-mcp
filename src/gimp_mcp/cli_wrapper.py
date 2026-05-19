@@ -92,13 +92,13 @@ class GimpCliWrapper:
         # Build command arguments
         cmd_args = [
             self.config.gimp_executable,
-            "-i",  # No interface
+            "-c",  # Console messages
             "-d",  # No data (faster startup)
             "-f",  # No fonts (faster startup)
+            "-s",  # No splash
             "-b",
             script_content,
-            "-b",
-            "(gimp-quit 0)",
+            "--quit",
         ]
 
         return await self._execute_command(cmd_args, timeout)
@@ -128,17 +128,20 @@ class GimpCliWrapper:
                 f.write(python_content)
 
             # Build command arguments for Python-Fu
+            # NOTE: path must use forward slashes to avoid \U unicode escape issue
+            script_path = str(temp_script).replace("\\", "/")
             cmd_args = [
                 self.config.gimp_executable,
-                "-i",  # No interface
+                "-c",  # Console messages
                 "-d",  # No data
                 "-f",  # No fonts
+                "-s",  # No splash
+                "--no-shm",  # No shared memory
                 "--batch-interpreter",
                 "python-fu-eval",
                 "-b",
-                f"exec(open('{temp_script}').read())",
-                "-b",
-                "pdb.gimp_quit(1)",
+                f"exec(open('{script_path}').read())",
+                "--quit",
             ]
 
             return await self._execute_command(cmd_args, timeout)

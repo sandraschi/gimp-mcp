@@ -5,7 +5,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [4.0.0] - 2026-04-07
+## [4.1.0] - 2026-05-19
+
+### Added
+- **Generic PDB Proxy Tool** (`gimp_pdb`): Universal escape hatch to GIMP's full ~1000-procedure PDB. Accepts any procedure name + positional args, generates Python-Fu code on the fly. Registered on both CLI and webapp servers.
+- **AI Image Generation**: Three real backends — Google Gemini Imagen, Stability AI, BFL/Flux. Switchable via `model` parameter on `generate_image` tool. API keys configured through Settings page or env vars (`GEMINI_API_KEY`, `STABILITY_API_KEY`, `BFL_API_KEY`).
+- **Local LLM (Glom On)**: Auto-detect Ollama (:11434) and LM Studio (:1234) running on localhost. Settings dropdown to select provider and model. Multimodal models (Gemma 4:4B, LLaVA, etc.) supported for image understanding.
+- **Chat Page**: Now tries local LLM first, falls back to cloud API. Provider indicator shows which LLM is active.
+- **Image Understanding API**: `/api/llm/understand` and `/api/llm/suggest` endpoints — multimodal LLM can describe an image or propose GIMP operations to achieve a requested edit.
+- **Settings Page**: API key management for all three AI providers + local LLM provider/model dropdown with Glom On scan button.
+- **9 New Portmanteau Tools** — 17 total:
+  - `gimp_workspace` (10 ops): list images, undo/redo, undo groups, metadata, resolution
+  - `gimp_channel` (8 ops): create, delete, list, set color/opacity, duplicate channels
+  - `gimp_gmic` (4 ops): G'MIC filter integration — 500+ filters via plug-in-gmic
+  - `gimp_gegl` (2 ops): GEGL non-destructive editing operations
+  - `gimp_color_management` (7 ops): ICC profiles, assignment, conversion, soft proofing
+  - `gimp_animation` (5 ops): list frames, set delay, optimize/export GIF
+  - `gimp_paths` (8 ops): create, delete, stroke, import/export SVG, vector paths
+  - `gimp_parasites` (9 ops): XCF metadata — list, attach, detach parasites on images/drawables
+- **SOTA Webapp Dashboard**: 5 new fleet-standard pages — Dashboard, Apps Hub, Chat, Skills, API Docs
+- **State Management**: Zustand store for app state, toast notifications, global logger modal, help modal.
+- **Standalone GIMP 3.2.4 Support**: Detects and uses standalone (non-Store) GIMP via `gimp-console-3.exe`. Uninstalled sandboxed Windows Store version.
+- **GIMP Bridge Plugin**: Auto-installed to GIMP's plug-ins directory. Port changed to 10775 (10774 was squatted by Store remnants). `--restart-gimp` start.ps1 flag.
+- **Fleet-wide `strictPort: true`**: Added to 63 repos' vite.config files to prevent silent port drift.
+
+### Changed
+- **CLI Batch Mode Fix**: Replaced hanging `pdb.gimp_quit(1)` with `--quit` flag. Fixed `\U` unicode escape bug in temp file paths. Both Script-Fu and Python-Fu modes work.
+- **PDB Proxy Code Gen**: Uses `gi.repository.Gimp.get_pdb()` for GIMP 3 (no `gimpfu` module) with `lookup_procedure`/`create_config`/`run` pattern. Falls back to gimpfu for GIMP 2.x bridge.
+- **GIMP Detector**: Added Windows Store path detection via process list and package directory scan.
+- **justfile**: Expanded from 6 to 21 recipes covering startup, bridge, PDB, testing, cleaning.
+
+### Fixed
+- Port squatters on 10772/10773/10774 from repos missing `strictPort: true`.
+- `start.ps1` port clearing now verifies port is actually free after kill attempts.
+
+## [4.0.1] - 2026-04-27
+
+### Added
+- **Industrial Startup Script**: Root `start.ps1` with `-Headless`, `-BackendOnly`, and `-NoBrowser` support.
+- **Improved Port Handling**: Automatic TCP squatter termination and health-check polling.
+
+## [4.0.0] - 2026-03-24
 
 ### Added
 - **SOTA v13.1 Industrial Modernization**: Comprehensive refactor of the entire control plane.

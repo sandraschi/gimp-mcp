@@ -10,7 +10,9 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
+
+from pydantic import Field
 
 from fastmcp import Context
 
@@ -30,41 +32,30 @@ def register_agentic_tools(mcp_instance=None):
     if mcp_instance is None:
         raise TypeError("register_agentic_tools(mcp_instance) requires a FastMCP instance")
 
-    @mcp_instance.tool()
+    @mcp_instance.tool(annotations={"destructiveHint": True}, version="4.1.0")
     async def generate_image(
-        description: str = "a simple landscape scene",
-        style_preset: str = "photorealistic",
-        dimensions: str = "1024x1024",
-        model: str = "flux-dev",
-        quality: str = "standard",
-        reference_images: list[str] | None = None,
-        post_processing: list[str] | None = None,
-        max_iterations: int = 3,
+        description: Annotated[str, Field(description="Natural language description of the image to generate.")] = "a simple landscape scene",
+        style_preset: Annotated[str, Field(description="Visual style: photorealistic, artistic, technical, fantasy, abstract.")] = "photorealistic",
+        dimensions: Annotated[str, Field(description="Image dimensions as WIDTHxHEIGHT (e.g. 1024x1024).")] = "1024x1024",
+        model: Annotated[str, Field(description="AI provider: gemini, stability, or bfl (requires API key configured in Settings).")] = "gemini",
+        quality: Annotated[str, Field(description="Quality level: draft, standard, high, ultra.")] = "standard",
+        reference_images: Annotated[list[str] | None, Field(description="Optional list of reference image paths for style guidance.")] = None,
+        post_processing: Annotated[list[str] | None, Field(description="List of GIMP operations to apply after generation (sharpen, color_correction, etc.).")] = None,
+        max_iterations: Annotated[int, Field(description="Maximum refinement iterations for the generation process.")] = 3,
         ctx: Context | None = None,
     ) -> dict[str, Any]:
-        """
-        Generate images using AI with conversational refinement and GIMP post-processing.
+        """Generate images using AI with conversational refinement and GIMP post-processing.
 
-        PORTMANTEAU PATTERN RATIONALE:
-        Consolidates AI image generation, GIMP processing, and repository management
-        into a single tool to prevent workflow fragmentation.
+        [RATIONALE] Consolidates AI image generation, GIMP processing, and repository
+        management into a single tool to prevent workflow fragmentation across generation,
+        enhancement, and storage concerns.
 
-        Args:
-            description: Natural language description of the image to generate
-            style_preset: Visual style (photorealistic, artistic, technical, fantasy, abstract)
-            dimensions: Image size (e.g., "1024x1024", "2048x1536", "4096x2304")
-            model: AI model to use (flux-dev, nano-banana-pro)
-            quality: Quality level (draft, standard, high, ultra)
-            reference_images: Optional list of reference image paths
-            post_processing: List of GIMP operations to apply (sharpen, color_correction, etc.)
-            max_iterations: Maximum refinement iterations
+        ## Return Format
+        {"success": bool, "message": str, "image_path": str, "dimensions": str, "style_preset": str, "model_used": str, "quality_level": str, "processing_applied": list, "quality_metrics": dict, "next_steps": list}
 
-        Returns:
-            Dict containing generation results, file paths, and metadata
-
-        Raises:
-            ValueError: If parameters are invalid
-            RuntimeError: If generation fails
+        ## Examples
+        generate_image(description="a serene mountain lake at sunset", style_preset="photorealistic", dimensions="1024x1024")
+        generate_image(description="fantasy castle in the clouds", style_preset="fantasy", post_processing=["sharpen", "color_correction"])
         """
         try:
             # Phase 1: Analysis & Planning
@@ -92,8 +83,8 @@ def register_agentic_tools(mcp_instance=None):
                     "message": f"Choose from: {', '.join(valid_styles)}",
                 }
 
-            # Validate model
-            valid_models = ["flux-dev", "nano-banana-pro"]
+            # Validate model (AI provider)
+            valid_models = ["gemini", "stability", "bfl"]
             if model not in valid_models:
                 return {
                     "success": False,
@@ -115,15 +106,14 @@ def register_agentic_tools(mcp_instance=None):
             # Phase 2: AI Image Generation
             await _notify_client(ctx, f"Generating AI image with {model} in {style_preset} style...")
 
-            # For now, create a placeholder implementation
-            # In production, this would integrate with actual AI models
-            generation_result = await _generate_base_image(
-                description=description,
-                style_preset=style_preset,
+            from .ai_image import generate as ai_generate
+            generation_result = await ai_generate(
+                provider=model,
+                prompt=description,
                 width=width,
                 height=height,
-                model=model,
                 quality=quality,
+                style=style_preset,
             )
 
             if not generation_result["success"]:
@@ -210,26 +200,23 @@ def register_agentic_tools(mcp_instance=None):
                 "message": "An unexpected error occurred during image generation. Try simplifying your request or contact support.",
             }
 
-    @mcp_instance.tool()
+    @mcp_instance.tool(annotations={"readOnlyHint": True}, version="4.1.0")
     async def agentic_gimp_workflow(
-        workflow_prompt: str,
-        available_tools: list[str],
-        max_iterations: int = 5,
+        workflow_prompt: Annotated[str, Field(description="Natural language description of the workflow to execute.")],
+        available_tools: Annotated[list[str], Field(description="Tool names the planner should stick to.")],
+        max_iterations: Annotated[int, Field(description="Soft cap for steps in the plan text.")] = 5,
         ctx: Context | None = None,
     ) -> dict[str, Any]:
-        """Execute agentic GIMP workflows using FastMCP 3.2 sampling when the host supports it.
+        """Execute agentic GIMP workflows using FastMCP 3.2 sampling.
 
-        Uses ``ctx.sample`` to obtain a concise multi-step plan; falls back with a clear
-        message when sampling is unavailable (stdio-only clients without sampling).
+        Uses ctx.sample to obtain a concise multi-step plan; falls back with a
+        clear message when sampling is unavailable.
 
-        Args:
-            workflow_prompt: Description of the workflow to execute
-            available_tools: Tool names the planner should stick to
-            max_iterations: Soft cap for steps in the plan text
-            ctx: FastMCP context (injected)
+        ## Return Format
+        {"success": bool, "message": str, "plan": str, "available_tools": list, "max_iterations": int, "sampling_error": str | None}
 
-        Returns:
-            Structured response including an optional ``plan`` string from sampling.
+        ## Examples
+        agentic_gimp_workflow(workflow_prompt="resize all images in a folder to 800x600 and convert to webp", available_tools=["gimp_batch_tool", "gimp_file_tool"])
         """
         plan_text = ""
         sampling_error: str | None = None
@@ -274,32 +261,23 @@ def register_agentic_tools(mcp_instance=None):
                 "message": "An error occurred while setting up the agentic workflow.",
             }
 
-    @mcp_instance.tool()
+    @mcp_instance.tool(annotations={"destructiveHint": True}, version="4.1.0")
     async def intelligent_image_processing(
-        images: list[dict[str, Any]],
-        processing_goal: str,
-        available_operations: list[str],
-        processing_strategy: str = "adaptive",
+        images: Annotated[list[dict[str, Any]], Field(description="List of image objects to process, each with path and optional metadata.")],
+        processing_goal: Annotated[str, Field(description="Goal for processing (e.g. enhance old photos for printing).")],
+        available_operations: Annotated[list[str], Field(description="Operations the LLM can choose from.")],
+        processing_strategy: Annotated[str, Field(description="How to process images: adaptive, parallel, sequential.")] = "adaptive",
     ) -> dict[str, Any]:
-        """Intelligent batch image processing using FastMCP 2.14.3 sampling with tools.
+        """Intelligent batch image processing using LLM-driven strategy selection.
 
-        This tool uses the client's LLM to intelligently decide how to process batches
+        Uses the client LLM to intelligently decide how to process batches
         of images, choosing the right operations and sequencing for optimal results.
 
-        SMART PROCESSING:
-        - LLM analyzes each image to determine optimal processing approach
-        - Automatic operation selection based on content characteristics
-        - Adaptive batching strategies (parallel, sequential, conditional)
-        - Quality validation and error recovery
+        ## Return Format
+        {"success": bool, "message": str, "processing_goal": str, "image_count": int, "available_operations": list, "processing_strategy": str, "capabilities": list}
 
-        Args:
-            images: List of image objects to process
-            processing_goal: What you want to achieve (e.g., "enhance old photos for printing")
-            available_operations: Operations the LLM can choose from
-            processing_strategy: How to process images (adaptive, parallel, sequential)
-
-        Returns:
-            Intelligent batch processing results
+        ## Examples
+        intelligent_image_processing(images=[{"path": "/images/photo1.jpg"}, {"path": "/images/photo2.jpg"}], processing_goal="enhance old photos for printing", available_operations=["brightness_contrast", "sharpen"])
         """
         try:
             {
@@ -336,22 +314,22 @@ def register_agentic_tools(mcp_instance=None):
                 "message": "An error occurred while setting up intelligent image processing.",
             }
 
-    @mcp_instance.tool()
+    @mcp_instance.tool(annotations={"readOnlyHint": True}, version="4.1.0")
     async def conversational_gimp_assistant(
-        user_query: str,
-        context_level: str = "comprehensive",
+        user_query: Annotated[str, Field(description="Natural language query about GIMP operations.")],
+        context_level: Annotated[str, Field(description="Amount of context to provide: basic, comprehensive, detailed.")] = "comprehensive",
     ) -> dict[str, Any]:
         """Conversational GIMP assistant with natural language responses.
 
         Provides human-like interaction for GIMP image editing with detailed
         explanations and suggestions for next steps.
 
-        Args:
-            user_query: Natural language query about GIMP operations
-            context_level: Amount of context to provide (basic, comprehensive, detailed)
+        ## Return Format
+        {"success": bool, "message": str, "user_query": str, "context_level": str, "suggestions": list, "next_steps": list}
 
-        Returns:
-            Conversational response with actionable guidance
+        ## Examples
+        conversational_gimp_assistant(user_query="How do I remove the background from an image?")
+        conversational_gimp_assistant(user_query="What filters are available?", context_level="detailed")
         """
         try:
             # Analyze the query and provide conversational guidance

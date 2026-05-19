@@ -122,7 +122,7 @@ class GimpConfig(BaseModel):
 
     bridge_host: str = Field(default="127.0.0.1", description="Host for the GIMP Live Bridge")
 
-    bridge_port: int = Field(default=10774, description="Port for the GIMP Live Bridge")
+    bridge_port: int = Field(default=10824, description="Port for the GIMP Live Bridge")
 
     plugin_dirs: list[str] = Field(default_factory=list, description="List of directories to search for plugins")
 
