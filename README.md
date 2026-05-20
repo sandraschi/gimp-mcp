@@ -1,21 +1,32 @@
 # GIMP MCP Server
 
-[![FastMCP Version](https://img.shields.io/badge/FastMCP-3.2.0-blue?style=flat-square&logo=python&logoColor=white)](https://github.com/sandraschi/fastmcp) [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff) [![Linted with Biome](https://img.shields.io/badge/Linted_with-Biome-60a5fa?style=flat-square&logo=biome&logoColor=white)](https://biomejs.dev/) [![Built with Just](https://img.shields.io/badge/Built_with-Just-000000?style=flat-square&logo=gnu-bash&logoColor=white)](https://github.com/casey/just)
-
-[![FastMCP](https://img.shields.io/badge/FastMCP-3.2-blue)](https://github.com/jlowin/fastmcp) [![Python](https://img.shields.io/badge/Python-3.12%2B-green)](https://python.org) [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE) [![Status](https://img.shields.io/badge/Status-v4.1.0_SOTA-purple)](#)
+<p align="center">
+  <a href="https://github.com/casey/just"><img src="https://img.shields.io/badge/just-ready_to_go-7c5cfc?style=flat-square&logo=just&logoColor=white" alt="Just"></a>
+  <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" alt="Ruff"></a>
+  <a href="https://python.org"><img src="https://img.shields.io/badge/Python-3.13+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python"></a>
+  <a href="https://biomejs.dev"><img src="https://img.shields.io/badge/Linted_with-Biome-60a5fa?style=flat-square&logo=biome&logoColor=white" alt="Biome"></a>
+  <a href="https://github.com/PrefectHQ/fastmcp"><img src="https://img.shields.io/badge/FastMCP-3.2-7c5cfc?style=flat-square" alt="FastMCP"></a>
+</p>
 
 **Professional image editing through GIMP 3 — controlled by AI agents via the Model Context Protocol.** 17 portmanteau tools consolidate GIMP's ~1000 PDB procedures into clean, discoverable operations.
 
 ## Quick Start
 
-```bash
-# 1. Install GIMP 3.2+ (standalone, not Windows Store) from gimp.org
-# 2. Install Python deps
-uv sync
-# 3. Launch GIMP with the bridge plugin
-.\start.ps1 -RestartGimp
-# → Webapp at http://localhost:10772
+```powershell
+git clone https://github.com/sandraschi/gimp-mcp
+cd gimp-mcp
+just
 ```
+
+This opens an interactive dashboard showing all available commands. Run `just bootstrap` to install dependencies, then `just serve` or `just dev` to start.
+
+### Manual Setup
+
+If you don't have `just` installed:
+1. Install GIMP 3.2+ (standalone, not Windows Store) from gimp.org
+2. Run `uv sync` to install Python dependencies
+3. Launch GIMP with the bridge plugin: `.\start.ps1 -RestartGimp`
+4. Open http://localhost:10772
 
 ## Table of Contents
 
