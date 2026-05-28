@@ -49,7 +49,7 @@ class GimpMcpBridge(Gimp.PlugIn):
         procedure.set_menu_label("Start MCP Bridge")
         procedure.set_documentation(
             "Starts the MCP JSON-RPC server",
-            "Initializes a background thread that listens for MCP commands on port 10774",
+            "Initializes a background thread that listens for MCP commands on port 10824",
             name,
         )
         procedure.set_attribution("Sandra Schipal", "Sandra Schipal", "2026")

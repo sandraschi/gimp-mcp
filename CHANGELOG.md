@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.1.1] - 2026-05-28
+
+### Added
+- **Agent Lab Phase 1**: `gimp_bridge_tool` (status, execution_mode, ping, list_open_images) and `gimp_render_tool` (bridge_status, capture_active, get_image_summary)
+- `utils/gimp_runtime.py` and `utils/execution_mode.py` for Hands-In vs Hands-Off agent guidance
+- `docs/COMPETITIVE_ANALYSIS.md` and `docs/ROADMAP.md`
+- `tests/test_phase1_tools.py`
+
+### Changed
+- Bridge TCP port documented as **10824** fleet standard (replaces stale 10775 references)
+- `gimp_live_status` delegates to `gimp_bridge` (kept for backwards compatibility)
+
 ## [4.1.0] - 2026-05-19
 
 ### Added

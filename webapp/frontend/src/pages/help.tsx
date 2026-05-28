@@ -231,7 +231,7 @@ function ArchitectureContent() {
             icon: Plug,
             label: "GIMP Bridge",
             desc: "TCP server running inside GIMP 3.2+ as a GIMP plugin. Enables real-time PDB command execution.",
-            ports: "Port 10775",
+            ports: "Port 10824",
           },
         ].map((layer) => {
           const Icon = layer.icon;
@@ -330,7 +330,7 @@ function GimpBridgeContent() {
           <code className="text-xs bg-secondary px-1.5 py-0.5 rounded font-mono">
             gimp_mcp_bridge.py
           </code>
-          ) runs inside GIMP and starts a TCP server on port 10775
+          ) runs inside GIMP and starts a TCP server on port 10824
         </li>
         <li>
           The <strong className="text-foreground">bridge wrapper</strong> (
@@ -374,10 +374,10 @@ gimp_pdb("gimp-text-layer-set-font", [layer_id, "Arial"])`}
       <CodeBlock
         code={`# Check TCP listener
 just bridge-status
-# Output: Bridge active on port 10775 (PID 12345)
+# Output: Bridge active on port 10824 (PID 12345)
 
 # Or via PowerShell
-Get-NetTCPConnection -LocalPort 10775`}
+Get-NetTCPConnection -LocalPort 10824`}
       />
       <p>
         The Dashboard page also shows bridge status with a green indicator when
@@ -410,7 +410,7 @@ function PluginsContent() {
       <ul className="list-disc list-inside space-y-1 text-sm mt-2">
         <li>
           Starts a TCP listener on{" "}
-          <strong className="text-foreground">127.0.0.1:10775</strong>
+          <strong className="text-foreground">127.0.0.1:10824</strong>
         </li>
         <li>
           Accepts JSON payloads with{" "}

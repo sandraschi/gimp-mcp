@@ -85,10 +85,10 @@ if (-not $allClear) {
         $conns = Get-NetTCPConnection -LocalPort $p -ErrorAction SilentlyContinue | Where-Object { $_.State -eq 'Listen' }
         if ($conns) {
             foreach ($c in $conns) {
-                $pid = $c.OwningProcess
-                $proc = Get-Process -Id $pid -ErrorAction SilentlyContinue
-                Write-Host "  Port $p : PID $pid $($proc.ProcessName) (started $($proc.StartTime))" -ForegroundColor Red
-                try { $cmd = (Get-CimInstance Win32_Process -Filter "ProcessId = $pid" -ErrorAction Stop).CommandLine; if ($cmd) { Write-Host "    Command: $cmd" -ForegroundColor Gray } } catch {}
+                $targetPid = $c.OwningProcess
+                $proc = Get-Process -Id $targetPid -ErrorAction SilentlyContinue
+                Write-Host "  Port $p : PID $targetPid $($proc.ProcessName) (started $($proc.StartTime))" -ForegroundColor Red
+                try { $cmd = (Get-CimInstance Win32_Process -Filter "ProcessId = $targetPid" -ErrorAction Stop).CommandLine; if ($cmd) { Write-Host "    Command: $cmd" -ForegroundColor Gray } } catch {}
             }
         }
     }

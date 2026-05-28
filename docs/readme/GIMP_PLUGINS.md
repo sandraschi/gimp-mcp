@@ -20,7 +20,7 @@ This copies the bridge plugin to:
 **Verification**: After starting GIMP, check the bridge is listening:
 ```bash
 just bridge-status
-# Expected: "Bridge active on port 10775"
+# Expected: "Bridge active on port 10824"
 ```
 
 ### First-Time Activation
@@ -41,7 +41,7 @@ class GimpMcpBridge(Gimp.PlugIn):
 |--------|--------|
 | **Base class** | `Gimp.PlugIn` (GIMP 3 API) |
 | **Menu registration** | `<Image>/Filters/Development/MCP/Start MCP Bridge` |
-| **TCP server** | `127.0.0.1:10775` |
+| **TCP server** | `127.0.0.1:10824` |
 | **Threading** | Background thread for TCP listener, `GLib.idle_add` for main-thread execution |
 | **Protocol** | JSON over TCP |
 | **Max message size** | 16 KB |

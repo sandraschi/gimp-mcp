@@ -161,6 +161,6 @@ All 21 recipes:
 | | `fix` | Auto-fix lint issues |
 | **Hardening** | `check-sec` | Bandit security audit |
 | | `audit-deps` | Safety audit of dependencies |
-| **Cleanup** | `kill` | Kill processes on 10772/10773/10775 |
+| **Cleanup** | `kill` | Kill processes on 10772/10773/10824 |
 | | `clean` | Remove node_modules, dist, .venv, caches |
 | | `clean-gimp` | Remove bridge plugin from GIMP |

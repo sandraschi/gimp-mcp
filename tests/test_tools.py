@@ -11,14 +11,16 @@ async def test_tool_registration(mcp_server):
         await mcp_server.initialize()
 
     expected_tools = [
-        "gimp_file",
-        "gimp_transform",
-        "gimp_color",
-        "gimp_filter",
-        "gimp_layer",
-        "gimp_analysis",
-        "gimp_batch",
-        "gimp_system",
+        "gimp_file_tool",
+        "gimp_transform_tool",
+        "gimp_color_tool",
+        "gimp_filter_tool",
+        "gimp_layer_tool",
+        "gimp_analysis_tool",
+        "gimp_batch_tool",
+        "gimp_system_tool",
+        "gimp_bridge_tool",
+        "gimp_render_tool",
         "gimp_live_status",
     ]
 
@@ -44,7 +46,7 @@ async def test_gimp_live_status_tool(mock_bridge, mcp_server):
     result = await tool_obj.fn()
 
     assert result["success"] is True
-    assert result["mode"] == "live"
+    assert result["mode"] in ("live", "hands_in")
 
 
 @pytest.mark.asyncio
@@ -65,7 +67,7 @@ async def test_tool_execution_live_fallback(mock_bridge, mcp_server):
         ):
             # Find a tool that uses interaction_manager, e.g. gimp_system
             tools_list = await mcp_server.mcp.list_tools()
-            tool_obj = next(t for t in tools_list if t.name == "gimp_system")
+            tool_obj = next(t for t in tools_list if t.name == "gimp_system_tool")
             result = await tool_obj.fn(operation="status")
 
             assert result["success"] is True
