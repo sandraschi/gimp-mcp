@@ -32,7 +32,7 @@ If you don't have `just` installed:
 
 | Document | What's inside |
 |----------|---------------|
-| [📦 Installation](docs/readme/INSTALL.md) | Prerequisites, GIMP 3 install, uv sync, start methods, bridge install, verifications |
+| [📦 Installation](docs/readme/INSTALL.md) | Prerequisites, MCPB install, GIMP 3, uv sync, Agent Lab pipelines |
 | [Competitive Analysis](docs/COMPETITIVE_ANALYSIS.md) | GIMP MCP landscape and fleet differentiation |
 | [Roadmap](docs/ROADMAP.md) | Agent Lab phases (bridge, vision, fleet handoff) |
 | [Fleet Pipeline](docs/FLEET_PIPELINE.md) | blender -> gimp -> unity texture handoff |

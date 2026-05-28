@@ -12,6 +12,11 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field
 
 from ..utils.fleet_http import DEFAULT_AVATAR_URL, DEFAULT_ROBOTICS_URL, check_http_health
+from ..utils.fleet_sim_handoff import (
+    batch_import_gazebo_icons,
+    import_icon_to_avatar_model,
+    import_icon_to_gazebo_model,
+)
 from ..utils.sim_art_templates import (
     ATLAS_LAYOUTS,
     DEFAULT_SIM_STAGING,
@@ -30,6 +35,9 @@ SimArtOperation = Literal[
     "vrchat_icon_batch",
     "stage_for_robotics",
     "push_avatar_handoff",
+    "import_gazebo_model",
+    "import_avatar_model",
+    "batch_import_gazebo",
 ]
 
 
@@ -233,6 +241,7 @@ async def gimp_sim_art(
     input_dir: str | None = None,
     output_dir: str | None = None,
     output_path: str | None = None,
+    icon_path: str | None = None,
     template_id: str = "gazebo_icon_256",
     layout: str = "4x4",
     cell_size: int = 256,
@@ -241,6 +250,12 @@ async def gimp_sim_art(
     staging_dir: str | None = None,
     robotics_url: str | None = None,
     avatar_url: str | None = None,
+    model_dir: str | None = None,
+    models_root: str | None = None,
+    model_id: str | None = None,
+    vrm_path: str | None = None,
+    avatar_models_dir: str | None = None,
+    auto_import: bool = False,
     recursive: bool = False,
 ) -> dict[str, Any]:
     """Robotics and sim-art batch portmanteau for Gazebo, VRChat, and fleet atlases."""
@@ -344,6 +359,78 @@ async def gimp_sim_art(
                 error=atlas.get("error"),
             ).model_dump()
 
+        if operation == "import_gazebo_model":
+            if not icon_path or not model_dir:
+                return SimArtResult(
+                    success=False,
+                    operation=operation,
+                    message="icon_path and model_dir required",
+                    error="icon_path and model_dir required",
+                ).model_dump()
+            imported = await import_icon_to_gazebo_model(icon_path=icon_path, model_dir=model_dir)
+            elapsed = (time.time() - start) * 1000
+            return SimArtResult(
+                success=bool(imported.get("success")),
+                operation=operation,
+                message="Gazebo model thumbnail imported",
+                data=imported,
+                files=list(imported.get("import_paths") or []),
+                execution_time_ms=round(elapsed, 2),
+                error=imported.get("error"),
+            ).model_dump()
+
+        if operation == "import_avatar_model":
+            if not icon_path:
+                return SimArtResult(
+                    success=False,
+                    operation=operation,
+                    message="icon_path required",
+                    error="icon_path required",
+                ).model_dump()
+            imported = await import_icon_to_avatar_model(
+                icon_path=icon_path,
+                model_id=model_id,
+                vrm_path=vrm_path,
+                models_dir=avatar_models_dir,
+                avatar_url=avatar_url or DEFAULT_AVATAR_URL,
+            )
+            elapsed = (time.time() - start) * 1000
+            files = [str(imported["thumbnail_path"])] if imported.get("thumbnail_path") else []
+            return SimArtResult(
+                success=bool(imported.get("success")),
+                operation=operation,
+                message="Avatar thumbnail imported",
+                data=imported,
+                files=files,
+                execution_time_ms=round(elapsed, 2),
+                error=imported.get("error"),
+            ).model_dump()
+
+        if operation == "batch_import_gazebo":
+            icons = input_dir or str(stage_root / "gazebo_icons")
+            root = models_root
+            if not root:
+                return SimArtResult(
+                    success=False,
+                    operation=operation,
+                    message="models_root required",
+                    error="models_root required",
+                ).model_dump()
+            imported = await batch_import_gazebo_icons(
+                icons_dir=icons,
+                models_root=root,
+                robotics_url=robotics_url or DEFAULT_ROBOTICS_URL,
+            )
+            elapsed = (time.time() - start) * 1000
+            return SimArtResult(
+                success=bool(imported.get("success")),
+                operation=operation,
+                message=f"Imported {imported.get('imported', 0)}/{imported.get('total', 0)} Gazebo thumbnails",
+                data=imported,
+                execution_time_ms=round(elapsed, 2),
+                error=None if imported.get("success") else "Some imports failed",
+            ).model_dump()
+
         if operation == "stage_for_robotics":
             src = Path(input_dir) if input_dir else stage_root / "gazebo_icons"
             staged = await _stage_files(
@@ -352,19 +439,33 @@ async def gimp_sim_art(
                 staging_root=stage_root,
             )
             r_url = robotics_url or DEFAULT_ROBOTICS_URL
-            robotics_online = await check_http_health(r_url, health_path="/api/health")
+            robotics_online = await check_http_health(r_url, health_path="/api/v1/health")
             if not robotics_online:
                 robotics_online = await check_http_health(r_url, health_path="/health")
             staged["robotics_url"] = r_url
             staged["robotics_reachable"] = robotics_online
-            staged["hint"] = (
-                "Copy robotics_staging into Gazebo model resource folders or invoke robotics-mcp when enabled."
-            )
+            import_result: dict[str, Any] | None = None
+            if auto_import and models_root:
+                import_result = await batch_import_gazebo_icons(
+                    icons_dir=str(src),
+                    models_root=models_root,
+                    robotics_url=r_url,
+                    notify_robotics=robotics_online,
+                )
+                staged["auto_import"] = import_result
+            elif auto_import and model_dir and icon_path:
+                import_result = await import_icon_to_gazebo_model(icon_path=icon_path, model_dir=model_dir)
+                staged["auto_import"] = import_result
+            else:
+                staged["hint"] = "Set auto_import=true with models_root for automated Gazebo model thumbnail import."
             elapsed = (time.time() - start) * 1000
+            success = bool(staged.get("success"))
+            if import_result is not None:
+                success = success and bool(import_result.get("success", True))
             return SimArtResult(
-                success=bool(staged.get("success")),
+                success=success,
                 operation=operation,
-                message="Staged icons for robotics-mcp composition",
+                message="Staged icons for robotics-mcp" + (" with auto-import" if import_result else ""),
                 data=staged,
                 files=list(staged.get("files") or []),
                 execution_time_ms=round(elapsed, 2),
@@ -378,17 +479,38 @@ async def gimp_sim_art(
                 staging_root=stage_root,
             )
             a_url = avatar_url or DEFAULT_AVATAR_URL
-            avatar_online = await check_http_health(a_url, health_path="/api/health")
+            avatar_online = await check_http_health(a_url, health_path="/api/v1/health")
             if not avatar_online:
                 avatar_online = await check_http_health(a_url, health_path="/health")
             staged["avatar_url"] = a_url
             staged["avatar_reachable"] = avatar_online
-            staged["handoff"] = "Manual import into VRChat SDK / avatar-mcp asset folder until texture push lands."
+            import_result = None
+            if auto_import:
+                chosen_icon = icon_path
+                if not chosen_icon:
+                    icons = _iter_images(src)
+                    chosen_icon = str(icons[0]) if icons else None
+                if chosen_icon and (model_id or vrm_path):
+                    import_result = await import_icon_to_avatar_model(
+                        icon_path=chosen_icon,
+                        model_id=model_id,
+                        vrm_path=vrm_path,
+                        models_dir=avatar_models_dir,
+                        avatar_url=a_url,
+                    )
+                    staged["auto_import"] = import_result
+                else:
+                    staged["hint"] = "auto_import requires model_id or vrm_path plus icons in input_dir."
+            else:
+                staged["hint"] = "Set auto_import=true with model_id for automated avatar thumbnail import."
             elapsed = (time.time() - start) * 1000
+            success = bool(staged.get("success"))
+            if import_result is not None:
+                success = success and bool(import_result.get("success"))
             return SimArtResult(
-                success=bool(staged.get("success")),
+                success=success,
                 operation=operation,
-                message="Staged VRChat icons for avatar-mcp handoff",
+                message="Avatar handoff" + (" with auto-import" if import_result else ""),
                 data=staged,
                 files=list(staged.get("files") or []),
                 execution_time_ms=round(elapsed, 2),

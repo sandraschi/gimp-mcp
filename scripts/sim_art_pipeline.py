@@ -30,6 +30,10 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--no-validate", action="store_true")
     parser.add_argument("--robotics-url", default=DEFAULT_ROBOTICS_URL)
     parser.add_argument("--avatar-url", default=DEFAULT_AVATAR_URL)
+    parser.add_argument("--models-root", default="", help="Gazebo models root for auto-import")
+    parser.add_argument("--model-id", default="", help="Avatar model id for auto-import")
+    parser.add_argument("--vrm-path", default="", help="Avatar VRM path for auto-import")
+    parser.add_argument("--auto-import", action="store_true")
     parser.add_argument("--json", action="store_true", help="Print JSON report only")
     return parser
 
@@ -48,6 +52,10 @@ async def _main_async(args: argparse.Namespace) -> int:
         validate=not args.no_validate,
         robotics_url=args.robotics_url,
         avatar_url=args.avatar_url,
+        models_root=args.models_root or None,
+        model_id=args.model_id or None,
+        vrm_path=args.vrm_path or None,
+        auto_import=args.auto_import,
     )
     payload = report.to_dict()
     print(json.dumps(payload, indent=2))
