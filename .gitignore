@@ -44,6 +44,11 @@ htmlcov/
 .env
 .env.local
 
+# Accidental / local-only artifacts
+*.bak
+start.bat
+AGENTS.md
+
 # GIMP specific
 *.xcf
 *.xcf.bak
