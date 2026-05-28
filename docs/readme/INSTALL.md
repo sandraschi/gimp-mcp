@@ -100,12 +100,12 @@ Add to your `claude_desktop_config.json`:
 |------|---------|---------|
 | 10772 | Frontend | Vite React webapp (Dashboard, Chat, Tools) |
 | 10773 | Backend | uvicorn FastAPI + FastMCP ASGI |
-| 10775 | Bridge | GIMP Live Bridge TCP (inside GIMP plugin) |
+| 10824 | Bridge | GIMP Live Bridge TCP (inside GIMP plugin) |
 
 ## Troubleshooting
 
 **"Bridge inactive"**: GIMP must be running and the bridge plugin must be started once. Use `just start-gimp` to auto-launch.
 
-**"Port occupied"**: Something else is on 10772/10773/10775. Run `just kill` to force-close, or check with `netstat -ano | findstr ":10772"`.
+**"Port occupied"**: Something else is on 10772/10773/10824. Run `just kill` to force-close, or check with `netstat -ano | findstr ":10772"`.
 
 **"GIMP executable not found"**: Install standalone GIMP 3.2+ or set the path manually in `config.yaml`.

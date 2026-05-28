@@ -34,7 +34,7 @@ from typing import Annotated, Any
 from fastmcp import FastMCP
 from fastmcp.server import create_proxy
 from starlette.requests import Request
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, Response
 
 # Import agentic workflow tools
 from .agentic import register_agentic_tools
@@ -66,6 +66,7 @@ from .tools import (
     gimp_transform,
     gimp_workspace,
 )
+from .tools.bridge_tools import gimp_bridge, gimp_render
 from pydantic import Field
 
 from .sota_registration import get_sota_feature_manifest, register_fastmcp_32_surface
@@ -103,7 +104,7 @@ class GimpMCPServer:
         # Initialize FastMCP 3.2 SOTA instance
         self.mcp = FastMCP(
             name="gimp-mcp",
-            version="4.0.0",
+            version="4.1.1",
             lifespan=_gimp_mcp_lifespan,
             instructions="""You are GIMP MCP Server — FastMCP 3.2 SOTA for professional image editing with GIMP.
 
@@ -915,30 +916,85 @@ Each portmanteau tool handles multiple related operations through an 'operation'
                 "gimp_color_management": gimp_color_management_tool,
             }
 
-            # Add GIMP Live Status tool
-            @self.mcp.tool(annotations={"readOnlyHint": True}, version="4.1.0")
-            async def gimp_live_status() -> dict[str, Any]:
-                """Check the status of the GIMP Live session bridge.
+            @self.mcp.tool(annotations={"readOnlyHint": True}, version="4.1.1")
+            async def gimp_bridge_tool(
+                operation: Annotated[
+                    str,
+                    Field(
+                        description="Operation: status, execution_mode, ping, list_open_images.",
+                    ),
+                ],
+            ) -> dict[str, Any]:
+                """Live GIMP bridge portmanteau (TCP plugin on :10824).
 
                 ## Return Format
                 {"success": bool, "mode": str, "message": str, "data": {...}}
 
                 ## Examples
+                gimp_bridge_tool(operation="status")
+                gimp_bridge_tool(operation="execution_mode")
+                gimp_bridge_tool(operation="list_open_images")
+                """
+                return await gimp_bridge(
+                    operation=operation,  # type: ignore[arg-type]
+                    interaction_manager=self.interaction_manager,
+                    config=self.config,
+                )
+
+            @self.mcp.tool(annotations={"readOnlyHint": True}, version="4.1.1")
+            async def gimp_render_tool(
+                operation: Annotated[
+                    str,
+                    Field(
+                        description="Operation: bridge_status, capture_active, get_image_summary.",
+                    ),
+                ],
+                output_path: Annotated[
+                    str | None,
+                    Field(description="PNG output path for capture_active."),
+                ] = None,
+                include_base64: Annotated[
+                    bool,
+                    Field(description="Include base64 PNG in response for LLM vision."),
+                ] = False,
+            ) -> dict[str, Any]:
+                """Agent vision capture from the open GIMP canvas (live bridge).
+
+                ## Examples
+                gimp_render_tool(operation="bridge_status")
+                gimp_render_tool(operation="capture_active", output_path="D:/Temp/gimp_review.png")
+                """
+                return await gimp_render(
+                    operation=operation,  # type: ignore[arg-type]
+                    output_path=output_path,
+                    include_base64=include_base64,
+                    interaction_manager=self.interaction_manager,
+                    config=self.config,
+                )
+
+            @self.mcp.tool(annotations={"readOnlyHint": True}, version="4.1.0")
+            async def gimp_live_status() -> dict[str, Any]:
+                """Legacy bridge status (prefer gimp_bridge_tool operation=status).
+
+                ## Examples
                 gimp_live_status()
                 """
-                if not self.interaction_manager:
-                    return {
-                        "success": False,
-                        "mode": "offline",
-                        "message": "GIMP MCP interaction layer not initialized",
-                    }
-
-                status = await self.interaction_manager.get_status()
+                result = await gimp_bridge(
+                    operation="status",
+                    interaction_manager=self.interaction_manager,
+                    config=self.config,
+                )
+                if not result.get("success"):
+                    return result
                 return {
                     "success": True,
-                    "mode": status["mode"],
-                    "message": f"GIMP is currently running in {status['mode']} mode",
-                    "data": status,
+                    "mode": result.get("mode", "headless"),
+                    "message": result.get("message", "GIMP bridge status"),
+                    "data": {
+                        "status": result.get("status"),
+                        "bridge_port": result.get("bridge_port"),
+                        "bridge_host": result.get("bridge_host"),
+                    },
                 }
 
             # Register agentic workflow tools

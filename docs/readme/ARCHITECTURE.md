@@ -35,7 +35,7 @@
 ┌──────────────────────▼───────────────────────────┐
 │           4. GIMP Bridge (TCP Plugin)             │
 │        gimp_mcp/plugins/gimp_mcp_bridge.py        │
-│  JSON over TCP :10775  →  GIMP PDB execution      │
+│  JSON over TCP :10824  →  GIMP PDB execution      │
 └──────────────────────────────────────────────────┘
 ```
 
@@ -66,7 +66,7 @@ A Vite + React SPA with 12 pages:
 
 ### Layer 4: GIMP Bridge (`gimp_mcp/plugins/gimp_mcp_bridge/`)
 
-A GIMP 3 plug-in (Gimp.PlugIn subclass) that opens a TCP server on port **10775** inside GIMP's main process. Accepts JSON payloads with a `"code"` field and executes them as Python inside GIMP.
+A GIMP 3 plug-in (Gimp.PlugIn subclass) that opens a TCP server on port **10824** inside GIMP's main process. Accepts JSON payloads with a `"code"` field and executes them as Python inside GIMP.
 
 ## Portmanteau Design Pattern
 
@@ -109,7 +109,7 @@ The `GimpInteractionManager` (`interaction_manager.py:15`) handles mode selectio
 
 ```
 execute_python_fu(code)
-  ├─ enable_live_mode AND bridge.is_alive()? → Live Bridge (TCP :10775)
+  ├─ enable_live_mode AND bridge.is_alive()? → Live Bridge (TCP :10824)
   │     Returns immediately, GIMP stays open
   └─ otherwise? → Headless CLI (gimp-console-3.exe)
         Spawns new process, runs script, returns output
@@ -124,6 +124,6 @@ execute_python_fu(code)
 |------|-------|---------|
 | 10772 | Frontend | Vite React webapp |
 | 10773 | Backend | uvicorn + FastAPI + FastMCP ASGI |
-| 10775 | Bridge | GIMP plugin TCP socket |
+| 10824 | Bridge | GIMP plugin TCP socket |
 
 All ports are in the fleet-reserved range (10700-11000) per fleet standards.

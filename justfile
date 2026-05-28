@@ -35,10 +35,10 @@ build:
 
 # ── Bridge ────────────────────────────────────────────────────────────────────
 
-# Check if GIMP bridge is active on port 10775
+# Check if GIMP bridge is active on port 10824
 bridge-status:
-    $p = Get-NetTCPConnection -LocalPort 10775 -ErrorAction SilentlyContinue | Where-Object { $_.State -eq 'Listen' }; \
-    if ($p) { Write-Host "Bridge active on port 10775 (PID $($p.OwningProcess))" -ForegroundColor Green } \
+    $p = Get-NetTCPConnection -LocalPort 10824 -ErrorAction SilentlyContinue | Where-Object { $_.State -eq 'Listen' }; \
+    if ($p) { Write-Host "Bridge active on port 10824 (PID $($p.OwningProcess))" -ForegroundColor Green } \
     else { Write-Host "Bridge inactive" -ForegroundColor Red }
 
 # Install bridge plugin to GIMP plug-ins directory
@@ -69,6 +69,9 @@ tools:
 test:
     Set-Location '{{justfile_directory()}}'
     uv run pytest tests/ -v --tb=short
+
+e2e:
+    pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File "D:\Dev\repos\mcp-central-docs\scripts\playwright-audit.ps1" -RepoPath "{{justfile_directory()}}"
 
 # Run tests with coverage
 test-cov:
@@ -120,13 +123,13 @@ audit-deps:
 
 # Kill all gimp-mcp processes (frontend, backend, bridge)
 kill:
-    foreach ($p in @(10772, 10773, 10775)) { \
+    foreach ($p in @(10772, 10773, 10824)) { \
         $conns = Get-NetTCPConnection -LocalPort $p -ErrorAction SilentlyContinue; \
         foreach ($c in $conns) { \
             try { Stop-Process -Id $c.OwningProcess -Force } catch { taskkill /F /PID $c.OwningProcess 2>$null } \
         } \
     }; \
-    Write-Host "Killed processes on ports 10772, 10773, 10775" -ForegroundColor Yellow
+    Write-Host "Killed processes on ports 10772, 10773, 10824" -ForegroundColor Yellow
 
 # Clean temp files, node_modules, caches
 clean:

@@ -12,7 +12,7 @@
 The Live Bridge is a TCP server that runs **inside** GIMP's process:
 
 1. GIMP starts and loads the bridge plugin (`gimp_mcp_bridge.py`)
-2. The plugin creates a `GimpMcpBridge` (subclass of `Gimp.PlugIn`) which opens a TCP socket on `127.0.0.1:10775`
+2. The plugin creates a `GimpMcpBridge` (subclass of `Gimp.PlugIn`) which opens a TCP socket on `127.0.0.1:10824`
 3. The MCP server's `GimpBridgeWrapper` (`bridge_wrapper.py:20`) connects to this socket
 4. Python code snippets are sent as JSON `{"code": "..."}` over TCP
 5. The bridge executes them on GIMP's main thread via `GLib.idle_add` and returns the result
@@ -80,7 +80,7 @@ The GIMP MCP bridge handles both APIs transparently via the PDB proxy. You don't
 
 - **Windows Store GIMP** — CLI batch mode is unavailable. Only Live Bridge works.
 - **Bridge requires manual first-start** — The bridge plugin only activates after being run once via `Filters > Development > MCP > Start MCP Bridge`. `start.ps1 -RestartGimp` handles this automatically.
-- **Single GIMP instance** — The bridge binds to a single TCP port (10775). Only one GIMP instance with bridge can run at a time.
+- **Single GIMP instance** — The bridge binds to a single TCP port (10824). Only one GIMP instance with bridge can run at a time.
 - **Headless mode** — CLI batch (`gimp-console-3.exe`) spawns a new process for each operation. It's slower than Live Bridge but more reliable for automated pipelines.
 
 ## Troubleshooting Bridge Connection
@@ -89,7 +89,7 @@ The GIMP MCP bridge handles both APIs transparently via the PDB proxy. You don't
 |---------|-------|-----|
 | `Bridge inactive` | GIMP not running or bridge not started | `just start-gimp` to auto-launch |
 | `Connection refused` | Bridge plugin not installed | `just bridge-install` |
-| `Bridge inactive on port 10775` | Bridge never started in this GIMP session | Run `Filters > Development > MCP > Start MCP Bridge` once |
+| `Bridge inactive on port 10824` | Bridge never started in this GIMP session | Run `Filters > Development > MCP > Start MCP Bridge` once |
 | `PDB_RESULT error` | Invalid PDB procedure or args | Check procedure name (hyphen vs underscore) and argument types |
 | `No GIMP execution method available` | GIMP not detected | Install standalone GIMP 3.2+ from gimp.org |
 | Port still occupied | Previous GIMP instance not fully killed | `just kill` or Task Manager |
