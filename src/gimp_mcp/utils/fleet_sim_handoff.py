@@ -9,7 +9,13 @@ from typing import Any
 
 import httpx
 
-from .fleet_http import DEFAULT_AVATAR_URL, DEFAULT_ROBOTICS_URL, check_http_health
+from .fleet_http import (
+    DEFAULT_AVATAR_URL,
+    DEFAULT_ROBOTICS_URL,
+    call_avatar_execute,
+    check_http_health,
+    set_avatar_thumbnail_http,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -144,11 +150,44 @@ async def import_icon_to_avatar_model(
     if not src.is_file():
         return {"success": False, "error": f"Icon not found: {icon_path}"}
 
+    a_url = avatar_url or DEFAULT_AVATAR_URL
+    avatar_online = await check_http_health(a_url, health_path="/api/v1/health")
+
+    if model_id and avatar_online:
+        api_result = await set_avatar_thumbnail_http(a_url, model_id, icon_path)
+        if api_result.get("success"):
+            return {
+                "success": True,
+                "model_id": model_id,
+                "thumbnail_path": api_result.get("thumbnail_path"),
+                "source_icon": str(src),
+                "avatar_url": a_url,
+                "import_method": "avatar_http_api",
+            }
+        api_execute = await call_avatar_execute(
+            a_url,
+            "avatar_manager",
+            {
+                "operation": "set_thumbnail",
+                "avatar_id": model_id,
+                "icon_path": icon_path,
+            },
+        )
+        if api_execute.get("success"):
+            return {
+                "success": True,
+                "model_id": model_id,
+                "thumbnail_path": api_execute.get("thumbnail_path"),
+                "source_icon": str(src),
+                "avatar_url": a_url,
+                "import_method": "avatar_tool_execute",
+            }
+
     resolved: tuple[Path, str] | None = None
     avatar_models: list[dict[str, Any]] = []
 
-    if await check_http_health(avatar_url, health_path="/api/v1/health"):
-        avatar_models = await fetch_avatar_models(avatar_url)
+    if avatar_online:
+        avatar_models = await fetch_avatar_models(a_url)
         if model_id:
             for entry in avatar_models:
                 if str(entry.get("id")) == model_id:

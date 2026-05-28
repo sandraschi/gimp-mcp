@@ -48,6 +48,11 @@ export default function AgentToolsPage() {
   const [simPipeline, setSimPipeline] = useState("gazebo");
   const [simTemplate, setSimTemplate] = useState("gazebo_icon_256");
   const [simLayout, setSimLayout] = useState("4x4");
+  const [simModelsRoot, setSimModelsRoot] = useState(
+    "C:/Users/Public/.gz/fuel/fuel.gazebosim.org/OpenRobotics/models",
+  );
+  const [simModelId, setSimModelId] = useState("MyAvatar");
+  const [simAutoImport, setSimAutoImport] = useState(true);
 
   const tabs: { id: TabId; label: string; icon: typeof Bot }[] = [
     { id: "bridge", label: "Bridge", icon: Bot },
@@ -504,6 +509,30 @@ export default function AgentToolsPage() {
                 />
               </label>
             </div>
+            <label className="block text-sm">
+              Gazebo models root (auto-import)
+              <input
+                className="mt-1 w-full px-3 py-2 bg-background border border-border rounded-md text-sm"
+                value={simModelsRoot}
+                onChange={(e) => setSimModelsRoot(e.target.value)}
+              />
+            </label>
+            <label className="block text-sm">
+              Avatar model id (auto-import)
+              <input
+                className="mt-1 w-full px-3 py-2 bg-background border border-border rounded-md text-sm"
+                value={simModelId}
+                onChange={(e) => setSimModelId(e.target.value)}
+              />
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={simAutoImport}
+                onChange={(e) => setSimAutoImport(e.target.checked)}
+              />
+              Auto-import to Gazebo models / avatar thumbnail
+            </label>
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
@@ -535,6 +564,38 @@ export default function AgentToolsPage() {
                 }
               >
                 Build atlas
+              </button>
+              <button
+                type="button"
+                disabled={loading}
+                className="px-4 py-2 bg-secondary rounded-md text-sm"
+                onClick={() =>
+                  run("gimp_sim_art_tool", {
+                    operation: "stage_for_robotics",
+                    input_dir: `${simStagingDir}/gazebo_icons`,
+                    staging_dir: simStagingDir,
+                    models_root: simModelsRoot,
+                    auto_import: simAutoImport,
+                  })
+                }
+              >
+                Stage / auto-import Gazebo
+              </button>
+              <button
+                type="button"
+                disabled={loading}
+                className="px-4 py-2 bg-secondary rounded-md text-sm"
+                onClick={() =>
+                  run("gimp_sim_art_tool", {
+                    operation: "push_avatar_handoff",
+                    input_dir: `${simStagingDir}/vrchat_icons`,
+                    staging_dir: simStagingDir,
+                    model_id: simModelId,
+                    auto_import: simAutoImport,
+                  })
+                }
+              >
+                Avatar handoff
               </button>
               <button
                 type="button"

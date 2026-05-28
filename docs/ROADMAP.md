@@ -74,3 +74,14 @@ cd D:\Dev\repos\gimp-mcp\webapp
 | Sim texture atlases | `gimp_sim_art` → `build_atlas` + manifest JSON |
 | VRChat / social icon pipelines | `gimp_sim_art` → `vrchat_icon_batch`, `push_avatar_handoff` |
 | Robotics staging | `stage_for_robotics` + `scripts/sim_art_pipeline.py` |
+
+## Phase 6 — PBR maps and decal sheets (planned)
+
+**Status: planned (v4.6.0)**
+
+| Item | Tool / module |
+|------|----------------|
+| PBR map batch (albedo/normal/roughness) | `gimp_batch` + validation presets |
+| Decal UV sheet layout | extend `build_atlas` with margin/bleed |
+| AI texture refine loop | `gimp_vision_refine` + Tripo/Rodin handoff |
+| Fleet E2E smoke in CI | `scripts/fleet_e2e_smoke.py --strict` |

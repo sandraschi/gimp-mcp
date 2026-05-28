@@ -104,7 +104,7 @@ class GimpMCPServer:
         # Initialize FastMCP 3.2 SOTA instance
         self.mcp = FastMCP(
             name="gimp-mcp",
-            version="4.5.1",
+            version="4.5.2",
             lifespan=_gimp_mcp_lifespan,
             instructions="""You are GIMP MCP Server — FastMCP 3.2 SOTA for professional image editing with GIMP.
 
