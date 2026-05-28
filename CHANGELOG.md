@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.4.0] - 2026-05-28
+
+### Added
+- **Agent Lab Phase 4**: Prometheus metrics (`utils/telemetry.py`), JSON logging (`utils/structured_logging.py`)
+- `/api/metrics` and sidecar `:9073` scrape endpoint
+- `Dockerfile`, `docker-compose.yml` with `--profile monitoring`
+- `scripts/smoke_test.py`, GHCR `docker-publish` workflow
+- `docs/MONITORING.md`, `docs/DOCKER.md`
+
+### Changed
+- Optional `monitoring` extra: `prometheus-client`
+- Bridge status updates Prometheus gauges
+
 ## [4.3.0] - 2026-05-28
 
 ### Added

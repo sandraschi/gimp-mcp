@@ -55,7 +55,7 @@ cd D:\Dev\repos\gimp-mcp\webapp
 
 ## Phase 4 — Telemetry, Docker, monitoring (4.4.0)
 
-**Status: planned**
+**Status: complete (v4.4.0)**
 
 | Item | Tool / module |
 |------|----------------|
