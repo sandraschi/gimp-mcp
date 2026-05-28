@@ -1,6 +1,6 @@
 # Competitive Analysis — GIMP MCP Ecosystem
 
-Last updated: 2026-05-28 (Phase 3 complete)
+Last updated: 2026-05-28 (Phase 4 complete)
 
 Compares **sandraschi/gimp-mcp** (this repo) with other GIMP automation and MCP projects.
 
@@ -34,7 +34,7 @@ See [ROADMAP.md](ROADMAP.md).
 | Stale port docs (10775 vs 10824) | Reconcile to **10824** fleet standard | 1 (done) |
 | Webapp Agent Lab page | `/agent-tools` tabs (mirror blender/unity) | 2 (done) |
 | Fleet texture pipeline (blender UV → gimp → unity) | `gimp_import_tool` + `scripts/fleet_pipeline.py` | 3 (done) |
-| Prometheus / Docker monitoring | telemetry + GHCR image | 4 |
+| Prometheus / Docker monitoring | telemetry + GHCR image | 4 (done) |
 
 ## What we deliberately skip
 

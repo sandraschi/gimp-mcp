@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 from pathlib import Path
 from typing import Any
 
@@ -19,11 +20,28 @@ from pydantic import BaseModel, Field
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
+from . import __version__
 from .config import GimpConfig
 from .server import GimpMcpServer
 from .sota_registration import get_sota_feature_manifest
+from .utils.telemetry import (
+    init_metrics,
+    install_tool_call_wrapper,
+    metrics_content_type,
+    metrics_enabled,
+    render_metrics,
+    start_metrics_server,
+)
 
 logger = logging.getLogger(__name__)
+
+if os.getenv("GIMP_MCP_LOG_FORMAT", "").strip().lower() == "json":
+    try:
+        from .utils.structured_logging import configure_json_logging
+
+        configure_json_logging()
+    except Exception as exc:
+        logger.warning("JSON logging setup failed: %s", exc)
 
 try:
     from .ai_image import get_available_providers, get_settings_status, update_settings
@@ -40,7 +58,7 @@ except ImportError:
 _config = GimpConfig()
 _mcp = FastMCP(
     name="gimp-mcp",
-    version="4.3.0",
+    version="4.4.0",
     instructions=(
         "GIMP MCP — FastMCP 3.2 SOTA. Portmanteau tools + sampling + prompts + resources + "
         "skill://gimp-expert/SKILL.md. Prefer allowed_directories-safe paths."
@@ -52,6 +70,11 @@ _mcp = FastMCP(
 _gimp_server = GimpMcpServer(_config)
 _gimp_server.register_tools(_mcp)
 
+init_metrics()
+install_tool_call_wrapper(_mcp)
+if metrics_enabled():
+    start_metrics_server()
+
 _SKILLS_DIR = Path(__file__).resolve().parent.parent / "skills"
 
 
@@ -61,7 +84,7 @@ async def _api_health(_request: Request) -> Response:
         {
             "status": "healthy",
             "server_name": "gimp-mcp",
-            "version": "4.3.0",
+            "version": __version__,
             "fastmcp": "3.2",
             "sota": get_sota_feature_manifest(),
             "stack": "GimpMcpServer (plugin tools); use `gimp-mcp` CLI for portmanteau + agentic",
@@ -211,6 +234,16 @@ async def _api_generate(request: Request) -> Response:
         style=body.get("style", "photorealistic"),
     )
     return JSONResponse(result)
+
+
+@_mcp.custom_route("/api/metrics", methods=["GET"])
+async def _api_metrics(_request: Request) -> Response:
+    return Response(content=render_metrics(), media_type=metrics_content_type())
+
+
+@_mcp.custom_route("/metrics", methods=["GET"])
+async def _metrics(_request: Request) -> Response:
+    return Response(content=render_metrics(), media_type=metrics_content_type())
 
 
 class ToolCallReq(BaseModel):

@@ -13,6 +13,7 @@ from ..config import GimpConfig
 from ..interaction_manager import GimpInteractionManager
 from ..utils.execution_mode import describe_execution_mode
 from ..utils.gimp_runtime import bridge_available, execute_bridge_python, get_bridge_wrapper
+from ..utils.telemetry import set_bridge_connected, set_execution_mode
 
 logger = logging.getLogger(__name__)
 
@@ -95,11 +96,17 @@ async def gimp_bridge(
     bridge = get_bridge_wrapper(cfg)
 
     if operation == "execution_mode":
-        return await describe_execution_mode(interaction_manager=interaction_manager, config=cfg)
+        result = await describe_execution_mode(interaction_manager=interaction_manager, config=cfg)
+        if result.get("success"):
+            set_bridge_connected(bool(result.get("bridge_connected")))
+            set_execution_mode(result.get("mode") == "hands_in")
+        return result
 
     if operation == "status":
         alive = await bridge_available(bridge, cfg)
         mode = "hands_in" if alive else "hands_off"
+        set_bridge_connected(alive)
+        set_execution_mode(alive)
         return {
             "success": True,
             "status": "connected" if alive else "disconnected",
