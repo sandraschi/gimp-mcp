@@ -6,6 +6,7 @@ import { defineConfig } from "vite";
 export default defineConfig({
   plugins: [react()],
   server: {
+    allowedHosts: ['goliath'],
     port: 10772,
     strictPort: true,
     proxy: {
