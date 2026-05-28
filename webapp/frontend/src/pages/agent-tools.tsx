@@ -2,6 +2,7 @@ import {
   Activity,
   Bot,
   Camera,
+  GitPullRequest,
   ImageIcon,
   ScanEye,
   ShieldCheck,
@@ -16,7 +17,7 @@ import {
   type CaptureRecord,
 } from "../api/mcp";
 
-type TabId = "bridge" | "vision" | "validation" | "gallery";
+type TabId = "bridge" | "vision" | "validation" | "gallery" | "fleet";
 
 function ResultBox({ text }: { text: string | null }) {
   if (!text) return null;
@@ -37,12 +38,16 @@ export default function AgentToolsPage() {
   const [outputPath, setOutputPath] = useState("D:/Temp/gimp_mcp/review.png");
   const [inputPath, setInputPath] = useState("D:/Temp/gimp_mcp/texture.png");
   const [targetPlatform, setTargetPlatform] = useState("unity");
+  const [projectPath, setProjectPath] = useState("D:/Unity/MyProject");
+  const [stagingDir, setStagingDir] = useState("D:/Temp/fleet_pipeline/gimp_staging");
+  const [reviewDir, setReviewDir] = useState("D:/Temp/fleet_pipeline/gimp_staging/processed");
 
   const tabs: { id: TabId; label: string; icon: typeof Bot }[] = [
     { id: "bridge", label: "Bridge", icon: Bot },
     { id: "vision", label: "Vision", icon: ScanEye },
     { id: "validation", label: "Validation", icon: ShieldCheck },
     { id: "gallery", label: "Gallery", icon: ImageIcon },
+    { id: "fleet", label: "Fleet", icon: GitPullRequest },
   ];
 
   useEffect(() => {
@@ -92,7 +97,7 @@ export default function AgentToolsPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Agent Tools</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Phase 1–2: live bridge, canvas capture, image QA validation, capture gallery.
+            Phase 1–3: live bridge, canvas capture, validation, gallery, fleet handoff.
           </p>
         </div>
         <button
@@ -346,6 +351,100 @@ export default function AgentToolsPage() {
                 ))}
               </div>
             )}
+          </>
+        )}
+
+        {tab === "fleet" && (
+          <>
+            <h2 className="font-semibold">Fleet handoff (blender → gimp → unity)</h2>
+            <label className="block text-sm">
+              Unity project path
+              <input
+                className="mt-1 w-full px-3 py-2 bg-background border border-border rounded-md text-sm"
+                value={projectPath}
+                onChange={(e) => setProjectPath(e.target.value)}
+              />
+            </label>
+            <label className="block text-sm">
+              Texture path (push_unity / import_file)
+              <input
+                className="mt-1 w-full px-3 py-2 bg-background border border-border rounded-md text-sm"
+                value={inputPath}
+                onChange={(e) => setInputPath(e.target.value)}
+              />
+            </label>
+            <label className="block text-sm">
+              Staging directory
+              <input
+                className="mt-1 w-full px-3 py-2 bg-background border border-border rounded-md text-sm"
+                value={stagingDir}
+                onChange={(e) => setStagingDir(e.target.value)}
+              />
+            </label>
+            <label className="block text-sm">
+              Review folder (review_bundle)
+              <input
+                className="mt-1 w-full px-3 py-2 bg-background border border-border rounded-md text-sm"
+                value={reviewDir}
+                onChange={(e) => setReviewDir(e.target.value)}
+              />
+            </label>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                disabled={loading}
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm"
+                onClick={() =>
+                  run("gimp_import_tool", {
+                    operation: "push_unity",
+                    source_path: inputPath,
+                    project_path: projectPath,
+                    staging_dir: stagingDir,
+                  })
+                }
+              >
+                Push texture to Unity
+              </button>
+              <button
+                type="button"
+                disabled={loading}
+                className="px-4 py-2 bg-secondary rounded-md text-sm"
+                onClick={() =>
+                  run("gimp_import_tool", {
+                    operation: "from_blender_render",
+                    staging_dir: stagingDir,
+                    blender_operation: "screenshot_viewport",
+                    output_path: `${stagingDir}/blender_renders/viewport.png`,
+                  })
+                }
+              >
+                Import from Blender render
+              </button>
+              <button
+                type="button"
+                disabled={loading}
+                className="px-4 py-2 bg-secondary rounded-md text-sm"
+                onClick={() =>
+                  run("gimp_vision_refine_tool", {
+                    operation: "review_bundle",
+                    input_dir: reviewDir,
+                    target_platform: targetPlatform,
+                  })
+                }
+              >
+                Texture review bundle
+              </button>
+              <button
+                type="button"
+                disabled={loading}
+                className="px-4 py-2 bg-secondary rounded-md text-sm"
+                onClick={() =>
+                  run("gimp_import_tool", { operation: "list_staging", staging_dir: stagingDir })
+                }
+              >
+                List staging
+              </button>
+            </div>
           </>
         )}
 

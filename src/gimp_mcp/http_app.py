@@ -40,7 +40,7 @@ except ImportError:
 _config = GimpConfig()
 _mcp = FastMCP(
     name="gimp-mcp",
-    version="4.2.0",
+    version="4.3.0",
     instructions=(
         "GIMP MCP — FastMCP 3.2 SOTA. Portmanteau tools + sampling + prompts + resources + "
         "skill://gimp-expert/SKILL.md. Prefer allowed_directories-safe paths."
@@ -61,7 +61,7 @@ async def _api_health(_request: Request) -> Response:
         {
             "status": "healthy",
             "server_name": "gimp-mcp",
-            "version": "4.2.0",
+            "version": "4.3.0",
             "fastmcp": "3.2",
             "sota": get_sota_feature_manifest(),
             "stack": "GimpMcpServer (plugin tools); use `gimp-mcp` CLI for portmanteau + agentic",

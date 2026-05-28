@@ -44,7 +44,7 @@ cd D:\Dev\repos\gimp-mcp\webapp
 
 ## Phase 3 — Fleet handoff (4.3.0)
 
-**Status: planned**
+**Status: complete (v4.3.0)**
 
 | Item | Tool / module |
 |------|----------------|
