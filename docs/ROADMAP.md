@@ -75,13 +75,22 @@ cd D:\Dev\repos\gimp-mcp\webapp
 | VRChat / social icon pipelines | `gimp_sim_art` → `vrchat_icon_batch`, `push_avatar_handoff` |
 | Robotics staging | `stage_for_robotics` + `scripts/sim_art_pipeline.py` |
 
-## Phase 6 — PBR maps and decal sheets (planned)
+## Phase 6 — PBR maps and decal sheets (4.6.0)
 
-**Status: planned (v4.6.0)**
+**Status: complete (v4.6.0)**
 
 | Item | Tool / module |
 |------|----------------|
-| PBR map batch (albedo/normal/roughness) | `gimp_batch` + validation presets |
-| Decal UV sheet layout | extend `build_atlas` with margin/bleed |
-| AI texture refine loop | `gimp_vision_refine` + Tripo/Rodin handoff |
-| Fleet E2E smoke in CI | `scripts/fleet_e2e_smoke.py --strict` |
+| PBR map batch (albedo/normal/roughness) | `gimp_batch` → `pbr_pack` + `audit_pbr_pack` |
+| Decal UV sheet layout | `gimp_sim_art` → `build_decal_sheet` (margin/bleed on `build_atlas`) |
+| AI texture refine loop | `gimp_vision_refine` → `ai_refine_loop` + Tripo/Rodin handoff manifest |
+| Fleet E2E smoke in CI | `scripts/fleet_e2e_smoke.py --offline --strict` |
+| Phase 6 tests | `tests/test_phase6_tools.py` |
+
+### CI offline smoke
+
+```powershell
+cd D:\Dev\repos\gimp-mcp
+$Env:PYTHONPATH = "src"
+python scripts/fleet_e2e_smoke.py --offline --strict
+```

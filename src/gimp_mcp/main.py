@@ -104,7 +104,7 @@ class GimpMCPServer:
         # Initialize FastMCP 3.2 SOTA instance
         self.mcp = FastMCP(
             name="gimp-mcp",
-            version="4.5.2",
+            version="4.6.0",
             lifespan=_gimp_mcp_lifespan,
             instructions="""You are GIMP MCP Server — FastMCP 3.2 SOTA for professional image editing with GIMP.
 
@@ -548,7 +548,7 @@ Each portmanteau tool handles multiple related operations through an 'operation'
 
             @self.mcp.tool(annotations={"destructiveHint": True}, version="4.1.0")
             async def gimp_batch_tool(
-                operation: Annotated[str, Field(description="Operation to execute: resize, convert, process, watermark, rename, optimize.")],
+                operation: Annotated[str, Field(description="Operation to execute: resize, convert, process, watermark, rename, optimize, pbr_pack.")],
                 input_directory: Annotated[str, Field(description="Directory containing source images.")],
                 output_directory: Annotated[str, Field(description="Directory for processed images.")],
                 width: Annotated[int | None, Field(description="Target width in pixels for resize operations.")] = None,
@@ -556,6 +556,9 @@ Each portmanteau tool handles multiple related operations through an 'operation'
                 output_format: Annotated[str, Field(description="Output format for convert operations.")] = "jpg",
                 quality: Annotated[int, Field(description="Output quality 1-100.")] = 90,
                 file_pattern: Annotated[str, Field(description="Glob pattern for input files.")] = "*.jpg",
+                map_size: Annotated[int, Field(description="Square POT size for pbr_pack.")] = 1024,
+                validate_pbr: Annotated[bool, Field(description="Run audit_pbr_pack after pbr_pack.")] = True,
+                pack_prefix: Annotated[str, Field(description="Output filename prefix for pbr_pack.")] = "material",
                 max_workers: Annotated[int, Field(description="Maximum parallel workers.")] = 4,
             ) -> dict[str, Any]:
                 """Consolidated batch processing operations for GIMP.
@@ -580,6 +583,9 @@ Each portmanteau tool handles multiple related operations through an 'operation'
                     output_format=output_format,
                     quality=quality,
                     file_pattern=file_pattern,
+                    map_size=map_size,
+                    validate_pbr=validate_pbr,
+                    pack_prefix=pack_prefix,
                     max_workers=max_workers,
                     cli_wrapper=self.interaction_manager or self.cli_wrapper,
                     config=self.config,

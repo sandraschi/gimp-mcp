@@ -723,7 +723,7 @@ wheels = [
 
 [[package]]
 name = "gimp-mcp"
-version = "4.5.2"
+version = "4.6.0"
 source = { editable = "." }
 dependencies = [
     { name = "anyio" },

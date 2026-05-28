@@ -33,6 +33,12 @@ jobs:
           --cov-report=term-missing `
           --cov-report=xml `
           tests/
+
+    - name: Fleet E2E offline smoke (Phase 6)
+      shell: pwsh
+      run: |
+        $Env:PYTHONPATH = "src"
+        python scripts/fleet_e2e_smoke.py --offline --strict
           
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4

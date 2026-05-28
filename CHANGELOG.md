@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.6.0] - 2026-05-28
+
+### Added
+- **Agent Lab Phase 6**: PBR texture pack batch (`gimp_batch` → `pbr_pack`)
+- `audit_pbr_pack` validation + `utils/pbr_presets.py`
+- Decal UV sheets: `gimp_sim_art` → `build_decal_sheet` with margin/bleed atlas layout
+- `gimp_vision_refine` → `ai_refine_loop` with Tripo/Rodin handoff manifest (`utils/ai_mesh_handoff.py`)
+- CI fleet smoke: `scripts/fleet_e2e_smoke.py --offline --strict`
+- Phase 6 tests: `tests/test_phase6_tools.py`
+
 ## [4.5.2] - 2026-05-28
 
 ### Added

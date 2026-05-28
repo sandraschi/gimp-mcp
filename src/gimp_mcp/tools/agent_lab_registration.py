@@ -61,7 +61,8 @@ def register_agent_lab_tools(
             str,
             Field(
                 description=(
-                    "Operation: validate_image, check_resolution, check_alpha, check_icc, audit_texture."
+                    "Operation: validate_image, check_resolution, check_alpha, check_icc, "
+                    "audit_texture, audit_pbr_pack."
                 ),
             ),
         ],
@@ -125,7 +126,7 @@ def register_agent_lab_tools(
     async def gimp_vision_refine_tool(
         operation: Annotated[
             str,
-            Field(description="Operation: review_bundle, texture_review, validate_folder."),
+            Field(description="Operation: review_bundle, texture_review, validate_folder, ai_refine_loop."),
         ],
         input_dir: Annotated[str | None, Field(description="Folder of textures to review.")] = None,
         input_path: Annotated[str | None, Field(description="Single texture path.")] = None,
@@ -147,7 +148,7 @@ def register_agent_lab_tools(
             str,
             Field(
                 description=(
-                    "Operation: list_templates, gazebo_model_icons, build_atlas, "
+                    "Operation: list_templates, gazebo_model_icons, build_atlas, build_decal_sheet, "
                     "vrchat_icon_batch, stage_for_robotics, push_avatar_handoff, "
                     "import_gazebo_model, import_avatar_model, batch_import_gazebo."
                 ),
@@ -160,6 +161,8 @@ def register_agent_lab_tools(
         template_id: Annotated[str, Field(description="Sim-art template id.")] = "gazebo_icon_256",
         layout: Annotated[str, Field(description="Atlas layout (2x2, 4x4, etc.).")] = "4x4",
         cell_size: Annotated[int, Field(description="Atlas cell size in pixels.")] = 256,
+        margin_px: Annotated[int, Field(description="Pixel margin between atlas cells.")] = 0,
+        bleed_px: Annotated[int, Field(description="Inner bleed padding per decal cell.")] = 0,
         validate: Annotated[bool, Field(description="Run audit_texture on outputs.")] = True,
         target_platform: Annotated[str, Field(description="Validation target platform.")] = "gazebo",
         staging_dir: Annotated[str | None, Field(description="Sim-art staging root.")] = None,
@@ -182,6 +185,8 @@ def register_agent_lab_tools(
             template_id=template_id,
             layout=layout,
             cell_size=cell_size,
+            margin_px=margin_px,
+            bleed_px=bleed_px,
             validate=validate,
             target_platform=target_platform,
             staging_dir=staging_dir,

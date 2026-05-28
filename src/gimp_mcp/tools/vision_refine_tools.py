@@ -6,11 +6,12 @@ import logging
 from pathlib import Path
 from typing import Any, Literal
 
+from ..utils.ai_mesh_handoff import build_ai_mesh_handoff
 from .validation import gimp_validation
 
 logger = logging.getLogger(__name__)
 
-VisionOperation = Literal["review_bundle", "texture_review", "validate_folder"]
+VisionOperation = Literal["review_bundle", "texture_review", "validate_folder", "ai_refine_loop"]
 
 
 async def build_texture_review_bundle(
@@ -119,8 +120,40 @@ async def gimp_vision_refine(
             "message": "Folder validation passed" if passed else f"{bundle['issue_count']} issue(s) found",
         }
 
+    if operation == "ai_refine_loop":
+        if not input_dir:
+            return {"success": False, "error": "input_dir required for ai_refine_loop"}
+        bundle = await build_texture_review_bundle(
+            input_dir=input_dir,
+            goal=goal,
+            target_platform=target_platform,
+            include_validation=True,
+        )
+        if not bundle.get("success"):
+            return bundle
+        issues: list[str] = []
+        for entry in bundle.get("entries") or []:
+            validation = entry.get("validation") or {}
+            for issue in validation.get("issues") or []:
+                issues.append(f"{entry.get('name')}: {issue}")
+        handoff = build_ai_mesh_handoff(goal=goal, texture_issues=issues)
+        return {
+            "success": True,
+            "operation": operation,
+            "input_dir": input_dir,
+            "issue_count": len(issues),
+            "issues": issues,
+            "review": bundle,
+            "ai_handoff": handoff,
+            "agent_prompt": (
+                f"Texture refine loop for {input_dir}: {len(issues)} issue(s). "
+                f"Backends configured: {handoff['backends_configured']}. "
+                "Follow ai_handoff.refine_loop steps; use gimp_batch pbr_pack then re-validate."
+            ),
+        }
+
     return {
         "success": False,
         "error": f"Unknown operation: {operation}",
-        "available_operations": ["review_bundle", "texture_review", "validate_folder"],
+        "available_operations": ["review_bundle", "texture_review", "validate_folder", "ai_refine_loop"],
     }

@@ -25,7 +25,7 @@ class BatchResult(BaseModel):
 
 
 async def gimp_batch(
-    operation: Literal["resize", "convert", "process", "watermark", "rename", "optimize"],
+    operation: Literal["resize", "convert", "process", "watermark", "rename", "optimize", "pbr_pack"],
     input_directory: str,
     output_directory: str,
     # Resize parameters
@@ -52,6 +52,10 @@ async def gimp_batch(
     recursive: bool = False,
     overwrite: bool = False,
     max_workers: int = 4,
+    # PBR pack parameters
+    map_size: int = 1024,
+    validate_pbr: bool = True,
+    pack_prefix: str = "material",
     # Dependencies
     cli_wrapper: Any = None,
     config: Any = None,
@@ -74,6 +78,7 @@ async def gimp_batch(
     - watermark: Add watermark to multiple images
     - rename: Batch rename with pattern
     - optimize: Optimize images for web (size/quality balance)
+    - pbr_pack: Normalize albedo/normal/roughness (+ optional metallic/ao) to square POT PNG set
 
     Args:
         operation: Batch operation to perform. MUST be one of:
@@ -181,6 +186,16 @@ async def gimp_batch(
 
         # Create output directory
         output_dir.mkdir(parents=True, exist_ok=True)
+
+        if operation == "pbr_pack":
+            return await _batch_pbr_pack(
+                input_dir=input_dir,
+                output_dir=output_dir,
+                map_size=map_size,
+                validate_pbr=validate_pbr,
+                pack_prefix=pack_prefix,
+                start_time=start_time,
+            )
 
         # Find matching files
         if recursive:
@@ -320,6 +335,91 @@ async def gimp_batch(
             error=str(e),
             execution_time_ms=round(execution_time, 2),
         ).model_dump()
+
+
+    return True
+
+
+async def _batch_pbr_pack(
+    *,
+    input_dir: Path,
+    output_dir: Path,
+    map_size: int,
+    validate_pbr: bool,
+    pack_prefix: str,
+    start_time: float,
+) -> dict[str, Any]:
+    """Normalize detected PBR maps to a fleet-ready square PNG pack."""
+    from ..utils.pbr_presets import detect_pbr_maps, list_pbr_presets
+
+    maps = detect_pbr_maps(input_dir)
+    if not maps:
+        return BatchResult(
+            success=False,
+            operation="pbr_pack",
+            message=f"No PBR maps detected in {input_dir}",
+            error="NoPbrMapsError",
+            data={"presets": list_pbr_presets()},
+        ).model_dump()
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    results: list[dict[str, str]] = []
+    failed = 0
+
+    try:
+        from PIL import Image
+    except ImportError as exc:
+        return BatchResult(
+            success=False,
+            operation="pbr_pack",
+            message=f"Pillow required: {exc}",
+            error=str(exc),
+        ).model_dump()
+
+    for slot, src in maps.items():
+        dest = output_dir / f"{pack_prefix}_{slot}.png"
+        try:
+            with Image.open(src) as img:
+                rgba = img.convert("RGBA")
+                fitted = rgba.resize((map_size, map_size), Image.Resampling.LANCZOS)
+                fitted.save(dest, "PNG")
+            results.append({"slot": slot, "source": str(src), "output": str(dest), "status": "success"})
+        except Exception as exc:
+            failed += 1
+            results.append({"slot": slot, "source": str(src), "status": "error", "error": str(exc)})
+
+    validation_issues: list[str] = []
+    if validate_pbr and failed == 0:
+        from .validation import gimp_validation
+
+        audit = await gimp_validation(
+            "audit_pbr_pack",
+            str(output_dir),
+            target_platform="pbr",
+        )
+        validation_issues.extend(audit.get("issues") or [])
+
+    elapsed = (time.time() - start_time) * 1000
+    success = failed == 0 and len(validation_issues) == 0
+    return BatchResult(
+        success=success,
+        operation="pbr_pack",
+        message=(
+            f"PBR pack: {len(results) - failed}/{len(results)} map(s) normalized to {map_size}px"
+            + (f"; {len(validation_issues)} validation issue(s)" if validation_issues else "")
+        ),
+        data={
+            "map_size": map_size,
+            "pack_prefix": pack_prefix,
+            "output_dir": str(output_dir),
+            "maps_detected": {slot: str(path) for slot, path in maps.items()},
+            "results": results,
+            "validation_issues": validation_issues,
+            "presets": list_pbr_presets(),
+        },
+        execution_time_ms=round(elapsed, 2),
+        error=None if success else "PBR pack validation failed",
+    ).model_dump()
 
 
 async def _batch_resize(input_path: Path, output_path: Path, width, height, maintain_aspect) -> bool:

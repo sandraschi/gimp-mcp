@@ -17,6 +17,7 @@ ValidationOperation = Literal[
     "check_alpha",
     "check_icc",
     "audit_texture",
+    "audit_pbr_pack",
 ]
 
 
@@ -72,9 +73,13 @@ async def gimp_validation(
         check_alpha - verify alpha channel presence
         check_icc - verify embedded ICC profile
         audit_texture - platform-oriented texture readiness (Unity default)
+        audit_pbr_pack - validate albedo/normal/roughness pack in a directory (target_platform pbr)
     """
     start = time.time()
     path = Path(input_path)
+
+    if operation == "audit_pbr_pack":
+        return await _audit_pbr_pack(path, target_platform=target_platform, start=start)
 
     if not path.is_file():
         return ValidationResult(
@@ -129,8 +134,12 @@ async def gimp_validation(
         max_dim = max(info["width"], info["height"])
         if target_platform == "unity" and max_dim > 4096:
             issues.append(f"Max dimension {max_dim} exceeds Unity-friendly 4096 limit")
+        if target_platform == "pbr" and max_dim > 4096:
+            issues.append(f"Max dimension {max_dim} exceeds PBR pack limit 4096")
         if info["format"] not in ("PNG", "TGA", "JPEG", "WEBP", None):
             issues.append(f"Format {info['format']} may need conversion for {target_platform}")
+        if target_platform == "pbr" and info["format"] not in ("PNG", None):
+            issues.append(f"PBR maps should be PNG; got {info['format']}")
 
     elapsed = (time.time() - start) * 1000
     passed = len(issues) == 0
@@ -144,6 +153,52 @@ async def gimp_validation(
             "passed": passed,
             "target_platform": target_platform,
             "checks_run": operation,
+        },
+        issues=issues,
+        execution_time_ms=round(elapsed, 2),
+    ).model_dump()
+
+
+async def _audit_pbr_pack(
+    directory: Path,
+    *,
+    target_platform: str,
+    start: float,
+) -> dict[str, Any]:
+    from ..utils.pbr_presets import detect_pbr_maps, list_pbr_presets, validate_pbr_pack_layout
+
+    if not directory.is_dir():
+        return ValidationResult(
+            success=False,
+            operation="audit_pbr_pack",
+            message=f"PBR pack directory not found: {directory}",
+            error="DirectoryNotFoundError",
+        ).model_dump()
+
+    maps = detect_pbr_maps(directory)
+    issues = validate_pbr_pack_layout(maps)
+    for slot, map_path in maps.items():
+        single = await gimp_validation(
+            "audit_texture",
+            str(map_path),
+            target_platform="pbr",
+            require_power_of_two=True,
+        )
+        for issue in single.get("issues") or []:
+            issues.append(f"{slot}: {issue}")
+
+    elapsed = (time.time() - start) * 1000
+    passed = len(issues) == 0
+    return ValidationResult(
+        success=True,
+        operation="audit_pbr_pack",
+        message="PBR pack passed" if passed else f"PBR pack found {len(issues)} issue(s)",
+        data={
+            "passed": passed,
+            "target_platform": target_platform or "pbr",
+            "directory": str(directory),
+            "maps": {slot: str(p) for slot, p in maps.items()},
+            "presets": list_pbr_presets(),
         },
         issues=issues,
         execution_time_ms=round(elapsed, 2),

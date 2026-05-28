@@ -32,6 +32,7 @@ SimArtOperation = Literal[
     "list_templates",
     "gazebo_model_icons",
     "build_atlas",
+    "build_decal_sheet",
     "vrchat_icon_batch",
     "stage_for_robotics",
     "push_avatar_handoff",
@@ -138,6 +139,8 @@ async def _build_texture_atlas(
     output_path: Path,
     layout: str,
     cell_size: int,
+    margin_px: int = 0,
+    bleed_px: int = 0,
 ) -> dict[str, Any]:
     if layout not in ATLAS_LAYOUTS:
         return {"success": False, "error": f"Unknown layout: {layout}. Use list_templates layouts."}
@@ -150,24 +153,39 @@ async def _build_texture_atlas(
     if len(sources) > max_cells:
         sources = sources[:max_cells]
 
+    margin_px = max(0, margin_px)
+    bleed_px = max(0, bleed_px)
+    stride = cell_size + margin_px
+
     try:
         from PIL import Image
     except ImportError as exc:
         return {"success": False, "error": f"Pillow required: {exc}"}
 
-    atlas_w = cols * cell_size
-    atlas_h = rows * cell_size
+    atlas_w = cols * stride - margin_px
+    atlas_h = rows * stride - margin_px
     atlas = Image.new("RGBA", (atlas_w, atlas_h), (0, 0, 0, 0))
     manifest_entries: list[dict[str, Any]] = []
 
     for index, src in enumerate(sources):
         col = index % cols
         row = index // cols
-        x = col * cell_size
-        y = row * cell_size
+        x = col * stride
+        y = row * stride
         with Image.open(src) as img:
-            cell = _resize_cover(img.convert("RGBA"), cell_size, cell_size)
+            inner = max(1, cell_size - bleed_px * 2)
+            cell = _resize_cover(img.convert("RGBA"), inner, inner)
+            if bleed_px > 0:
+                padded = Image.new("RGBA", (cell_size, cell_size), (0, 0, 0, 0))
+                padded.paste(cell, (bleed_px, bleed_px))
+                cell = padded
+            else:
+                cell = cell.resize((cell_size, cell_size), Image.Resampling.LANCZOS)
             atlas.paste(cell, (x, y))
+        content_u0 = (x + bleed_px) / atlas_w if atlas_w else 0.0
+        content_v0 = (y + bleed_px) / atlas_h if atlas_h else 0.0
+        content_u1 = (x + cell_size - bleed_px) / atlas_w if atlas_w else 1.0
+        content_v1 = (y + cell_size - bleed_px) / atlas_h if atlas_h else 1.0
         manifest_entries.append(
             {
                 "source": str(src),
@@ -175,11 +193,21 @@ async def _build_texture_atlas(
                 "cell_index": index,
                 "column": col,
                 "row": row,
+                "margin_px": margin_px,
+                "bleed_px": bleed_px,
+                "cell_size": cell_size,
+                "pixel_rect": {"x": x, "y": y, "w": cell_size, "h": cell_size},
                 "uv": {
                     "u0": round(x / atlas_w, 6),
                     "v0": round(y / atlas_h, 6),
                     "u1": round((x + cell_size) / atlas_w, 6),
                     "v1": round((y + cell_size) / atlas_h, 6),
+                },
+                "uv_content": {
+                    "u0": round(content_u0, 6),
+                    "v0": round(content_v0, 6),
+                    "u1": round(content_u1, 6),
+                    "v1": round(content_v1, 6),
                 },
             }
         )
@@ -192,6 +220,9 @@ async def _build_texture_atlas(
         "columns": cols,
         "rows": rows,
         "cell_size": cell_size,
+        "margin_px": margin_px,
+        "bleed_px": bleed_px,
+        "stride": stride,
         "atlas_path": str(output_path),
         "width": atlas_w,
         "height": atlas_h,
@@ -207,6 +238,8 @@ async def _build_texture_atlas(
         "layout": layout,
         "width": atlas_w,
         "height": atlas_h,
+        "margin_px": margin_px,
+        "bleed_px": bleed_px,
     }
 
 
@@ -245,6 +278,8 @@ async def gimp_sim_art(
     template_id: str = "gazebo_icon_256",
     layout: str = "4x4",
     cell_size: int = 256,
+    margin_px: int = 0,
+    bleed_px: int = 0,
     validate: bool = True,
     target_platform: str = "gazebo",
     staging_dir: str | None = None,
@@ -332,7 +367,7 @@ async def gimp_sim_art(
                 execution_time_ms=round(elapsed, 2),
             ).model_dump()
 
-        if operation == "build_atlas":
+        if operation in ("build_atlas", "build_decal_sheet"):
             if not input_dir:
                 return SimArtResult(
                     success=False,
@@ -340,19 +375,30 @@ async def gimp_sim_art(
                     message="input_dir required",
                     error="input_dir required",
                 ).model_dump()
-            atlas_out = Path(output_path) if output_path else stage_root / "atlases" / f"atlas_{layout}.png"
+            use_margin = margin_px
+            use_bleed = bleed_px
+            if operation == "build_decal_sheet":
+                use_margin = margin_px if margin_px > 0 else 4
+                use_bleed = bleed_px if bleed_px > 0 else 2
+            atlas_out = Path(output_path) if output_path else stage_root / "atlases" / f"decal_{layout}.png"
+            if operation == "build_atlas" and output_path is None and margin_px == 0 and bleed_px == 0:
+                atlas_out = stage_root / "atlases" / f"atlas_{layout}.png"
             atlas = await _build_texture_atlas(
                 input_dir=Path(input_dir),
                 output_path=atlas_out,
                 layout=layout,
                 cell_size=cell_size,
+                margin_px=use_margin,
+                bleed_px=use_bleed,
             )
             elapsed = (time.time() - start) * 1000
             files = [str(atlas["atlas_path"]), str(atlas["manifest_path"])] if atlas.get("success") else []
             return SimArtResult(
                 success=bool(atlas.get("success")),
                 operation=operation,
-                message=f"Atlas {layout} with {atlas.get('cell_count', 0)} cell(s)",
+                message=f"Decal sheet {layout} with {atlas.get('cell_count', 0)} cell(s)"
+                if operation == "build_decal_sheet"
+                else f"Atlas {layout} with {atlas.get('cell_count', 0)} cell(s)",
                 data=atlas,
                 files=files,
                 execution_time_ms=round(elapsed, 2),

@@ -8,13 +8,14 @@ import json
 import sys
 from pathlib import Path
 
+from gimp_mcp.utils.fleet_e2e_offline import run_offline_smoke
 from gimp_mcp.utils.fleet_http import (
     DEFAULT_AVATAR_URL,
     DEFAULT_BLENDER_URL,
     DEFAULT_ROBOTICS_URL,
     DEFAULT_UNITY_URL,
-    check_http_health,
     call_http_tool,
+    check_http_health,
 )
 from gimp_mcp.utils.fleet_sim_handoff import import_icon_to_gazebo_model
 from gimp_mcp.utils.sim_art_templates import DEFAULT_SIM_STAGING
@@ -37,7 +38,13 @@ async def run_e2e_smoke(
     gazebo_model_dir: str | None,
     skip_unity: bool,
     skip_sim: bool,
+    offline: bool = False,
+    offline_work_dir: Path | None = None,
 ) -> dict[str, object]:
+    if offline:
+        work = offline_work_dir or Path("D:/Temp/fleet_pipeline/gimp_e2e_offline")
+        return await run_offline_smoke(work_dir=work)
+
     report: dict[str, object] = {"success": True, "steps": []}
     steps: list[dict[str, object]] = []
 
@@ -58,8 +65,22 @@ async def run_e2e_smoke(
             {"operation": "list_templates"},
         )
         steps.append({"name": "gimp_sim_art_templates", "success": bool(templates.get("success")), "detail": templates})
+
+        pbr_presets = await call_http_tool(
+            "http://127.0.0.1:10773",
+            "gimp_validation_tool",
+            {"operation": "audit_pbr_pack", "input_path": "D:/Temp/missing_pbr_dir", "target_platform": "pbr"},
+        )
+        steps.append(
+            {
+                "name": "gimp_pbr_validation_surface",
+                "success": "operation" in str(pbr_presets) or pbr_presets.get("success") is not None,
+                "detail": pbr_presets,
+            },
+        )
     else:
         steps.append({"name": "gimp_sim_art_templates", "success": False, "detail": {"skipped": "gimp offline"}})
+        steps.append({"name": "gimp_pbr_validation_surface", "success": False, "detail": {"skipped": "gimp offline"}})
 
     if texture_path and Path(texture_path).is_file() and gimp_online:
         audit = await call_http_tool(
@@ -93,6 +114,19 @@ async def run_e2e_smoke(
             },
         )
         steps.append({"name": "sim_art_batch", "success": bool(batch.get("success")), "detail": batch})
+
+        decal = await call_http_tool(
+            "http://127.0.0.1:10773",
+            "gimp_sim_art_tool",
+            {
+                "operation": "build_decal_sheet",
+                "input_dir": sim_input_dir,
+                "output_path": str(Path(DEFAULT_SIM_STAGING) / "atlases" / "decal_ci.png"),
+                "layout": "2x2",
+                "cell_size": 128,
+            },
+        )
+        steps.append({"name": "decal_sheet_batch", "success": bool(decal.get("success")), "detail": decal})
 
         if gazebo_model_dir and batch.get("success"):
             icons = batch.get("files") or batch.get("data", {}).get("files") or []
@@ -139,10 +173,13 @@ def main() -> None:
     parser.add_argument("--gazebo-model-dir", default="")
     parser.add_argument("--skip-unity", action="store_true")
     parser.add_argument("--skip-sim", action="store_true")
+    parser.add_argument("--offline", action="store_true", help="Run in-process Phase 6 smoke (CI)")
+    parser.add_argument("--offline-work-dir", default="")
     parser.add_argument("--json", action="store_true")
     parser.add_argument("--strict", action="store_true", help="Fail if any step fails")
     args = parser.parse_args()
 
+    work_dir = Path(args.offline_work_dir) if args.offline_work_dir else None
     report = asyncio.run(
         run_e2e_smoke(
             texture_path=args.texture_path or None,
@@ -151,11 +188,14 @@ def main() -> None:
             gazebo_model_dir=args.gazebo_model_dir or None,
             skip_unity=args.skip_unity,
             skip_sim=args.skip_sim,
+            offline=args.offline,
+            offline_work_dir=work_dir,
         ),
     )
     print(json.dumps(report, indent=2))
     if not args.json:
-        print(f"\nE2E smoke {'SUCCESS' if report['success'] else 'FAILED (see steps)'}")
+        mode = report.get("mode", "http")
+        print(f"\nE2E smoke ({mode}) {'SUCCESS' if report['success'] else 'FAILED (see steps)'}")
     if args.strict and not report.get("success"):
         sys.exit(1)
     sys.exit(0)

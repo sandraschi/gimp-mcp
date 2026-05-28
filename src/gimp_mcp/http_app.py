@@ -58,7 +58,7 @@ except ImportError:
 _config = GimpConfig()
 _mcp = FastMCP(
     name="gimp-mcp",
-    version="4.5.2",
+    version="4.6.0",
     instructions=(
         "GIMP MCP — FastMCP 3.2 SOTA. Portmanteau tools + sampling + prompts + resources + "
         "skill://gimp-expert/SKILL.md. Prefer allowed_directories-safe paths."
