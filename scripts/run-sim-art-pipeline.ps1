@@ -13,7 +13,11 @@ param(
     [switch]$SkipAvatar,
     [switch]$NoValidate,
     [string]$RoboticsUrl = "http://127.0.0.1:10892",
-    [string]$AvatarUrl = "http://127.0.0.1:10793"
+    [string]$AvatarUrl = "http://127.0.0.1:10793",
+    [string]$ModelsRoot = "",
+    [string]$ModelId = "",
+    [string]$VrmPath = "",
+    [switch]$AutoImport
 )
 
 $ErrorActionPreference = "Stop"
@@ -35,5 +39,9 @@ if ($SkipAtlas) { $argsList += "--skip-atlas" }
 if ($SkipRobotics) { $argsList += "--skip-robotics" }
 if ($SkipAvatar) { $argsList += "--skip-avatar" }
 if ($NoValidate) { $argsList += "--no-validate" }
+if ($ModelsRoot) { $argsList += @("--models-root", $ModelsRoot) }
+if ($ModelId) { $argsList += @("--model-id", $ModelId) }
+if ($VrmPath) { $argsList += @("--vrm-path", $VrmPath) }
+if ($AutoImport) { $argsList += "--auto-import" }
 
 uv @argsList

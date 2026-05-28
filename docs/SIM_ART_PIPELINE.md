@@ -44,7 +44,7 @@ uv run python scripts/sim_art_pipeline.py --input-dir D:\Temp\model_renders --pi
 
 | Tool | Operations |
 |------|------------|
-| `gimp_sim_art_tool` | `list_templates`, `gazebo_model_icons`, `build_atlas`, `vrchat_icon_batch`, `stage_for_robotics`, `push_avatar_handoff` |
+| `gimp_sim_art_tool` | `list_templates`, `gazebo_model_icons`, `build_atlas`, `vrchat_icon_batch`, `stage_for_robotics`, `push_avatar_handoff`, `import_gazebo_model`, `import_avatar_model`, `batch_import_gazebo` |
 
 ## Templates
 
@@ -67,6 +67,24 @@ Default: `D:/Temp/fleet_pipeline/sim_art/`
 - `robotics_staging/` — copy for robotics-mcp / Gazebo models
 - `vrchat_icons/` — social icons
 - `avatar_staging/` — avatar-mcp handoff folder
+
+## Automated import
+
+| Operation | What it does |
+|-----------|----------------|
+| `import_gazebo_model` | Copy `icon_path` into `{model_dir}/thumbnails/1.png` (+ `model_thumb.png`) |
+| `batch_import_gazebo` | Match icon filenames to model folders under `models_root` |
+| `import_avatar_model` | Write `{model_id}.thumb.png` next to the VRM (uses avatar-mcp `/api/v1/avatars` when online) |
+| `stage_for_robotics` + `auto_import=true` | Stage + batch import when `models_root` is set |
+| `push_avatar_handoff` + `auto_import=true` | Stage + import when `model_id` or `vrm_path` is set |
+
+```powershell
+# Full pipeline with Gazebo auto-import
+.\scripts\run-sim-art-pipeline.ps1 `
+  -InputDir "D:\Temp\model_renders" `
+  -ModelsRoot "C:\Users\you\.gz\fuel\fuel.gazebosim.org\OpenRobotics\models" `
+  -AutoImport
+```
 
 ## Related
 

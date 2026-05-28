@@ -1,8 +1,8 @@
 {
   "manifest_version": "0.2",
   "name": "gimp-mcp",
-  "version": "4.0.0",
-  "description": "GIMP MCP — FastMCP 3.2 SOTA: portmanteau tools, sampling, prompts, resources, skills, prefab, MCPB.",
+  "version": "4.5.1",
+  "description": "GIMP MCP — FastMCP 3.2 SOTA: portmanteau tools, Agent Lab, fleet/sim-art pipelines, MCPB.",
   "author": {
     "name": "Sandra Schipal",
     "email": "sandra@sandraschi.dev"

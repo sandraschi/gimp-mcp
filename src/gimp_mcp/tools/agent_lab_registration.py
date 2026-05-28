@@ -148,13 +148,15 @@ def register_agent_lab_tools(
             Field(
                 description=(
                     "Operation: list_templates, gazebo_model_icons, build_atlas, "
-                    "vrchat_icon_batch, stage_for_robotics, push_avatar_handoff."
+                    "vrchat_icon_batch, stage_for_robotics, push_avatar_handoff, "
+                    "import_gazebo_model, import_avatar_model, batch_import_gazebo."
                 ),
             ),
         ],
         input_dir: Annotated[str | None, Field(description="Folder of source images.")] = None,
         output_dir: Annotated[str | None, Field(description="Output folder for batch icons.")] = None,
         output_path: Annotated[str | None, Field(description="Atlas PNG output path.")] = None,
+        icon_path: Annotated[str | None, Field(description="Single icon PNG for import ops.")] = None,
         template_id: Annotated[str, Field(description="Sim-art template id.")] = "gazebo_icon_256",
         layout: Annotated[str, Field(description="Atlas layout (2x2, 4x4, etc.).")] = "4x4",
         cell_size: Annotated[int, Field(description="Atlas cell size in pixels.")] = 256,
@@ -163,6 +165,12 @@ def register_agent_lab_tools(
         staging_dir: Annotated[str | None, Field(description="Sim-art staging root.")] = None,
         robotics_url: Annotated[str | None, Field(description="robotics-mcp HTTP base URL.")] = None,
         avatar_url: Annotated[str | None, Field(description="avatar-mcp HTTP base URL.")] = None,
+        model_dir: Annotated[str | None, Field(description="Local Gazebo model directory.")] = None,
+        models_root: Annotated[str | None, Field(description="Root folder of Gazebo models for batch import.")] = None,
+        model_id: Annotated[str | None, Field(description="Avatar model id for thumbnail import.")] = None,
+        vrm_path: Annotated[str | None, Field(description="Path to .vrm for avatar thumbnail import.")] = None,
+        avatar_models_dir: Annotated[str | None, Field(description="avatar-mcp models directory override.")] = None,
+        auto_import: Annotated[bool, Field(description="Run automated import during handoff ops.")] = False,
     ) -> dict[str, Any]:
         """Robotics and sim-art batch: Gazebo icons, texture atlases, VRChat handoff."""
         return await gimp_sim_art(
@@ -170,6 +178,7 @@ def register_agent_lab_tools(
             input_dir=input_dir,
             output_dir=output_dir,
             output_path=output_path,
+            icon_path=icon_path,
             template_id=template_id,
             layout=layout,
             cell_size=cell_size,
@@ -178,6 +187,12 @@ def register_agent_lab_tools(
             staging_dir=staging_dir,
             robotics_url=robotics_url,
             avatar_url=avatar_url,
+            model_dir=model_dir,
+            models_root=models_root,
+            model_id=model_id,
+            vrm_path=vrm_path,
+            avatar_models_dir=avatar_models_dir,
+            auto_import=auto_import,
         )
 
     @app.tool(annotations={"readOnlyHint": True}, version="4.2.0")

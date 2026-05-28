@@ -50,6 +50,10 @@ async def run_sim_art_pipeline(
     validate: bool = True,
     robotics_url: str | None = None,
     avatar_url: str | None = None,
+    models_root: str | None = None,
+    model_id: str | None = None,
+    vrm_path: str | None = None,
+    auto_import: bool = False,
 ) -> SimPipelineReport:
     """Run sim-art batch pipeline for Gazebo icons or VRChat social icons."""
     report = SimPipelineReport(success=False)
@@ -81,6 +85,9 @@ async def run_sim_art_pipeline(
                 input_dir=str(stage / "vrchat_icons"),
                 staging_dir=str(stage),
                 avatar_url=avatar_url,
+                model_id=model_id,
+                vrm_path=vrm_path,
+                auto_import=auto_import,
             )
             report.steps.append(SimPipelineStep("avatar_handoff", bool(handoff.get("success")), handoff))
     else:
@@ -115,6 +122,8 @@ async def run_sim_art_pipeline(
                 input_dir=str(stage / "gazebo_icons"),
                 staging_dir=str(stage),
                 robotics_url=robotics_url,
+                models_root=models_root,
+                auto_import=auto_import and bool(models_root),
             )
             report.steps.append(SimPipelineStep("robotics_staging", bool(robotics.get("success")), robotics))
 

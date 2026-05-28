@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.5.1] - 2026-05-28
+
+### Added
+- Automated sim-art import: Gazebo model thumbnails, avatar `.thumb.png`, batch match by model name
+- MCPB manifest v4.5.1; `build_mcpb.py` bundles install + fleet docs
+- Expanded `docs/readme/INSTALL.md` with MCPB and Agent Lab pipeline steps
+
 ## [4.5.0] - 2026-05-28
 
 ### Added

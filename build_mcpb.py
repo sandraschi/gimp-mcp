@@ -53,7 +53,15 @@ def create_mcpb_package() -> bool:
                     arcname = file_path.relative_to(project_root)
                     zipf.write(str(file_path), str(arcname))
 
-        for doc in ("README.md", "CHANGELOG.md", "LICENSE", "llms.txt"):
+        for doc in (
+            "README.md",
+            "CHANGELOG.md",
+            "LICENSE",
+            "llms.txt",
+            "docs/readme/INSTALL.md",
+            "docs/SIM_ART_PIPELINE.md",
+            "docs/FLEET_PIPELINE.md",
+        ):
             doc_path = project_root / doc
             if doc_path.exists():
                 zipf.write(str(doc_path), doc)
