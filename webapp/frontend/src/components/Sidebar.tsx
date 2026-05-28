@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import {
   Activity,
+  Bot,
   BookOpen,
   Code2,
   Cog,
@@ -25,6 +26,7 @@ export function Sidebar() {
   const setLoggerOpen = useStore((s) => s.setLoggerOpen);
 
   const mainNavItems = [
+    { id: "agent-tools", icon: Bot, label: "Agent Tools" },
     { id: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
     { id: "apps-hub", icon: Globe, label: "Apps Hub" },
     { id: "chat", icon: MessageSquare, label: "Chat" },

@@ -33,7 +33,7 @@ cd D:\Dev\repos\gimp-mcp\webapp
 
 ## Phase 2 — Webapp Agent Lab and validation (4.2.0)
 
-**Status: planned**
+**Status: complete (v4.2.0)**
 
 | Item | Tool / module |
 |------|----------------|

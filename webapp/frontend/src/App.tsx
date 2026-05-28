@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { AppLayout } from "./components/AppLayout";
 import { Toaster } from "./components/Toaster";
+import AgentToolsPage from "./pages/agent-tools";
 import ApiDocsPage from "./pages/api-docs";
 import AppsHub from "./pages/apps-hub";
 import BatchProcessor from "./pages/batch-processor";
@@ -51,6 +52,8 @@ function App() {
 
   const renderPage = () => {
     switch (currentPage) {
+      case "agent-tools":
+        return <AgentToolsPage />;
       case "dashboard":
         return <Dashboard />;
       case "apps-hub":

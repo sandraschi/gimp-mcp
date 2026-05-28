@@ -164,7 +164,10 @@ class GimpMcpServer:
             if "performance_tools" in self.plugin_manager.plugins:
                 self.plugin_manager.plugins["performance_tools"].register_tools(app)
 
+        from .tools.agent_lab_registration import register_agent_lab_tools
         from .tools.pdb_proxy import gimp_pdb as _gimp_pdb
+
+        register_agent_lab_tools(app, self.interaction_manager, self.config)
 
         @app.tool(annotations={"destructiveHint": True}, version="4.1.0")
         async def gimp_pdb_call(
