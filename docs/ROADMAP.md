@@ -66,10 +66,11 @@ cd D:\Dev\repos\gimp-mcp\webapp
 
 ## Phase 5 — Robotics and sim art (4.5.0)
 
-**Status: planned**
+**Status: complete (v4.5.0)**
 
 | Item | Tool / module |
 |------|----------------|
-| Gazebo model icon/decal batch | robotics-mcp composition |
-| Sim texture atlases | `gimp_batch` + fleet templates |
-| VRChat / social icon pipelines | avatar-mcp handoff |
+| Gazebo model icon/decal batch | `gimp_sim_art` → `gazebo_model_icons` |
+| Sim texture atlases | `gimp_sim_art` → `build_atlas` + manifest JSON |
+| VRChat / social icon pipelines | `gimp_sim_art` → `vrchat_icon_batch`, `push_avatar_handoff` |
+| Robotics staging | `stage_for_robotics` + `scripts/sim_art_pipeline.py` |

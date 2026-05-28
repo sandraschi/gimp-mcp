@@ -37,7 +37,7 @@ If you don't have `just` installed:
 | [Roadmap](docs/ROADMAP.md) | Agent Lab phases (bridge, vision, fleet handoff) |
 | [Fleet Pipeline](docs/FLEET_PIPELINE.md) | blender -> gimp -> unity texture handoff |
 | [Monitoring](docs/MONITORING.md) | Prometheus metrics and Loki JSON logs |
-| [Docker](docs/DOCKER.md) | Container and monitoring stack |
+| [Sim Art Pipeline](docs/SIM_ART_PIPELINE.md) | Gazebo icons, atlases, VRChat handoff |
 | [🏗️ Architecture](docs/readme/ARCHITECTURE.md) | 4-layer design, portmanteau pattern, tool registration flow, Live vs Headless, ports |
 | [🖼️ GIMP Integration](docs/readme/GIMP_INTEGRATION.md) | Live Bridge mechanics, PDB proxy, GIMP 3 Python-Fu, known limitations, troubleshooting |
 | [🧩 GIMP Plugins](docs/readme/GIMP_PLUGINS.md) | Bridge plugin architecture, installation, lifecycle, protocol, extending, directory locations |

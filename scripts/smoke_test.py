@@ -20,6 +20,7 @@ async def main() -> int:
         "gimp_validation_tool",
         "gimp_import_tool",
         "gimp_vision_refine_tool",
+        "gimp_sim_art_tool",
     }
     missing = required - names
     print(f"Tools registered: {len(names)}")
@@ -38,6 +39,7 @@ async def main() -> int:
         ("gimp_bridge_tool", {"operation": "execution_mode"}),
         ("gimp_import_tool", {"operation": "list_staging"}),
         ("gimp_validation_tool", {"operation": "validate_image", "input_path": "D:/Temp/gimp_smoke_missing.png"}),
+        ("gimp_sim_art_tool", {"operation": "list_templates"}),
     ]:
         result = await _mcp.call_tool(tool_name, args)
         text = result.content[0].text if result.content else str(result)

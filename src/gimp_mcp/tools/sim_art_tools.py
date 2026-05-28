@@ -1,0 +1,412 @@
+"""Robotics and sim-art portmanteau (Gazebo icons, atlases, VRChat handoff)."""
+
+from __future__ import annotations
+
+import json
+import logging
+import shutil
+import time
+from pathlib import Path
+from typing import Any, Literal
+
+from pydantic import BaseModel, Field
+
+from ..utils.fleet_http import DEFAULT_AVATAR_URL, DEFAULT_ROBOTICS_URL, check_http_health
+from ..utils.sim_art_templates import (
+    ATLAS_LAYOUTS,
+    DEFAULT_SIM_STAGING,
+    list_atlas_layouts,
+    list_template_catalog,
+    resolve_template,
+)
+from .validation import gimp_validation
+
+logger = logging.getLogger(__name__)
+
+SimArtOperation = Literal[
+    "list_templates",
+    "gazebo_model_icons",
+    "build_atlas",
+    "vrchat_icon_batch",
+    "stage_for_robotics",
+    "push_avatar_handoff",
+]
+
+
+class SimArtResult(BaseModel):
+    success: bool
+    operation: str
+    message: str
+    data: dict[str, Any] = Field(default_factory=dict)
+    files: list[str] = Field(default_factory=list)
+    execution_time_ms: float = 0.0
+    error: str | None = None
+
+
+def _resize_cover(img: Any, target_w: int, target_h: int) -> Any:
+    from PIL import Image
+
+    src_w, src_h = img.size
+    scale = max(target_w / src_w, target_h / src_h)
+    new_w = max(1, int(src_w * scale))
+    new_h = max(1, int(src_h * scale))
+    resized = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+    left = (new_w - target_w) // 2
+    top = (new_h - target_h) // 2
+    return resized.crop((left, top, left + target_w, top + target_h))
+
+
+def _iter_images(input_dir: Path, *, recursive: bool = False) -> list[Path]:
+    patterns = ("*.png", "*.jpg", "*.jpeg", "*.webp", "*.tga")
+    files: list[Path] = []
+    for pattern in patterns:
+        files.extend(input_dir.rglob(pattern) if recursive else input_dir.glob(pattern))
+    return sorted({p.resolve() for p in files if p.is_file()})
+
+
+async def _batch_template_icons(
+    *,
+    input_dir: Path,
+    output_dir: Path,
+    template_id: str,
+    validate: bool,
+    target_platform: str,
+) -> dict[str, Any]:
+    template = resolve_template(template_id)
+    if template is None:
+        return {"success": False, "error": f"Unknown template: {template_id}"}
+    if not input_dir.is_dir():
+        return {"success": False, "error": f"Input directory not found: {input_dir}"}
+
+    try:
+        from PIL import Image
+    except ImportError as exc:
+        return {"success": False, "error": f"Pillow required: {exc}"}
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    tw = int(template["width"])
+    th = int(template["height"])
+    outputs: list[str] = []
+    failures: list[dict[str, str]] = []
+
+    for src in _iter_images(input_dir):
+        dest = output_dir / f"{src.stem}_{template_id}.png"
+        try:
+            with Image.open(src) as img:
+                rgba = img.convert("RGBA")
+                fitted = _resize_cover(rgba, tw, th)
+                fitted.save(dest, "PNG")
+            outputs.append(str(dest))
+            if validate:
+                audit = await gimp_validation(
+                    "audit_texture",
+                    str(dest),
+                    target_platform=target_platform,
+                    require_alpha=bool(template["require_alpha"]),
+                )
+                passed = bool(audit.get("data", {}).get("passed", not audit.get("issues")))
+                if not passed:
+                    failures.append({"path": str(dest), "issues": str(audit.get("issues", []))})
+        except Exception as exc:
+            logger.exception("Sim art batch failed for %s", src)
+            failures.append({"path": str(src), "issues": str(exc)})
+
+    if not outputs:
+        return {"success": False, "error": "No input images processed", "failures": failures}
+
+    return {
+        "success": len(failures) == 0,
+        "template_id": template_id,
+        "output_dir": str(output_dir),
+        "files": outputs,
+        "count": len(outputs),
+        "failures": failures,
+    }
+
+
+async def _build_texture_atlas(
+    *,
+    input_dir: Path,
+    output_path: Path,
+    layout: str,
+    cell_size: int,
+) -> dict[str, Any]:
+    if layout not in ATLAS_LAYOUTS:
+        return {"success": False, "error": f"Unknown layout: {layout}. Use list_templates layouts."}
+
+    cols, rows = ATLAS_LAYOUTS[layout]
+    sources = _iter_images(input_dir)
+    max_cells = cols * rows
+    if not sources:
+        return {"success": False, "error": f"No images in {input_dir}"}
+    if len(sources) > max_cells:
+        sources = sources[:max_cells]
+
+    try:
+        from PIL import Image
+    except ImportError as exc:
+        return {"success": False, "error": f"Pillow required: {exc}"}
+
+    atlas_w = cols * cell_size
+    atlas_h = rows * cell_size
+    atlas = Image.new("RGBA", (atlas_w, atlas_h), (0, 0, 0, 0))
+    manifest_entries: list[dict[str, Any]] = []
+
+    for index, src in enumerate(sources):
+        col = index % cols
+        row = index // cols
+        x = col * cell_size
+        y = row * cell_size
+        with Image.open(src) as img:
+            cell = _resize_cover(img.convert("RGBA"), cell_size, cell_size)
+            atlas.paste(cell, (x, y))
+        manifest_entries.append(
+            {
+                "source": str(src),
+                "name": src.stem,
+                "cell_index": index,
+                "column": col,
+                "row": row,
+                "uv": {
+                    "u0": round(x / atlas_w, 6),
+                    "v0": round(y / atlas_h, 6),
+                    "u1": round((x + cell_size) / atlas_w, 6),
+                    "v1": round((y + cell_size) / atlas_h, 6),
+                },
+            }
+        )
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    atlas.save(output_path, "PNG")
+    manifest_path = output_path.with_suffix(".manifest.json")
+    manifest = {
+        "layout": layout,
+        "columns": cols,
+        "rows": rows,
+        "cell_size": cell_size,
+        "atlas_path": str(output_path),
+        "width": atlas_w,
+        "height": atlas_h,
+        "entries": manifest_entries,
+    }
+    manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+
+    return {
+        "success": True,
+        "atlas_path": str(output_path),
+        "manifest_path": str(manifest_path),
+        "cell_count": len(manifest_entries),
+        "layout": layout,
+        "width": atlas_w,
+        "height": atlas_h,
+    }
+
+
+async def _stage_files(
+    *,
+    source_dir: Path,
+    staging_subdir: str,
+    staging_root: Path,
+) -> dict[str, Any]:
+    if not source_dir.is_dir():
+        return {"success": False, "error": f"Source directory not found: {source_dir}"}
+
+    dest = staging_root / staging_subdir
+    dest.mkdir(parents=True, exist_ok=True)
+    copied: list[str] = []
+    for src in _iter_images(source_dir):
+        target = dest / src.name
+        shutil.copy2(src, target)
+        copied.append(str(target))
+
+    return {
+        "success": bool(copied),
+        "staging_dir": str(dest),
+        "files": copied,
+        "count": len(copied),
+    }
+
+
+async def gimp_sim_art(
+    operation: SimArtOperation,
+    *,
+    input_dir: str | None = None,
+    output_dir: str | None = None,
+    output_path: str | None = None,
+    template_id: str = "gazebo_icon_256",
+    layout: str = "4x4",
+    cell_size: int = 256,
+    validate: bool = True,
+    target_platform: str = "gazebo",
+    staging_dir: str | None = None,
+    robotics_url: str | None = None,
+    avatar_url: str | None = None,
+    recursive: bool = False,
+) -> dict[str, Any]:
+    """Robotics and sim-art batch portmanteau for Gazebo, VRChat, and fleet atlases."""
+    start = time.time()
+    stage_root = Path(staging_dir) if staging_dir else Path(DEFAULT_SIM_STAGING)
+
+    try:
+        if operation == "list_templates":
+            payload = {
+                "templates": list_template_catalog(),
+                "atlas_layouts": list_atlas_layouts(),
+                "default_staging": str(stage_root),
+                "robotics_url": robotics_url or DEFAULT_ROBOTICS_URL,
+                "avatar_url": avatar_url or DEFAULT_AVATAR_URL,
+            }
+            return SimArtResult(
+                success=True,
+                operation=operation,
+                message="Sim-art template catalog",
+                data=payload,
+            ).model_dump()
+
+        if operation == "gazebo_model_icons":
+            if not input_dir:
+                return SimArtResult(
+                    success=False,
+                    operation=operation,
+                    message="input_dir required",
+                    error="input_dir required",
+                ).model_dump()
+            out = Path(output_dir) if output_dir else stage_root / "gazebo_icons"
+            batch = await _batch_template_icons(
+                input_dir=Path(input_dir),
+                output_dir=out,
+                template_id=template_id if template_id.startswith("gazebo") else "gazebo_icon_256",
+                validate=validate,
+                target_platform=target_platform or "gazebo",
+            )
+            elapsed = (time.time() - start) * 1000
+            return SimArtResult(
+                success=bool(batch.get("success")),
+                operation=operation,
+                message=f"Processed {batch.get('count', 0)} Gazebo icon(s)",
+                data=batch,
+                files=list(batch.get("files") or []),
+                execution_time_ms=round(elapsed, 2),
+                error=None if batch.get("success") else str(batch.get("error") or batch.get("failures")),
+            ).model_dump()
+
+        if operation == "vrchat_icon_batch":
+            if not input_dir:
+                return SimArtResult(
+                    success=False,
+                    operation=operation,
+                    message="input_dir required",
+                    error="input_dir required",
+                ).model_dump()
+            tid = template_id if template_id.startswith("vrchat") else "vrchat_profile_256"
+            out = Path(output_dir) if output_dir else stage_root / "vrchat_icons"
+            batch = await _batch_template_icons(
+                input_dir=Path(input_dir),
+                output_dir=out,
+                template_id=tid,
+                validate=validate,
+                target_platform="vrchat",
+            )
+            elapsed = (time.time() - start) * 1000
+            return SimArtResult(
+                success=bool(batch.get("success")),
+                operation=operation,
+                message=f"Processed {batch.get('count', 0)} VRChat icon(s)",
+                data=batch,
+                files=list(batch.get("files") or []),
+                execution_time_ms=round(elapsed, 2),
+            ).model_dump()
+
+        if operation == "build_atlas":
+            if not input_dir:
+                return SimArtResult(
+                    success=False,
+                    operation=operation,
+                    message="input_dir required",
+                    error="input_dir required",
+                ).model_dump()
+            atlas_out = Path(output_path) if output_path else stage_root / "atlases" / f"atlas_{layout}.png"
+            atlas = await _build_texture_atlas(
+                input_dir=Path(input_dir),
+                output_path=atlas_out,
+                layout=layout,
+                cell_size=cell_size,
+            )
+            elapsed = (time.time() - start) * 1000
+            files = [str(atlas["atlas_path"]), str(atlas["manifest_path"])] if atlas.get("success") else []
+            return SimArtResult(
+                success=bool(atlas.get("success")),
+                operation=operation,
+                message=f"Atlas {layout} with {atlas.get('cell_count', 0)} cell(s)",
+                data=atlas,
+                files=files,
+                execution_time_ms=round(elapsed, 2),
+                error=atlas.get("error"),
+            ).model_dump()
+
+        if operation == "stage_for_robotics":
+            src = Path(input_dir) if input_dir else stage_root / "gazebo_icons"
+            staged = await _stage_files(
+                source_dir=src,
+                staging_subdir="robotics_staging",
+                staging_root=stage_root,
+            )
+            r_url = robotics_url or DEFAULT_ROBOTICS_URL
+            robotics_online = await check_http_health(r_url, health_path="/api/health")
+            if not robotics_online:
+                robotics_online = await check_http_health(r_url, health_path="/health")
+            staged["robotics_url"] = r_url
+            staged["robotics_reachable"] = robotics_online
+            staged["hint"] = (
+                "Copy robotics_staging into Gazebo model resource folders or invoke robotics-mcp when enabled."
+            )
+            elapsed = (time.time() - start) * 1000
+            return SimArtResult(
+                success=bool(staged.get("success")),
+                operation=operation,
+                message="Staged icons for robotics-mcp composition",
+                data=staged,
+                files=list(staged.get("files") or []),
+                execution_time_ms=round(elapsed, 2),
+            ).model_dump()
+
+        if operation == "push_avatar_handoff":
+            src = Path(input_dir) if input_dir else stage_root / "vrchat_icons"
+            staged = await _stage_files(
+                source_dir=src,
+                staging_subdir="avatar_staging",
+                staging_root=stage_root,
+            )
+            a_url = avatar_url or DEFAULT_AVATAR_URL
+            avatar_online = await check_http_health(a_url, health_path="/api/health")
+            if not avatar_online:
+                avatar_online = await check_http_health(a_url, health_path="/health")
+            staged["avatar_url"] = a_url
+            staged["avatar_reachable"] = avatar_online
+            staged["handoff"] = "Manual import into VRChat SDK / avatar-mcp asset folder until texture push lands."
+            elapsed = (time.time() - start) * 1000
+            return SimArtResult(
+                success=bool(staged.get("success")),
+                operation=operation,
+                message="Staged VRChat icons for avatar-mcp handoff",
+                data=staged,
+                files=list(staged.get("files") or []),
+                execution_time_ms=round(elapsed, 2),
+            ).model_dump()
+
+        return SimArtResult(
+            success=False,
+            operation=operation,
+            message="Unknown operation",
+            error=f"Unsupported operation: {operation}",
+        ).model_dump()
+    except Exception as exc:
+        logger.exception("gimp_sim_art failed operation=%s", operation)
+        elapsed = (time.time() - start) * 1000
+        return SimArtResult(
+            success=False,
+            operation=operation,
+            message="Sim art operation failed",
+            error=str(exc),
+            execution_time_ms=round(elapsed, 2),
+        ).model_dump()

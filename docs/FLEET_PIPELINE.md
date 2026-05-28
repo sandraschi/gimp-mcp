@@ -59,4 +59,5 @@ Default: `D:/Temp/fleet_pipeline/gimp_staging/`
 ## Related
 
 - [unity3d-mcp FLEET_PIPELINE.md](https://github.com/sandraschi/unity3d-mcp/blob/master/docs/FLEET_PIPELINE.md) — mesh pipeline (Gazebo + blender GLB)
-- [ROADMAP.md](ROADMAP.md) — Phase 3 complete at v4.3.0
+- [ROADMAP.md](ROADMAP.md) — Phase 5 complete at v4.5.0
+- [SIM_ART_PIPELINE.md](SIM_ART_PIPELINE.md) — Gazebo icons, atlases, VRChat handoff

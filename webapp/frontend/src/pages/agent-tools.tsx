@@ -6,6 +6,7 @@ import {
   ImageIcon,
   ScanEye,
   ShieldCheck,
+  Boxes,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
@@ -17,7 +18,7 @@ import {
   type CaptureRecord,
 } from "../api/mcp";
 
-type TabId = "bridge" | "vision" | "validation" | "gallery" | "fleet";
+type TabId = "bridge" | "vision" | "validation" | "gallery" | "fleet" | "simart";
 
 function ResultBox({ text }: { text: string | null }) {
   if (!text) return null;
@@ -42,12 +43,19 @@ export default function AgentToolsPage() {
   const [stagingDir, setStagingDir] = useState("D:/Temp/fleet_pipeline/gimp_staging");
   const [reviewDir, setReviewDir] = useState("D:/Temp/fleet_pipeline/gimp_staging/processed");
 
+  const [simInputDir, setSimInputDir] = useState("D:/Temp/model_renders");
+  const [simStagingDir, setSimStagingDir] = useState("D:/Temp/fleet_pipeline/sim_art");
+  const [simPipeline, setSimPipeline] = useState("gazebo");
+  const [simTemplate, setSimTemplate] = useState("gazebo_icon_256");
+  const [simLayout, setSimLayout] = useState("4x4");
+
   const tabs: { id: TabId; label: string; icon: typeof Bot }[] = [
     { id: "bridge", label: "Bridge", icon: Bot },
     { id: "vision", label: "Vision", icon: ScanEye },
     { id: "validation", label: "Validation", icon: ShieldCheck },
     { id: "gallery", label: "Gallery", icon: ImageIcon },
     { id: "fleet", label: "Fleet", icon: GitPullRequest },
+    { id: "simart", label: "Sim Art", icon: Boxes },
   ];
 
   useEffect(() => {
@@ -97,7 +105,7 @@ export default function AgentToolsPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Agent Tools</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Phase 1–3: live bridge, canvas capture, validation, gallery, fleet handoff.
+            Phase 1–5: live bridge, canvas capture, validation, gallery, fleet handoff, sim art.
           </p>
         </div>
         <button
@@ -443,6 +451,117 @@ export default function AgentToolsPage() {
                 }
               >
                 List staging
+              </button>
+            </div>
+          </>
+        )}
+
+        {tab === "simart" && (
+          <>
+            <h2 className="font-semibold">Sim art (Gazebo / VRChat / atlases)</h2>
+            <label className="block text-sm">
+              Input directory
+              <input
+                className="mt-1 w-full px-3 py-2 bg-background border border-border rounded-md text-sm"
+                value={simInputDir}
+                onChange={(e) => setSimInputDir(e.target.value)}
+              />
+            </label>
+            <label className="block text-sm">
+              Staging directory
+              <input
+                className="mt-1 w-full px-3 py-2 bg-background border border-border rounded-md text-sm"
+                value={simStagingDir}
+                onChange={(e) => setSimStagingDir(e.target.value)}
+              />
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <label className="block text-sm">
+                Pipeline
+                <select
+                  className="mt-1 w-full px-3 py-2 bg-background border border-border rounded-md text-sm"
+                  value={simPipeline}
+                  onChange={(e) => setSimPipeline(e.target.value)}
+                >
+                  <option value="gazebo">gazebo</option>
+                  <option value="vrchat">vrchat</option>
+                </select>
+              </label>
+              <label className="block text-sm">
+                Template
+                <input
+                  className="mt-1 w-full px-3 py-2 bg-background border border-border rounded-md text-sm"
+                  value={simTemplate}
+                  onChange={(e) => setSimTemplate(e.target.value)}
+                />
+              </label>
+              <label className="block text-sm">
+                Atlas layout
+                <input
+                  className="mt-1 w-full px-3 py-2 bg-background border border-border rounded-md text-sm"
+                  value={simLayout}
+                  onChange={(e) => setSimLayout(e.target.value)}
+                />
+              </label>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                disabled={loading}
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm"
+                onClick={() =>
+                  run("gimp_sim_art_tool", {
+                    operation: simPipeline === "vrchat" ? "vrchat_icon_batch" : "gazebo_model_icons",
+                    input_dir: simInputDir,
+                    staging_dir: simStagingDir,
+                    template_id: simTemplate,
+                  })
+                }
+              >
+                Batch icons
+              </button>
+              <button
+                type="button"
+                disabled={loading}
+                className="px-4 py-2 bg-secondary rounded-md text-sm"
+                onClick={() =>
+                  run("gimp_sim_art_tool", {
+                    operation: "build_atlas",
+                    input_dir: `${simStagingDir}/gazebo_icons`,
+                    output_path: `${simStagingDir}/atlases/atlas_${simLayout}.png`,
+                    layout: simLayout,
+                    staging_dir: simStagingDir,
+                  })
+                }
+              >
+                Build atlas
+              </button>
+              <button
+                type="button"
+                disabled={loading}
+                className="px-4 py-2 bg-secondary rounded-md text-sm"
+                onClick={() =>
+                  run("gimp_sim_art_tool", {
+                    operation: "stage_for_robotics",
+                    input_dir: `${simStagingDir}/gazebo_icons`,
+                    staging_dir: simStagingDir,
+                  })
+                }
+              >
+                Stage for robotics
+              </button>
+              <button
+                type="button"
+                disabled={loading}
+                className="px-4 py-2 bg-secondary rounded-md text-sm"
+                onClick={() =>
+                  run("gimp_sim_art_tool", {
+                    operation: "list_templates",
+                    staging_dir: simStagingDir,
+                  })
+                }
+              >
+                List templates
               </button>
             </div>
           </>
