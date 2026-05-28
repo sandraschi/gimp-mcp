@@ -1,5 +1,3 @@
-import asyncio
-
 import pytest
 
 
@@ -36,9 +34,10 @@ async def test_execute_python_fu_live_success(mock_bridge, interaction_manager):
 @pytest.mark.asyncio
 async def test_execute_python_fu_fallback(interaction_manager, mock_cli_wrapper):
     """Verify fallback to Headless CLI when bridge is offline."""
-    # No mock_bridge fixture used -> bridge is offline
-    mock_cli_wrapper.execute_python_fu.return_value = asyncio.Future()
-    mock_cli_wrapper.execute_python_fu.return_value.set_result("CLI_SUCCESS|fallback_done")
+    async def _fallback(code, timeout=None):
+        return "CLI_SUCCESS|fallback_done"
+
+    mock_cli_wrapper.execute_python_fu.side_effect = _fallback
 
     code = "pdb.gimp_quit(0)"
     result = await interaction_manager.execute_python_fu(code)

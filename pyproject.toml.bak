@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gimp-mcp"
-version = "4.5.2"
+version = "4.0.0"
 description = "FastMCP 3.2.0 SOTA server for professional image editing using GIMP - Industrial Modernization"
 readme = "README.md"
 authors = [
@@ -147,22 +147,18 @@ warn_unreachable = true
 
 # Advanced analysis dependencies
 analysis = [
-    "scipy>=1.10.0,<2.0.0",
-]
-
-monitoring = [
-    "prometheus-client>=0.20.0,<1.0.0",
+    "scipy>=1.10.0,<2.0.0",  # For image quality metrics
 ]
 
 all = [
-    "gimp-mcp[http,analysis,monitoring]"
+    "gimp-mcp[http,analysis]"
 ]
 
 # MCP Server Configuration
 [tool.fastmcp]
 name = "gimp-mcp"
 display_name = "GIMP MCP Server"
-version = "4.5.2"
+version = "4.0.0"
 description = "FastMCP 3.2.0 SOTA — portmanteau tools, sampling, prompts, resources, skills, prefab, MCPB"
 entry_point = "gimp_mcp.main:main"
 architecture = "portmanteau"

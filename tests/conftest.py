@@ -92,11 +92,14 @@ def mock_cli_wrapper():
     """Fixture that provides a mocked GimpCliWrapper."""
     mock = MagicMock(spec=GimpCliWrapper)
 
-    async def async_return(val):
-        return val
+    async def _exec_python(code, timeout=None):
+        return "CLI_SUCCESS|done"
 
-    mock.execute_python_fu.side_effect = lambda code, timeout=None: async_return("CLI_SUCCESS|done")
-    mock.execute_script_fu.side_effect = lambda code, timeout=None: async_return("CLI_SUCCESS|done")
+    async def _exec_script(code, timeout=None):
+        return "CLI_SUCCESS|done"
+
+    mock.execute_python_fu.side_effect = _exec_python
+    mock.execute_script_fu.side_effect = _exec_script
     mock.is_available.return_value = True
     return mock
 

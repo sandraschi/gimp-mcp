@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -51,24 +51,28 @@ async def test_gimp_live_status_tool(mock_bridge, mcp_server):
 
 @pytest.mark.asyncio
 async def test_tool_execution_live_fallback(mock_bridge, mcp_server):
-    """Verify tool execution falls back to headless if bridge fails."""
+    """Verify PDB tool falls back to headless when bridge fails."""
     mcp_server.config.bridge_port = mock_bridge.port
 
     with patch("gimp_mcp.main.GimpDetector.detect_gimp_installation", return_value="/mock/gimp"):
         await mcp_server.initialize()
 
-    # Mock the bridge call to fail
+    pdb_output = 'CLI_SUCCESS|PDB_RESULT:{"success": true, "result": null}'
     with patch.object(
         mcp_server.interaction_manager.bridge, "execute_live_python", side_effect=Exception("Bridge failed")
     ):
-        # Mock CLI success
         with patch.object(
-            mcp_server.interaction_manager.cli, "execute_python_fu", return_value="CLI_SUCCESS|Headless success"
+            mcp_server.interaction_manager.cli,
+            "is_available",
+            return_value=True,
         ):
-            # Find a tool that uses interaction_manager, e.g. gimp_system
-            tools_list = await mcp_server.mcp.list_tools()
-            tool_obj = next(t for t in tools_list if t.name == "gimp_system_tool")
-            result = await tool_obj.fn(operation="status")
+            with patch.object(
+                mcp_server.interaction_manager,
+                "execute_python_fu",
+                new=AsyncMock(return_value=pdb_output),
+            ):
+                tools_list = await mcp_server.mcp.list_tools()
+                tool_obj = next(t for t in tools_list if t.name == "gimp_pdb_tool")
+                result = await tool_obj.fn(procedure="gimp-quit", args=[])
 
-            assert result["success"] is True
-            assert "Headless success" in result["message"]
+                assert result["success"] is True

@@ -56,6 +56,57 @@ async def call_http_tool(
     return body if isinstance(body, dict) else {"success": False, "error": "Invalid tool response"}
 
 
+async def call_avatar_execute(
+    base_url: str,
+    tool_name: str,
+    arguments: dict[str, Any],
+    *,
+    timeout: float = 120.0,
+) -> dict[str, Any]:
+    """Call avatar-mcp POST /api/v1/tools/execute."""
+    url = base_url.rstrip("/") + "/api/v1/tools/execute"
+    try:
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            response = await client.post(
+                url,
+                json={"tool_name": tool_name, "arguments": arguments},
+            )
+            response.raise_for_status()
+            body = response.json()
+    except httpx.HTTPError as exc:
+        logger.exception("Avatar execute failed tool=%s url=%s", tool_name, url)
+        return {"success": False, "error": str(exc), "tool": tool_name}
+
+    if isinstance(body, dict) and body.get("status") == "success":
+        result = body.get("result")
+        if isinstance(result, dict):
+            ok = result.get("status") == "success" or result.get("success", True)
+            return {**result, "success": ok}
+        return {"success": True, "result": result}
+    return body if isinstance(body, dict) else {"success": False, "error": "Invalid avatar response"}
+
+
+async def set_avatar_thumbnail_http(
+    base_url: str,
+    avatar_id: str,
+    icon_path: str,
+) -> dict[str, Any]:
+    """Call avatar-mcp REST thumbnail endpoint."""
+    url = f"{base_url.rstrip('/')}/api/v1/avatars/{avatar_id}/thumbnail"
+    try:
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            response = await client.post(url, json={"icon_path": icon_path})
+            response.raise_for_status()
+            body = response.json()
+    except httpx.HTTPError as exc:
+        logger.exception("Avatar thumbnail HTTP failed avatar_id=%s", avatar_id)
+        return {"success": False, "error": str(exc)}
+
+    if isinstance(body, dict):
+        return {**body, "success": body.get("status") == "success" or body.get("success", True)}
+    return {"success": False, "error": "Invalid avatar thumbnail response"}
+
+
 def parse_tool_payload(result: Any) -> dict[str, Any]:
     if isinstance(result, dict):
         if "data" in result and isinstance(result["data"], dict):
