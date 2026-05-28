@@ -10,7 +10,9 @@ from pydantic import Field
 from ..config import GimpConfig
 from ..interaction_manager import GimpInteractionManager
 from .bridge_tools import gimp_bridge, gimp_render
+from .import_tools import gimp_import
 from .validation import gimp_validation
+from .vision_refine_tools import gimp_vision_refine
 
 
 def register_agent_lab_tools(
@@ -18,7 +20,7 @@ def register_agent_lab_tools(
     interaction_manager: GimpInteractionManager | None,
     config: GimpConfig,
 ) -> None:
-    """Register gimp_bridge_tool, gimp_render_tool, gimp_validation_tool, gimp_live_status."""
+    """Register Agent Lab tools on any FastMCP app (CLI + webapp http_app)."""
 
     @app.tool(annotations={"readOnlyHint": True}, version="4.2.0")
     async def gimp_bridge_tool(
@@ -83,6 +85,58 @@ def register_agent_lab_tools(
             require_power_of_two=require_power_of_two,
             require_alpha=require_alpha,
             require_icc=require_icc,
+            target_platform=target_platform,
+        )
+
+    @app.tool(annotations={"readOnlyHint": True}, version="4.3.0")
+    async def gimp_import_tool(
+        operation: Annotated[
+            str,
+            Field(description="Operation: import_file, from_blender_render, list_staging, push_unity."),
+        ],
+        source_path: Annotated[str | None, Field(description="Source image path.")] = None,
+        staging_dir: Annotated[str | None, Field(description="Fleet staging directory.")] = None,
+        blender_url: Annotated[str | None, Field(description="blender-mcp HTTP base URL.")] = None,
+        blender_operation: Annotated[str, Field(description="blender_render operation.")] = "render_multi_angle",
+        angles: Annotated[int, Field(description="Angles for render_multi_angle.")] = 4,
+        output_path: Annotated[str | None, Field(description="Output path for screenshot_viewport.")] = None,
+        project_path: Annotated[str | None, Field(description="Unity project path for push_unity.")] = None,
+        texture_type: Annotated[str, Field(description="Unity texture type.")] = "diffuse",
+        unity_url: Annotated[str | None, Field(description="unity3d-mcp HTTP base URL.")] = None,
+        normalize_size: Annotated[int, Field(description="Power-of-two normalize size.")] = 1024,
+    ) -> dict[str, Any]:
+        """Fleet handoff: Blender renders -> GIMP staging -> Unity texture push."""
+        return await gimp_import(
+            operation=operation,  # type: ignore[arg-type]
+            source_path=source_path,
+            staging_dir=staging_dir,
+            blender_url=blender_url,
+            blender_operation=blender_operation,
+            angles=angles,
+            output_path=output_path,
+            project_path=project_path,
+            texture_type=texture_type,
+            unity_url=unity_url,
+            normalize_size=normalize_size,
+        )
+
+    @app.tool(annotations={"readOnlyHint": True}, version="4.3.0")
+    async def gimp_vision_refine_tool(
+        operation: Annotated[
+            str,
+            Field(description="Operation: review_bundle, texture_review, validate_folder."),
+        ],
+        input_dir: Annotated[str | None, Field(description="Folder of textures to review.")] = None,
+        input_path: Annotated[str | None, Field(description="Single texture path.")] = None,
+        goal: Annotated[str, Field(description="Agent review goal.")] = "",
+        target_platform: Annotated[str, Field(description="Target platform audit.")] = "unity",
+    ) -> dict[str, Any]:
+        """Texture review bundle for agent vision loops."""
+        return await gimp_vision_refine(
+            operation=operation,  # type: ignore[arg-type]
+            input_dir=input_dir,
+            input_path=input_path,
+            goal=goal,
             target_platform=target_platform,
         )
 

@@ -1,6 +1,6 @@
 # Competitive Analysis — GIMP MCP Ecosystem
 
-Last updated: 2026-05-28 (Phase 1 complete)
+Last updated: 2026-05-28 (Phase 3 complete)
 
 Compares **sandraschi/gimp-mcp** (this repo) with other GIMP automation and MCP projects.
 

@@ -35,6 +35,7 @@ If you don't have `just` installed:
 | [📦 Installation](docs/readme/INSTALL.md) | Prerequisites, GIMP 3 install, uv sync, start methods, bridge install, verifications |
 | [Competitive Analysis](docs/COMPETITIVE_ANALYSIS.md) | GIMP MCP landscape and fleet differentiation |
 | [Roadmap](docs/ROADMAP.md) | Agent Lab phases (bridge, vision, fleet handoff) |
+| [Fleet Pipeline](docs/FLEET_PIPELINE.md) | blender -> gimp -> unity texture handoff |
 | [🏗️ Architecture](docs/readme/ARCHITECTURE.md) | 4-layer design, portmanteau pattern, tool registration flow, Live vs Headless, ports |
 | [🖼️ GIMP Integration](docs/readme/GIMP_INTEGRATION.md) | Live Bridge mechanics, PDB proxy, GIMP 3 Python-Fu, known limitations, troubleshooting |
 | [🧩 GIMP Plugins](docs/readme/GIMP_PLUGINS.md) | Bridge plugin architecture, installation, lifecycle, protocol, extending, directory locations |

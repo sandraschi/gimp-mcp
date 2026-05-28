@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.3.0] - 2026-05-28
+
+### Added
+- **Agent Lab Phase 3**: `gimp_import_tool`, `gimp_vision_refine_tool`, fleet texture pipeline
+- `utils/fleet_pipeline.py`, `scripts/fleet_pipeline.py`, `scripts/run-fleet-pipeline.ps1`
+- `docs/FLEET_PIPELINE.md` — blender → gimp → unity texture handoff
+- Webapp Agent Tools **Fleet** tab
+
 ## [4.2.0] - 2026-05-28
 
 ### Added
