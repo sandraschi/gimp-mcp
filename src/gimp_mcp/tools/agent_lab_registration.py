@@ -12,6 +12,7 @@ from ..interaction_manager import GimpInteractionManager
 from .bridge_tools import gimp_bridge, gimp_render
 from .import_tools import gimp_import
 from .validation import gimp_validation
+from .sim_art_tools import gimp_sim_art
 from .vision_refine_tools import gimp_vision_refine
 
 
@@ -138,6 +139,45 @@ def register_agent_lab_tools(
             input_path=input_path,
             goal=goal,
             target_platform=target_platform,
+        )
+
+    @app.tool(annotations={"readOnlyHint": True}, version="4.5.0")
+    async def gimp_sim_art_tool(
+        operation: Annotated[
+            str,
+            Field(
+                description=(
+                    "Operation: list_templates, gazebo_model_icons, build_atlas, "
+                    "vrchat_icon_batch, stage_for_robotics, push_avatar_handoff."
+                ),
+            ),
+        ],
+        input_dir: Annotated[str | None, Field(description="Folder of source images.")] = None,
+        output_dir: Annotated[str | None, Field(description="Output folder for batch icons.")] = None,
+        output_path: Annotated[str | None, Field(description="Atlas PNG output path.")] = None,
+        template_id: Annotated[str, Field(description="Sim-art template id.")] = "gazebo_icon_256",
+        layout: Annotated[str, Field(description="Atlas layout (2x2, 4x4, etc.).")] = "4x4",
+        cell_size: Annotated[int, Field(description="Atlas cell size in pixels.")] = 256,
+        validate: Annotated[bool, Field(description="Run audit_texture on outputs.")] = True,
+        target_platform: Annotated[str, Field(description="Validation target platform.")] = "gazebo",
+        staging_dir: Annotated[str | None, Field(description="Sim-art staging root.")] = None,
+        robotics_url: Annotated[str | None, Field(description="robotics-mcp HTTP base URL.")] = None,
+        avatar_url: Annotated[str | None, Field(description="avatar-mcp HTTP base URL.")] = None,
+    ) -> dict[str, Any]:
+        """Robotics and sim-art batch: Gazebo icons, texture atlases, VRChat handoff."""
+        return await gimp_sim_art(
+            operation=operation,  # type: ignore[arg-type]
+            input_dir=input_dir,
+            output_dir=output_dir,
+            output_path=output_path,
+            template_id=template_id,
+            layout=layout,
+            cell_size=cell_size,
+            validate=validate,
+            target_platform=target_platform,
+            staging_dir=staging_dir,
+            robotics_url=robotics_url,
+            avatar_url=avatar_url,
         )
 
     @app.tool(annotations={"readOnlyHint": True}, version="4.2.0")

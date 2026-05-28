@@ -13,6 +13,8 @@ logger = logging.getLogger(__name__)
 DEFAULT_BLENDER_URL = "http://127.0.0.1:10849"
 DEFAULT_UNITY_URL = "http://127.0.0.1:10831"
 DEFAULT_GIMP_URL = "http://127.0.0.1:10773"
+DEFAULT_ROBOTICS_URL = "http://127.0.0.1:10892"
+DEFAULT_AVATAR_URL = "http://127.0.0.1:10793"
 
 
 async def check_http_health(base_url: str, *, health_path: str = "/api/health") -> bool:

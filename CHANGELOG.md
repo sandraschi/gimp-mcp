@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.5.0] - 2026-05-28
+
+### Added
+- **Agent Lab Phase 5**: `gimp_sim_art_tool` for Gazebo icons, texture atlases, VRChat batch
+- `utils/sim_art_templates.py`, `utils/fleet_sim_pipeline.py`
+- `scripts/sim_art_pipeline.py`, `scripts/run-sim-art-pipeline.ps1`
+- `docs/SIM_ART_PIPELINE.md`, webapp Agent Tools Sim Art tab
+
 ## [4.4.0] - 2026-05-28
 
 ### Added
