@@ -32,7 +32,7 @@ See [ROADMAP.md](ROADMAP.md).
 | Agent vision capture from open canvas | `gimp_render` → `capture_active` | 1 (done) |
 | Hands-In vs Hands-Off agent guidance | `gimp_bridge` → `execution_mode` | 1 (done) |
 | Stale port docs (10775 vs 10824) | Reconcile to **10824** fleet standard | 1 (done) |
-| Webapp Agent Lab page | `/agent-tools` tabs (mirror blender/unity) | 2 |
+| Webapp Agent Lab page | `/agent-tools` tabs (mirror blender/unity) | 2 (done) |
 | Fleet texture pipeline (blender UV → gimp → unity) | `gimp_fleet` handoff helpers | 3 |
 | Prometheus / Docker monitoring | telemetry + GHCR image | 4 |
 

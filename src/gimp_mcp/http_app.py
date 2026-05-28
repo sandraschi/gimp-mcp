@@ -9,15 +9,21 @@ Registers FastMCP 3.2 surface (prompts, resources, skills, prefab) via
 
 from __future__ import annotations
 
+import json
+import logging
 from pathlib import Path
+from typing import Any
 
 from fastmcp import FastMCP
+from pydantic import BaseModel, Field
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
 from .config import GimpConfig
 from .server import GimpMcpServer
 from .sota_registration import get_sota_feature_manifest
+
+logger = logging.getLogger(__name__)
 
 try:
     from .ai_image import get_available_providers, get_settings_status, update_settings
@@ -34,7 +40,7 @@ except ImportError:
 _config = GimpConfig()
 _mcp = FastMCP(
     name="gimp-mcp",
-    version="4.0.0",
+    version="4.2.0",
     instructions=(
         "GIMP MCP — FastMCP 3.2 SOTA. Portmanteau tools + sampling + prompts + resources + "
         "skill://gimp-expert/SKILL.md. Prefer allowed_directories-safe paths."
@@ -55,7 +61,7 @@ async def _api_health(_request: Request) -> Response:
         {
             "status": "healthy",
             "server_name": "gimp-mcp",
-            "version": "4.0.0",
+            "version": "4.2.0",
             "fastmcp": "3.2",
             "sota": get_sota_feature_manifest(),
             "stack": "GimpMcpServer (plugin tools); use `gimp-mcp` CLI for portmanteau + agentic",
@@ -205,6 +211,54 @@ async def _api_generate(request: Request) -> Response:
         style=body.get("style", "photorealistic"),
     )
     return JSONResponse(result)
+
+
+class ToolCallReq(BaseModel):
+    tool: str
+    params: dict = Field(default_factory=dict)
+
+
+@_mcp.custom_route("/api/v1/tool", methods=["POST"])
+async def _api_v1_tool(request: Request) -> Response:
+    """Bridge endpoint for webapp Agent Tools to call MCP tools."""
+    try:
+        body = ToolCallReq.model_validate(await request.json())
+    except Exception as exc:
+        return JSONResponse({"success": False, "error": f"Invalid request: {exc}"}, status_code=400)
+
+    if not body.tool:
+        return JSONResponse({"success": False, "error": "Missing tool name"}, status_code=400)
+
+    try:
+        result = await _mcp.call_tool(body.tool, body.params)
+    except Exception as exc:
+        logger.exception("Tool %s failed: %s", body.tool, exc)
+        return JSONResponse({"success": False, "error": str(exc), "data": None}, status_code=500)
+
+    mcp_result = result.to_mcp_result()
+    is_error = False
+    content_list: list[Any] = []
+    if isinstance(mcp_result, tuple) and len(mcp_result) >= 2:
+        content_list = mcp_result[0]
+        is_error = mcp_result[1]
+    else:
+        content_list = getattr(result, "content", [])
+
+    data: Any = None
+    if content_list:
+        text = getattr(content_list[0], "text", str(content_list[0]))
+        try:
+            data = json.loads(text)
+        except Exception:
+            data = {"output": text}
+
+    return JSONResponse(
+        {
+            "success": not is_error and data is not None,
+            "data": data,
+            "error": None if not is_error else "Tool returned error",
+        }
+    )
 
 
 app = _mcp.http_app()

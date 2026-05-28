@@ -30,7 +30,7 @@ export default function Dashboard() {
   const [portStatuses, setPortStatuses] = useState<PortStatus[]>([
     { port: 10772, label: "Frontend (Vite)", status: "closed" },
     { port: 10773, label: "Backend (FastAPI)", status: "closed" },
-    { port: 10774, label: "GIMP Bridge", status: "closed" },
+    { port: 10824, label: "GIMP Bridge", status: "closed" },
   ]);
   const [uptime, setUptime] = useState(0);
 
@@ -43,7 +43,7 @@ export default function Dashboard() {
           p.status = resp.ok ? "open" : "closed";
         } catch {
           // Port closed - expected for GIMP bridge
-          if (p.port === 10774) {
+          if (p.port === 10824) {
             p.status =
               systemStatus?.live_mode?.mode === "live" ? "open" : "closed";
           }
