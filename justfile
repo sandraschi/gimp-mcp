@@ -1,10 +1,10 @@
-set windows-shell := ["pwsh.exe", "-NoLogo", "-Command"]
+﻿set windows-shell := ["pwsh.exe", "-NoLogo", "-Command"]
 
 gimp_bin := "C:\\Users\\sandr\\AppData\\Local\\Programs\\GIMP 3\\bin\\gimp-console-3.exe"
 
 # Open the interactive recipe dashboard in the browser
 default:
-    @pwsh.exe -NoProfile -ExecutionPolicy Bypass -File ../mcp-central-docs/scripts/just-dashboard.ps1 -Path .
+    @just --list
 
 # ── Startup ───────────────────────────────────────────────────────────────────
 
@@ -145,3 +145,4 @@ clean-gimp:
     Remove-Item -Recurse -Force "$env:APPDATA\GIMP\3.0\plug-ins\gimp_mcp_bridge" -ErrorAction SilentlyContinue
     Remove-Item -Recurse -Force "$env:APPDATA\GIMP\3.2\plug-ins\gimp_mcp_bridge" -ErrorAction SilentlyContinue
     Write-Host "GIMP bridge plugin removed" -ForegroundColor Yellow
+

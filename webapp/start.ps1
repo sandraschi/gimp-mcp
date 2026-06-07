@@ -26,7 +26,7 @@ function Clear-Port {
     $pids = $conns | Where-Object { $_.OwningProcess -gt 4 } | Select-Object -ExpandProperty OwningProcess -Unique
     if (-not $pids) { return $true }
     foreach ($pidKill in $pids) {
-        Write-Host "  Port $Port occupied by PID $pidKill — killing..." -ForegroundColor Yellow
+        Write-Host "  Port $Port occupied by PID $pidKill - killing..." -ForegroundColor Yellow
         try {
             $proc = Get-Process -Id $pidKill -ErrorAction Stop
             $proc.Kill()
@@ -41,7 +41,7 @@ function Clear-Port {
     Start-Sleep -Seconds 1
     $remain = Get-NetTCPConnection -LocalPort $Port -ErrorAction SilentlyContinue | Where-Object { $_.State -eq 'Listen' }
     if ($remain) {
-        Write-Host "  Port $Port STILL occupied after kill attempts — aborting" -ForegroundColor Red
+        Write-Host "  Port $Port STILL occupied after kill attempts - aborting" -ForegroundColor Red
         return $false
     }
     return $true
@@ -52,7 +52,7 @@ foreach ($p in @($WebPort, $BackendPort, $BridgePort)) {
     if (-not (Clear-Port -Port $p)) { $allClear = $false }
 }
 if (-not $allClear) {
-    Write-Host "Cannot proceed — close the processes manually and retry." -ForegroundColor Red
+    Write-Host "Cannot proceed - close the processes manually and retry." -ForegroundColor Red
     exit 1
 }
 Write-Host "  [ok] Ports are free" -ForegroundColor DarkGreen
@@ -84,7 +84,7 @@ if (-not $backendReady) {
 # 4. Launch Vite frontend
 Write-Host "Starting Vite frontend on port $WebPort ..." -ForegroundColor Green
 
-# Browser opener — polls until frontend responds
+# Browser opener - polls until frontend responds
 $frontendUrl = "http://127.0.0.1:$WebPort/"
 $pollScript = 'for ($i = 0; $i -lt 60; $i++) { try { $r = Invoke-WebRequest -Uri ' + "'$frontendUrl'" + ' -TimeoutSec 2 -UseBasicParsing -ErrorAction Stop; if ($r.Content -match "GIMP MCP") { Start-Process ' + "'$frontendUrl'" + '; break } } catch {}; Start-Sleep -Seconds 1 }'
 Start-Process powershell -ArgumentList "-NoProfile", "-WindowStyle", "Hidden", "-Command", $pollScript
