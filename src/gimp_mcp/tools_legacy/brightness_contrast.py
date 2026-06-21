@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """
 Brightness and Contrast adjustment tool for GIMP MCP Server.
 

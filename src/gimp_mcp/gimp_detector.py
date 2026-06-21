@@ -94,7 +94,7 @@ class GimpDetector:
     def _detect_from_running_process(self) -> str | None:
         """Detect GIMP from running process list using WMI."""
         try:
-            import subprocess, json
+            import subprocess
             result = subprocess.run(
                 ["powershell", "-NoProfile", "-Command",
                  "Get-CimInstance Win32_Process -Filter \"name='gimp-3.exe'\" | Select-Object -ExpandProperty ExecutablePath"],
@@ -214,7 +214,7 @@ class GimpDetector:
             try:
                 # Use 'where' on Windows, 'which' on Unix-like systems
                 cmd = "where" if self.system == "windows" else "which"
-                result = subprocess.run([cmd, exe_name], capture_output=True, text=True, timeout=10)
+                result = subprocess.run([cmd, exe_name], shell=False, capture_output=True, text=True, timeout=10)
 
                 if result.returncode == 0 and result.stdout.strip():
                     path = result.stdout.strip().split("\n")[0]  # Take first result
@@ -272,7 +272,7 @@ class GimpDetector:
         """
         try:
             # Run GIMP with version flag
-            result = subprocess.run([executable_path, "--version"], capture_output=True, text=True, timeout=30)
+            result = subprocess.run([executable_path, "--version"], shell=False, capture_output=True, text=True, timeout=30)
 
             if result.returncode != 0:
                 raise RuntimeError(f"GIMP version check failed: {result.stderr}")
@@ -295,9 +295,9 @@ class GimpDetector:
             return version
 
         except subprocess.TimeoutExpired:
-            raise RuntimeError("GIMP version check timed out")
+            raise RuntimeError("GIMP version check timed out") from None
         except Exception as e:
-            raise RuntimeError(f"GIMP version validation failed: {e}")
+            raise RuntimeError(f"GIMP version validation failed: {e}") from e
 
     def get_default_paths(self) -> list[str]:
         """

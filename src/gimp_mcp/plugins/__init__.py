@@ -9,7 +9,7 @@ import inspect
 import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type
+from typing import Any
 
 from ..cli_wrapper import GimpCliWrapper
 from ..config import GimpConfig

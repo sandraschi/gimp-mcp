@@ -203,63 +203,6 @@ class BaseToolCategory(ABC):
         """
         pass
 
-    def validate_file_path(self, file_path: str, must_exist: bool = True) -> bool:
-        """
-        Validate file path for security and accessibility.
-
-        Args:
-            file_path: Path to validate
-            must_exist: Whether file must exist
-
-        Returns:
-            bool: True if path is valid
-        """
-        try:
-            from pathlib import Path
-
-            path = Path(file_path).resolve()
-
-            # Check if file exists (if required)
-            if must_exist and not path.exists():
-                return False
-
-            # Check if parent directory exists (for output files)
-            if not must_exist and not path.parent.exists():
-                return False
-
-            # Security: Check if path is within allowed directories
-            if self.config.allowed_directories:
-                allowed = any(
-                    str(path).startswith(str(Path(allowed_dir).resolve()))
-                    for allowed_dir in self.config.allowed_directories
-                )
-                if not allowed:
-                    return False
-
-            return True
-
-        except Exception as e:
-            self.logger.debug(f"Path validation failed for {file_path}: {e}")
-            return False
-
-    def create_error_response(self, error_msg: str, details: dict | None = None) -> dict[str, Any]:
-        """
-        Create standardized error response.
-
-        Args:
-            error_msg: Error message
-            details: Optional error details
-
-        Returns:
-            Dict[str, Any]: Error response
-        """
-        response = {"success": False, "error": error_msg}
-
-        if details:
-            response["details"] = details
-
-        return response
-
     def create_success_response(
         self,
         data: Any = None,

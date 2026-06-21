@@ -41,23 +41,23 @@ from .transform import gimp_transform
 from .workspace import gimp_workspace
 
 __all__ = [
-    "gimp_file",
-    "gimp_transform",
-    "gimp_color",
-    "gimp_filter",
-    "gimp_layer",
     "gimp_analysis",
-    "gimp_batch",
-    "gimp_system",
-    "gimp_pdb",
-    "gimp_workspace",
-    "gimp_channel",
     "gimp_animation",
-    "gimp_paths",
-    "gimp_parasites",
-    "gimp_gmic",
-    "gimp_gegl",
+    "gimp_batch",
+    "gimp_channel",
+    "gimp_color",
     "gimp_color_management",
+    "gimp_file",
+    "gimp_filter",
+    "gimp_gegl",
+    "gimp_gmic",
+    "gimp_layer",
+    "gimp_parasites",
+    "gimp_paths",
+    "gimp_pdb",
+    "gimp_system",
+    "gimp_transform",
+    "gimp_workspace",
 ]
 
 # Tool metadata for discovery

@@ -12,9 +12,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Annotated, Any
 
-from pydantic import Field
-
 from fastmcp import Context
+from pydantic import Field
 
 from .logging_config import get_logger
 
@@ -51,7 +50,8 @@ def register_agentic_tools(mcp_instance=None):
         enhancement, and storage concerns.
 
         ## Return Format
-        {"success": bool, "message": str, "image_path": str, "dimensions": str, "style_preset": str, "model_used": str, "quality_level": str, "processing_applied": list, "quality_metrics": dict, "next_steps": list}
+        {"success": bool, "message": str, "image_path": str, "dimensions": str, "style_preset": str, "model_used": str, "quality_level": str, "processing_applied": list, "quality_metrics": dict,
+          "next_steps": list}
 
         ## Examples
         generate_image(description="a serene mountain lake at sunset", style_preset="photorealistic", dimensions="1024x1024")
@@ -234,7 +234,7 @@ def register_agentic_tools(mcp_instance=None):
                         max_tokens=900,
                     )
                     plan_text = (res.text or "").strip()
-                except Exception as se:  # noqa: BLE001 — host may not support sampling
+                except Exception as se:
                     sampling_error = str(se)
                     logger.debug("Sampling failed: %s", se, exc_info=True)
 
@@ -277,7 +277,8 @@ def register_agentic_tools(mcp_instance=None):
         {"success": bool, "message": str, "processing_goal": str, "image_count": int, "available_operations": list, "processing_strategy": str, "capabilities": list}
 
         ## Examples
-        intelligent_image_processing(images=[{"path": "/images/photo1.jpg"}, {"path": "/images/photo2.jpg"}], processing_goal="enhance old photos for printing", available_operations=["brightness_contrast", "sharpen"])
+        intelligent_image_processing(images=[{"path": "/images/photo1.jpg"}, {"path": "/images/photo2.jpg"}], processing_goal="enhance old photos", available_operations=["brightness_contrast",
+        "sharpen"])
         """
         try:
             {
@@ -336,7 +337,7 @@ def register_agentic_tools(mcp_instance=None):
             response_templates = {
                 "basic": "I can help you edit images with GIMP.",
                 "comprehensive": "I'm your GIMP image editing assistant. I can help you manipulate photos, apply effects, manage layers, adjust colors, and process images in batches.",
-                "detailed": "Welcome to GIMP MCP! I'm equipped with comprehensive image editing capabilities including file operations, geometric transforms, color adjustments, filters and effects, layer management, image analysis, and batch processing workflows.",
+                "detailed": "Welcome to GIMP MCP! I'm equipped with image editing: file ops, transforms, color, filters, layers, analysis, and batch workflows.",
             }
 
             result = {

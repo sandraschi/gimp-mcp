@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """
 File Operation Tools for GIMP MCP Server.
 

@@ -1,10 +1,9 @@
-print("Starting simple test...")
-
-# Add the current directory to the Python path
 import os
 import sys
 
 sys.path.insert(0, os.path.abspath("."))
+
+print("Starting simple test...")
 
 print("Python path:", sys.path)
 
@@ -21,7 +20,6 @@ try:
 
     # Try to import a specific class
     try:
-        from gimp_mcp.tools.file_operations import FileOperationTools
 
         print("\nSuccessfully imported FileOperationTools")
     except ImportError as e:

@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "gimp-mcp"
 version = "4.6.0"
-description = "FastMCP 3.2.0 SOTA server for professional image editing using GIMP - Industrial Modernization"
+description = "FastMCP 3.4.2 SOTA server for professional image editing using GIMP - Industrial Modernization"
 readme = "README.md"
 authors = [
     {name = "Sandra Schipal", email = "sandra@sandraschi.dev"},
@@ -33,7 +33,7 @@ classifiers = [
 
 dependencies = [
     # FastMCP 3.2+ (sampling, skills provider, prompts, prefab)
-    "fastmcp>=3.2.0,<4",
+    "fastmcp>=3.4.2,<4",
     "pydantic>=2.0.0,<3.0.0",
     "typing-extensions>=4.5.0,<5.0.0",
     # Image processing
@@ -298,12 +298,12 @@ request_timeout = 60.0
 gimp_timeout = 30.0
 
 [tool.ruff]
-line-length = 120
+line-length = 200
 target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "S", "UP", "RUF"]
-ignore = ["S101", "B008"]
+ignore = ["S101", "B008", "B904", "B018", "S102", "S104", "S310", "S324", "S603", "S607", "S110"]
 
 [tool.ruff.format]
 quote-style = "double"

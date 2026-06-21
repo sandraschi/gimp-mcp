@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """
 GIMP MCP Tools Package.
 
@@ -8,9 +6,8 @@ providing comprehensive image editing capabilities through GIMP integration.
 """
 
 import logging
-import sys
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Type, TypeVar, Union
+from typing import Any, TypeVar
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -77,62 +74,6 @@ TOOL_CATEGORIES = {
     "image_analysis": ImageAnalysisTools if "ImageAnalysisTools" in globals() else None,
     "performance_tools": PerformanceTools if "PerformanceTools" in globals() else None,
 }
-
-
-def get_tool_category(category_name: str) -> type[BaseToolCategory]:
-    """Get a tool category by name."""
-    if MISSING_IMPLEMENTATIONS:
-        raise RuntimeError("Some tool categories failed to import. Check logs for details.")
-
-    category = TOOL_CATEGORIES.get(category_name.lower())
-    if category is None:
-        valid_categories = ", ".join(f'"{name}"' for name in TOOL_CATEGORIES if TOOL_CATEGORIES[name] is not None)
-        raise ValueError(f"Unknown tool category: '{category_name}'. Valid categories are: {valid_categories}")
-    return category
-
-
-def list_tool_categories(include_experimental: bool = False) -> list[str]:
-    """List all available tool categories."""
-    if MISSING_IMPLEMENTATIONS:
-        raise RuntimeError("Some tool categories failed to import. Check logs for details.")
-
-    return [
-        name
-        for name, cls in TOOL_CATEGORIES.items()
-        if cls is not None and (include_experimental or not getattr(cls, "EXPERIMENTAL", False))
-    ]
-
-
-def get_tool_category_info(category_name: str) -> dict[str, Any]:
-    """Get information about a specific tool category."""
-    category = get_tool_category(category_name)
-    return {
-        "name": category_name,
-        "display_name": getattr(category, "DISPLAY_NAME", category_name.replace("_", " ").title()),
-        "description": getattr(category, "DESCRIPTION", ""),
-        "version": getattr(category, "VERSION", "0.1.0"),
-        "experimental": getattr(category, "EXPERIMENTAL", False),
-        "requires_gpu": getattr(category, "REQUIRES_GPU", False),
-    }
-
-
-__all__ = [
-    "BaseToolCategory",
-    "BatchProcessingTools",
-    "ColorAdjustmentTools",
-    "FileOperationResult",
-    "FileOperationTools",
-    "FilterTools",
-    "HelpTools",
-    "ImageAnalysisTools",
-    "LayerManagementTools",
-    "PerformanceTools",
-    "StatusTools",
-    "TransformTools",
-    "get_tool_category",
-    "get_tool_category_info",
-    "list_tool_categories",
-]
 
 
 # Additional metadata for tool categories

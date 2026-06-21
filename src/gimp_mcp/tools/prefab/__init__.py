@@ -13,4 +13,4 @@ def register_prefab_tools(mcp) -> None:
     logger.info("Prefab tool registered: gimp_capabilities_card")
 
 
-__all__ = ["register_prefab_tools", "gimp_capabilities_card"]
+__all__ = ["gimp_capabilities_card", "register_prefab_tools"]

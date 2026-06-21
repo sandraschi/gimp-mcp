@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 # Import the tool decorator
 sys.path.insert(0, ".")
-from src.gimp_mcp.tool_utils import tool
+from src.gimp_mcp.tool_utils import tool  # noqa: E402
 
 
 # Test class with tool methods

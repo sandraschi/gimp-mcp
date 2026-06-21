@@ -102,7 +102,7 @@ def _build_multimodal_messages(messages: list[dict], image_path: str | None) -> 
                 {"type": "image_url", "image_url": {"url": data_uri}},
             ],
         }
-        return messages[:-1] + [multimodal] if len(messages) > 1 else [multimodal]
+        return [*messages[:-1], multimodal] if len(messages) > 1 else [multimodal]
     except Exception as e:
         logger.warning(f"Failed to attach image to message: {e}")
         return messages
@@ -115,7 +115,7 @@ async def _ollama_chat(model: str, messages: list[dict], image_path: str | None)
             with open(image_path, "rb") as f:
                 b64 = base64.b64encode(f.read()).decode()
             msg["images"] = [b64]
-            messages = messages[:-1] + [msg] if len(messages) > 1 else [msg]
+            messages = [*messages[:-1], msg] if len(messages) > 1 else [msg]
         except Exception as e:
             logger.warning(f"Failed to attach image: {e}")
 

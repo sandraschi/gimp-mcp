@@ -211,7 +211,7 @@ def _resolve_named_filter(name: str, params: dict[str, Any] | None) -> dict[str,
             base_name = parts[0]
             existing_args = parts[1]
             existing_values = existing_args.split(",")
-            for i, (k, v) in enumerate(params.items()):
+            for i, (_k, v) in enumerate(params.items()):
                 if i < len(existing_values):
                     existing_values[i] = str(v)
                 else:

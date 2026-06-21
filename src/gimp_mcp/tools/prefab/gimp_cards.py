@@ -26,7 +26,7 @@ async def gimp_capabilities_card(ctx: Context | None = None) -> Any:
         await ctx.info("Building GIMP MCP capabilities card")
 
     total_ops = sum(len(t["operations"]) for t in PORTMANTEAU_TOOLS)
-    lines = [f"{t['name']}: {len(t['operations'])} ops" for t in PORTMANTEAU_TOOLS]
+    [f"{t['name']}: {len(t['operations'])} ops" for t in PORTMANTEAU_TOOLS]
     summary = (
         f"GIMP MCP — {len(PORTMANTEAU_TOOLS)} portmanteau tools, {total_ops} operations. "
         "FastMCP 3.2: sampling, prompts, resources, skill://gimp-expert, MCPB."

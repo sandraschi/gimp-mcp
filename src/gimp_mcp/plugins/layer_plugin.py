@@ -85,7 +85,6 @@ class LayerPlugin(GimpToolPlugin):
                     (new-layer (car (gimp-layer-new image width height RGBA-IMAGE "{layer_name}" {opacity} {mode})))
                 )
                     (gimp-image-insert-layer image new-layer 0 -1)
-                    {fill_command}
                     (gimp-displays-flush)
                     (gimp-file-save RUN-NONINTERACTIVE image new-layer "{image_path}" "{image_path}")
                     (gimp-image-delete image)

@@ -1,0 +1,48 @@
+{
+    "$schema": "https://schema.tauri.app/config/2",
+    "productName": "gimp-mcp",
+    "version": "0.1.0",
+    "identifier": "ai.fleet.gimp-mcp",
+    "build": {
+        "frontendDist": "../webapp/frontend/dist",
+        "devUrl": "http://localhost:10772",
+        "beforeDevCommand": "npm --prefix ../webapp/frontend run dev -- --port 10772",
+        "beforeBuildCommand": "npm --prefix ../webapp/frontend run build"},
+    "app": {
+        "windows": [
+            {
+                "label": "main",
+                "title": "GIMP MCP",
+                "width": 1280,
+                "height": 860,
+                "resizable": true
+            }
+        ],
+"security": {
+    "csp": null
+}
+    },
+    "bundle": {
+        "active": true,
+        "targets": ["nsis"],
+        "icon": ["icons/icon.png", "icons/icon.ico"],
+        "resources": [
+            "resources/gimp-mcp-backend.exe"
+        ],
+        "windows": {
+            "webviewInstallMode": {
+                "type": "skip"
+            },
+            "nsis": {
+                "installerHooks": "./windows/hooks.nsh",
+                "installMode": "currentUser",
+                "createDesktopShortcut": true,
+                "createStartMenuShortcut": true
+            }
+        }
+    },
+    "plugins": {}
+}
+
+
+

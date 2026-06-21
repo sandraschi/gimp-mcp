@@ -11,8 +11,8 @@ from ..config import GimpConfig
 from ..interaction_manager import GimpInteractionManager
 from .bridge_tools import gimp_bridge, gimp_render
 from .import_tools import gimp_import
-from .validation import gimp_validation
 from .sim_art_tools import gimp_sim_art
+from .validation import gimp_validation
 from .vision_refine_tools import gimp_vision_refine
 
 

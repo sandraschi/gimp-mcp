@@ -44,7 +44,7 @@ def register_all_prompts(mcp: FastMCP) -> None:
 
 1. List files under an allowed directory (host file tools or `gimp_system` diagnostics).
 2. `gimp_batch` — `operation=resize` or `convert` with explicit `input_directory` / `output_directory`.
-3. Spot-check with `gimp_analysis` on 1–2 samples.
+3. Spot-check with `gimp_analysis` on 1-2 samples.
 4. Verify disk space and paths before large runs.
 
 Use `gimp_system` `operation=help` if operation names are unclear.

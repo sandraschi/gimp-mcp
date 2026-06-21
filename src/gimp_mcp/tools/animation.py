@@ -70,7 +70,6 @@ async def gimp_animation(
     start_time = time.time()
 
     try:
-        from PIL import Image
 
         image_path_obj = Path(image_path)
 

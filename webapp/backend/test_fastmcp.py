@@ -38,6 +38,7 @@ def test_app_creation():
 async def test_server_and_agentic_tools():
     try:
         from src.gimp_mcp.main import GimpMcpServer
+        _ = GimpMcpServer
 
         print("PASS: Server module and MCP app imported successfully")
 

@@ -107,7 +107,7 @@ async def gimp_transform(
             If only height specified with maintain_aspect=True, width auto-calculated.
 
         maintain_aspect: Preserve aspect ratio. Used by: resize operation.
-            Default: True. When True, fits within width×height box.
+            Default: True. When True, fits within widthxheight box.
 
         interpolation: Resampling method. Used by: resize, rotate, scale, perspective.
             Valid: "nearest", "bilinear", "bicubic", "lanczos" (default)

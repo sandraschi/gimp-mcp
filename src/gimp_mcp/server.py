@@ -9,9 +9,8 @@ import logging
 import os
 from typing import Annotated, Any
 
-from pydantic import Field
-
 from fastmcp import FastMCP
+from pydantic import Field
 
 from .cli_wrapper import GimpCliWrapper
 from .config import GimpConfig

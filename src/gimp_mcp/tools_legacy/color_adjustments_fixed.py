@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """
 Fixed Color Adjustment Tools for GIMP MCP Server.
 

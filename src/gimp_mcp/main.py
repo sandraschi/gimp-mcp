@@ -33,6 +33,7 @@ from typing import Annotated, Any
 
 from fastmcp import FastMCP
 from fastmcp.server import create_proxy
+from pydantic import Field
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
@@ -45,6 +46,7 @@ from .interaction_manager import GimpInteractionManager
 from .logging_config import (
     setup_logging,
 )
+from .sota_registration import get_sota_feature_manifest
 
 # Import portmanteau tools (v3.0.0 architecture)
 from .tools import (
@@ -67,9 +69,6 @@ from .tools import (
     gimp_workspace,
 )
 from .tools.agent_lab_registration import register_agent_lab_tools
-from pydantic import Field
-
-from .sota_registration import get_sota_feature_manifest, register_fastmcp_32_surface
 from .transport import run_server, run_server_async
 
 # Legacy imports for backwards compatibility (reserved for future use if needed)
@@ -711,7 +710,7 @@ Each portmanteau tool handles multiple related operations through an 'operation'
 
             @self.mcp.tool(annotations={"readOnlyHint": True}, version="4.1.0")
             async def gimp_parasites_tool(
-                operation: Annotated[str, Field(description="Operation to execute: list_image, list_drawable, attach_image, attach_drawable, detach_image, detach_drawable, get_image, get_drawable, get_animation_delay.")],
+                operation: Annotated[str, Field(description="Operation: list/attach/detach/get for image/drawable/parasite.")],
                 image_path: Annotated[str, Field(description="Source image file path.")],
                 parasite_name: Annotated[str | None, Field(description="Name of the parasite.")] = None,
                 parasite_data: Annotated[str | None, Field(description="Data payload for attach operations.")] = None,
@@ -828,8 +827,8 @@ Each portmanteau tool handles multiple related operations through an 'operation'
 
             @self.mcp.tool(annotations={"readOnlyHint": True}, version="4.1.0")
             async def gimp_workspace_tool(
-                operation: Annotated[str, Field(description="Operation to execute: list_images, current_image, undo_count, undo, redo, undo_group_start, undo_group_end, get_metadata, set_resolution, set_unit.")],
-                image_id: Annotated[int | None, Field(description="Target image ID for workspace operations. Required for undo, redo, undo_group_start, undo_group_end, get_metadata, set_resolution, set_unit. Optional for current_image (omit to get active, set to switch).")] = None,
+                operation: Annotated[str, Field(description="Operation: list_images, current_image, undo, redo, metadata, resolution.")],
+                image_id: Annotated[int | None, Field(description="Image ID for undo/redo/metadata. Omit for current_image active.")] = None,
                 xresolution: Annotated[float, Field(description="Horizontal resolution in DPI for set_resolution.")] = 72.0,
                 yresolution: Annotated[float, Field(description="Vertical resolution in DPI for set_resolution.")] = 72.0,
                 unit: Annotated[int, Field(description="Unit ID for set_unit (0=pixels, 1=inches, 2=mm, 3=points, 4=picas).")] = 0,
@@ -1077,8 +1076,7 @@ async def main_async():
     logger.info("Starting GIMP MCP Server...")
 
     try:
-        from fastmcp.experimental.transforms import CodeMode
-        logger.info("CodeMode enabled for BM25 discovery")
+        pass  # CodeMode optional
     except ImportError:
         logger.debug("CodeMode not available -- skipping")
 

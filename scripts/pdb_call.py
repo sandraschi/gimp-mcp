@@ -1,8 +1,11 @@
 """Call a GIMP PDB procedure via CLI batch mode. Usage: python scripts/pdb_call.py <procedure>"""
-import asyncio, sys, os
+import asyncio
+import os
+import sys
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from gimp_mcp.config import GimpConfig
 from gimp_mcp.cli_wrapper import GimpCliWrapper
+from gimp_mcp.config import GimpConfig
 from gimp_mcp.tools.pdb_proxy import gimp_pdb
 
 proc = sys.argv[1] if len(sys.argv) > 1 else "gimp-version"

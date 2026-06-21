@@ -50,7 +50,10 @@ except ImportError:
     _AI_AVAILABLE = False
 
 try:
-    from .local_llm import detect as _llm_detect, chat as _llm_chat, update_settings as _llm_update_settings, understand_image, suggest_gimp_ops
+    from .local_llm import chat as _llm_chat
+    from .local_llm import detect as _llm_detect
+    from .local_llm import suggest_gimp_ops, understand_image
+    from .local_llm import update_settings as _llm_update_settings
     _LLM_AVAILABLE = True
 except ImportError:
     _LLM_AVAILABLE = False

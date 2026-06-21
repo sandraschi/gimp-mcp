@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """
 Fixed Transform Tools for GIMP MCP Server.
 

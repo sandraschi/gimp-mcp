@@ -464,7 +464,7 @@ def _color_balance(
 
     # Apply adjustments per tonal range
     for i, (cr, _mg, _yb) in enumerate([(cyan_red, magenta_green, yellow_blue)]):
-        for j, (adj, mask) in enumerate(zip([cr[0], cr[1], cr[2]], [shadows, midtones, highlights], strict=False)):
+        for _j, (adj, mask) in enumerate(zip([cr[0], cr[1], cr[2]], [shadows, midtones, highlights], strict=False)):
             # cr affects R, mg affects G, yb affects B
             if i == 0:  # cyan_red -> R channel
                 arr[:, :, 0] += adj * 2.55 * mask
