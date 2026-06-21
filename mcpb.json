@@ -1,0 +1,38 @@
+{
+  "name": "gimp-mcp",
+  "version": "4.6.0",
+  "type": "server",
+  "runtime": "python",
+  "entry_point": "src/gimp_mcp/mcp_server.py",
+  "dependencies": ["fastmcp>=3.4.2"],
+  "build": {
+    "include": [
+      "src/**/*",
+      "README.md",
+      "LICENSE",
+      "mcpb/**/*",
+      "skills/**/*",
+      "llms.txt",
+      "assets/prompts/*"
+    ],
+    "exclude": [
+      "tests/",
+      ".git/",
+      "__pycache__/",
+      "*.pyc",
+      ".venv/",
+      "dist/",
+      "build/",
+      "target/",
+      "*.mcpb",
+      ".pytest_cache/",
+      "webapp/frontend/node_modules/",
+      ".fix_*.py"
+    ]
+  },
+  "scripts": {
+    "build": "python build_mcpb.py",
+    "test": "python -m pytest",
+    "lint": "ruff check src"
+  }
+}

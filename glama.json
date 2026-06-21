@@ -1,0 +1,46 @@
+{
+  "$schema": "https://glama.ai/mcp/schemas/server.json",
+  "maintainers": ["sandraschi"],
+  "name": "gimp-mcp",
+  "version": "4.1.0",
+  "description": "FastMCP 4.0 SOTA server for professional image editing using GIMP 3. 9 portmanteau tools (including universal PDB proxy) consolidating 63+ operations. GIMP Live Bridge, headless CLI batch, and React/Vite SOTA dashboard.",
+  "type": "mcp_server",
+  "status": "stable",
+  "framework": "FastMCP 3.2+",
+  "tools": 9,
+  "transport": ["stdio", "streamable-http", "sse"],
+  "keywords": [
+    "gimp",
+    "image-editing",
+    "graphics",
+    "photo-editing",
+    "image-processing",
+    "mcp-server",
+    "fastmcp",
+    "portmanteau",
+    "pdb-proxy"
+  ],
+  "features": {
+    "file_operations": {
+      "enabled": true
+    },
+    "transforms": {
+      "enabled": true,
+      "operations": ["resize", "crop", "rotate", "flip", "scale", "perspective"]
+    },
+    "color_adjustments": {
+      "enabled": true,
+      "features": ["brightness", "contrast", "levels", "curves", "HSL"]
+    },
+    "filters": {
+      "enabled": true
+    },
+    "layer_management": {
+      "enabled": true
+    },
+    "pdb_proxy": {
+      "enabled": true,
+      "description": "Universal GIMP PDB procedure call — access all ~1000+ PDB procedures by name"
+    }
+  }
+}
