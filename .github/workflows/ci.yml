@@ -2,9 +2,8 @@ name: GIMP MCP CI
 
 on:
   push:
-    branches: [ main, dev ]
-  pull_request:
-    branches: [ main ]
+    tags: ["v*"]
+  workflow_dispatch:
 
 jobs:
   test:

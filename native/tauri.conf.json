@@ -31,7 +31,8 @@
       "icons/icon.ico"
     ],
     "resources": [
-      "resources/gimp-mcp-backend.exe"
+      "resources/gimp-mcp-backend.exe",
+            "resources/.env"
     ],
     "windows": {
       "webviewInstallMode": {
