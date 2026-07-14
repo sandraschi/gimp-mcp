@@ -120,6 +120,95 @@ async def _api_skills_list(_request: Request) -> Response:
     return JSONResponse({"skills": skills})
 
 
+_DEMOS_DIR = Path(__file__).resolve().parent.parent.parent / "demos"
+
+
+@_mcp.custom_route("/api/demos", methods=["GET"])
+async def _api_demos_list(_request: Request) -> Response:
+    """List available demo scripts with descriptions and step counts."""
+    demos = []
+    if _DEMOS_DIR.is_dir():
+        import importlib.util
+
+        for py_file in sorted(_DEMOS_DIR.glob("*.py")):
+            if py_file.stem.startswith("_"):
+                continue
+            try:
+                spec = importlib.util.spec_from_file_location(py_file.stem, py_file)
+                mod = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(mod)
+                demos.append({
+                    "id": py_file.stem,
+                    "description": getattr(mod, "DESCRIPTION", ""),
+                    "steps": len(getattr(mod, "STEPS", [])),
+                    "file": py_file.name,
+                })
+            except Exception as exc:
+                demos.append({"id": py_file.stem, "error": str(exc)})
+    return JSONResponse({"demos": demos})
+
+
+@_mcp.custom_route("/api/demos/run", methods=["POST"])
+async def _api_demo_run(request: Request) -> Response:
+    """Run a demo by name. POST body: {"demo_id": "portrait_retouch"}"""
+    body = await request.json()
+    demo_id = body.get("demo_id", "") if body else ""
+    if not demo_id:
+        return JSONResponse({"success": False, "error": "demo_id required"}, status_code=400)
+
+    py_file = _DEMOS_DIR / f"{demo_id}.py"
+    if not py_file.is_file():
+        return JSONResponse({"success": False, "error": f"Demo '{demo_id}' not found"}, status_code=404)
+
+    import importlib.util
+    import json as _json
+    import urllib.request as _ur
+    import traceback as _tb
+
+    spec = importlib.util.spec_from_file_location(demo_id, py_file)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+
+    steps = getattr(mod, "STEPS", [])
+    port = os.environ.get("MCP_PORT", "10773")
+    api_base = f"http://127.0.0.1:{port}/api/v1/tool"
+    results = []
+
+    for step_name, step_label, tool, params in steps:
+        try:
+            payload = _json.dumps({"tool": tool, "arguments": params}).encode()
+            req = _ur.Request(
+                api_base, data=payload,
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            with _ur.urlopen(req, timeout=120) as resp:
+                result = _json.loads(resp.read())
+            results.append({
+                "step": step_name,
+                "label": step_label,
+                "success": result.get("success", False),
+                "has_snapshot": "image_base64" in result,
+                "result": {k: v for k, v in result.items() if k != "image_base64"},
+            })
+        except Exception as exc:
+            results.append({
+                "step": step_name,
+                "label": step_label,
+                "success": False,
+                "error": str(exc),
+                "traceback": _tb.format_exc(),
+            })
+
+    return JSONResponse({
+        "success": True,
+        "demo_id": demo_id,
+        "total_steps": len(steps),
+        "completed": len([r for r in results if r.get("success")]),
+        "results": results,
+    })
+
+
 @_mcp.custom_route("/api/skills/{skill_name:str}", methods=["GET"])
 async def _api_skill_content(request: Request) -> Response:
     skill_name = request.path_params["skill_name"]

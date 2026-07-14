@@ -7,6 +7,7 @@ import AppsHub from "./pages/apps-hub";
 import BatchProcessor from "./pages/batch-processor";
 import ChatPage from "./pages/chat";
 import Dashboard from "./pages/dashboard";
+import DemosPage from "./pages/demos";
 import FastmcpSotaPage from "./pages/fastmcp-sota";
 import HelpPage from "./pages/help";
 import ImageEditor from "./pages/image-editor";
@@ -78,6 +79,8 @@ function App() {
         return <ScriptFuConsole />;
       case "settings":
         return <SettingsPage />;
+      case "demos":
+        return <DemosPage />;
       case "fastmcp-sota":
         return <FastmcpSotaPage />;
       case "help":

@@ -28,6 +28,7 @@ export function Sidebar() {
   const mainNavItems = [
     { id: "agent-tools", icon: Bot, label: "Agent Tools" },
     { id: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
+    { id: "demos", icon: Sparkles, label: "Demos" },
     { id: "apps-hub", icon: Globe, label: "Apps Hub" },
     { id: "chat", icon: MessageSquare, label: "Chat" },
     { id: "image-editor", icon: Image, label: "Editor" },
