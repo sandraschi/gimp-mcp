@@ -10,6 +10,7 @@ $WindowStyle = if ($Headless) { 'Hidden' } else { 'Normal' }
 # ------------------------------
 
 # Webapp Start - Standardized SOTA (v4.0.1)
+$ProjectRoot = Split-Path -Parent $PSScriptRoot
 $WebPort = 10772
 $BackendPort = 10773
 $FleetStartPath = Join-Path $ProjectRoot "scripts\FleetStartMode.ps1"
@@ -20,7 +21,6 @@ if (-not (Test-Path -LiteralPath $FleetStartPath)) {
 . $FleetStartPath
 
 $BridgePort = 10824
-$ProjectRoot = Split-Path -Parent $PSScriptRoot
 
 # 1. Aggressive port clearing with fallback
 Write-Host "=== gimp-mcp Webapp Startup ===" -ForegroundColor Cyan
