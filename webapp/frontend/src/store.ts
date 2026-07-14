@@ -43,6 +43,8 @@ interface AppState {
   logs: LogEntry[];
   loggerOpen: boolean;
   helpOpen: boolean;
+  compactMode: boolean;
+  popOutWindow: Window | null;
   setCurrentPage: (page: string) => void;
   setSystemStatus: (status: GimpSystemStatus | null) => void;
   addToast: (message: string, variant: Toast["variant"]) => void;
@@ -51,6 +53,8 @@ interface AppState {
   clearLogs: () => void;
   setLoggerOpen: (open: boolean) => void;
   setHelpOpen: (open: boolean) => void;
+  toggleCompactMode: () => void;
+  setPopOutWindow: (w: Window | null) => void;
 }
 
 export const useStore = create<AppState>((set, get) => ({
@@ -60,6 +64,8 @@ export const useStore = create<AppState>((set, get) => ({
   logs: [],
   loggerOpen: false,
   helpOpen: false,
+  compactMode: localStorage.getItem("gimp-mcp-compact") === "true",
+  popOutWindow: null,
 
   setCurrentPage: (page) => set({ currentPage: page }),
 
@@ -90,4 +96,13 @@ export const useStore = create<AppState>((set, get) => ({
   setLoggerOpen: (open) => set({ loggerOpen: open }),
 
   setHelpOpen: (open) => set({ helpOpen: open }),
+
+  toggleCompactMode: () =>
+    set((s) => {
+      const next = !s.compactMode;
+      localStorage.setItem("gimp-mcp-compact", String(next));
+      return { compactMode: next };
+    }),
+
+  setPopOutWindow: (w) => set({ popOutWindow: w }),
 }));

@@ -2,97 +2,159 @@ import {
   Globe,
   HelpCircle,
   ScrollText,
-  Search,
-  Wifi,
-  WifiOff,
+  Minimize2,
+  Maximize2,
+  ExternalLink,
+  Menu,
+  ChevronDown,
 } from "lucide-react";
+import { useState } from "react";
 import { useStore } from "../store";
+
+const pageLabels: Record<string, string> = {
+  dashboard: "Dashboard",
+  demos: "Demos",
+  "apps-hub": "Apps Hub",
+  chat: "LLM Chat",
+  "image-editor": "Editor",
+  "batch-processor": "Batch",
+  "layer-manager": "Layers",
+  "tools-explorer": "Tools",
+  skills: "Skills",
+  "api-docs": "API Docs",
+  "system-status": "Status",
+  "script-fu-console": "Script-Fu",
+  "fastmcp-sota": "FastMCP 3.2",
+  "agent-tools": "Agent Tools",
+  help: "Help",
+  settings: "Settings",
+};
 
 export function Navbar() {
   const currentPage = useStore((s) => s.currentPage);
   const systemStatus = useStore((s) => s.systemStatus);
+  const compactMode = useStore((s) => s.compactMode);
+  const setCurrentPage = useStore((s) => s.setCurrentPage);
   const setLoggerOpen = useStore((s) => s.setLoggerOpen);
   const setHelpOpen = useStore((s) => s.setHelpOpen);
+  const toggleCompactMode = useStore((s) => s.toggleCompactMode);
+  const [navOpen, setNavOpen] = useState(false);
 
-  const getTitle = () => {
-    const titles: Record<string, string> = {
-      dashboard: "Dashboard",
-      "apps-hub": "Apps Hub",
-      chat: "LLM Chat",
-      "image-editor": "Image Editor",
-      "batch-processor": "Batch Processor",
-      "layer-manager": "Layer Manager",
-      "tools-explorer": "Tools Explorer",
-      skills: "Skills",
-      "api-docs": "API Docs",
-      "system-status": "System Status",
-      "script-fu-console": "Script-Fu Console",
-      "fastmcp-sota": "FastMCP 3.2 SOTA",
-    };
-    return titles[currentPage] || "GIMP MCP";
-  };
-
-  const getModeInfo = () => {
-    const mode = systemStatus?.live_mode?.mode;
-    if (mode === "live")
-      return {
-        label: "Live Bridge",
-        color: "bg-green-500",
-        text: "text-green-400",
-      };
-    if (mode === "headless")
-      return {
-        label: "Headless CLI",
-        color: "bg-blue-500",
-        text: "text-blue-400",
-      };
+  const mode = (() => {
+    const m = systemStatus?.live_mode?.mode;
+    if (m === "live") return { label: "Live", color: "bg-green-500", text: "text-green-400" };
+    if (m === "headless") return { label: "CLI", color: "bg-blue-500", text: "text-blue-400" };
     return { label: "Offline", color: "bg-red-500", text: "text-red-400" };
-  };
+  })();
 
-  const mode = getModeInfo();
   const healthy = systemStatus?.status === "healthy";
 
+  const handlePopOut = () => {
+    const w = window.open(
+      window.location.href,
+      "gimp-mcp",
+      "width=480,height=720,menubar=no,toolbar=no,location=no"
+    );
+  };
+
   return (
-    <nav className="h-12 border-b bg-card/80 backdrop-blur-sm flex items-center justify-between px-5 shrink-0 z-40">
-      <div className="flex items-center gap-4">
-        <h1 className="text-sm font-semibold">{getTitle()}</h1>
-        <div className="flex items-center gap-2 text-[11px]">
-          <span
-            className={`w-1.5 h-1.5 rounded-full ${healthy ? "bg-green-500" : "bg-red-500"}`}
-          />
-          <span
-            className={`font-mono ${healthy ? "text-green-400" : "text-red-400"}`}
-          >
-            {healthy ? "healthy" : "degraded"}
-          </span>
+    <nav
+      className={`h-12 border-b bg-background/80 backdrop-blur-sm flex items-center justify-between px-3 shrink-0 z-40 ${
+        compactMode ? "border-t-2 border-t-amber-500/30" : ""
+      }`}
+    >
+      {/* Left: compact nav dropdown or full title */}
+      <div className="flex items-center gap-2 min-w-0">
+        {compactMode ? (
+          <div className="relative">
+            <button
+              onClick={() => setNavOpen(!navOpen)}
+              className="flex items-center gap-1.5 px-2 py-1.5 rounded-md hover:bg-secondary text-xs font-medium"
+            >
+              <Menu className="w-3.5 h-3.5" />
+              <span className="truncate max-w-24">{pageLabels[currentPage] || currentPage}</span>
+              <ChevronDown className="w-3 h-3" />
+            </button>
+            {navOpen && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setNavOpen(false)} />
+                <div className="absolute top-full left-0 mt-1 w-44 bg-popover border rounded-lg shadow-xl z-20 py-1 max-h-72 overflow-y-auto">
+                  {Object.entries(pageLabels).map(([id, label]) => (
+                    <button
+                      key={id}
+                      onClick={() => { setCurrentPage(id); setNavOpen(false); }}
+                      className={`w-full text-left px-3 py-1.5 text-xs hover:bg-secondary transition-colors ${
+                        id === currentPage ? "text-primary font-medium" : "text-muted-foreground"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        ) : (
+          <h1 className="text-sm font-semibold truncate">{pageLabels[currentPage] || "GIMP MCP"}</h1>
+        )}
+
+        {/* Status dot */}
+        <div className="flex items-center gap-1.5">
+          <span className={`w-1.5 h-1.5 rounded-full ${healthy ? "bg-green-500" : "bg-red-500"}`} />
+          {!compactMode && (
+            <span className={`text-[11px] font-mono ${healthy ? "text-green-400" : "text-red-400"}`}>
+              {healthy ? "healthy" : "degraded"}
+            </span>
+          )}
         </div>
       </div>
 
+      {/* Right: controls */}
       <div className="flex items-center gap-1">
-        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-secondary rounded-full text-[11px] mr-2">
-          <span className={`w-1.5 h-1.5 rounded-full ${mode.color}`} />
-          <span className="text-muted-foreground font-medium">
-            {mode.label}
-          </span>
-        </div>
+        {!compactMode && (
+          <div className="flex items-center gap-1.5 px-2 py-1 bg-secondary rounded-full text-[11px] mr-1">
+            <span className={`w-1.5 h-1.5 rounded-full ${mode.color}`} />
+            <span className="text-muted-foreground font-medium">{mode.label}</span>
+          </div>
+        )}
 
         <button
           type="button"
           onClick={() => setLoggerOpen(true)}
           className="p-1.5 hover:bg-secondary rounded-lg transition-colors text-muted-foreground hover:text-foreground"
-          title="Global Logger"
+          title="Logger"
         >
           <ScrollText className="w-4 h-4" />
         </button>
 
         <button
           type="button"
-          onClick={() => setHelpOpen(true)}
-          className="p-1.5 hover:bg-secondary rounded-lg transition-colors text-muted-foreground hover:text-foreground"
-          title="Help"
+          onClick={handlePopOut}
+          className="p-1.5 hover:bg-secondary rounded-lg transition-colors text-muted-foreground hover:text-foreground hidden md:inline-flex"
+          title="Pop out to separate window"
         >
-          <HelpCircle className="w-4 h-4" />
+          <ExternalLink className="w-4 h-4" />
         </button>
+
+        <button
+          type="button"
+          onClick={toggleCompactMode}
+          className="p-1.5 hover:bg-secondary rounded-lg transition-colors text-muted-foreground hover:text-foreground"
+          title={compactMode ? "Full mode" : "Companion mode"}
+        >
+          {compactMode ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
+        </button>
+
+        {!compactMode && (
+          <button
+            type="button"
+            onClick={() => setHelpOpen(true)}
+            className="p-1.5 hover:bg-secondary rounded-lg transition-colors text-muted-foreground hover:text-foreground"
+            title="Help"
+          >
+            <HelpCircle className="w-4 h-4" />
+          </button>
+        )}
       </div>
     </nav>
   );

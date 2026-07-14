@@ -3,12 +3,32 @@ import { HelpModal } from "./HelpModal";
 import { LoggerModal } from "./LoggerModal";
 import { Navbar } from "./Navbar";
 import { Sidebar } from "./Sidebar";
+import { useStore } from "../store";
 
 interface AppLayoutProps {
   children: React.ReactNode;
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
+  const compactMode = useStore((s) => s.compactMode);
+
+  if (compactMode) {
+    return (
+      <div className="flex h-screen bg-background text-foreground overflow-hidden font-sans">
+        <div className="flex-1 flex flex-col min-w-0">
+          <Navbar />
+          <main className="flex-1 overflow-y-auto p-3 relative">
+            <div className="max-w-2xl mx-auto animate-in fade-in duration-500">
+              {children}
+            </div>
+          </main>
+        </div>
+        <LoggerModal />
+        <HelpModal />
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden font-sans selection:bg-primary/30">
       <Sidebar />
