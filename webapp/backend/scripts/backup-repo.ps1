@@ -133,13 +133,13 @@ function Show-BackupHistory {
         [string[]]$BackupDirs
     )
     
-    Write-Host "`n╔═══════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-    Write-Host "║        📊 Backup History: $RepoName 📊         ║" -ForegroundColor Cyan
-    Write-Host "╚═══════════════════════════════════════════════════════════╝`n" -ForegroundColor Cyan
+    Write-Host "`nâ•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•-" -ForegroundColor Cyan
+    Write-Host "â•‘        ðŸ“Š Backup History: $RepoName ðŸ“Š         â•‘" -ForegroundColor Cyan
+    Write-Host "â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•`n" -ForegroundColor Cyan
     
     foreach ($backupDir in $BackupDirs) {
         if (-not (Test-Path $backupDir)) {
-            Write-Host "⚠️  Location: $backupDir (not found)`n" -ForegroundColor Yellow
+            Write-Host "âš ï¸  Location: $backupDir (not found)`n" -ForegroundColor Yellow
             continue
         }
         
@@ -147,7 +147,7 @@ function Show-BackupHistory {
         $locationName = Split-Path $backupDir -Leaf
         $parentDir = Split-Path $backupDir -Parent | Split-Path -Leaf
         
-        Write-Host "📍 $parentDir\$locationName" -ForegroundColor White
+        Write-Host "ðŸ“ $parentDir\$locationName" -ForegroundColor White
         Write-Host "   Total backups: $($backups.Count)" -ForegroundColor Gray
         
         if ($backups.Count -gt 0) {
@@ -179,7 +179,7 @@ function Get-FileHashSHA256 {
     
     if ($ShowProgress) {
         $fileName = Split-Path $FilePath -Leaf
-        Write-Host "  🔐 Computing hash: $fileName..." -NoNewline -ForegroundColor DarkGray
+        Write-Host "  ðŸ” Computing hash: $fileName..." -NoNewline -ForegroundColor DarkGray
     }
     
     $hashBytes = $hash.ComputeHash($fileStream)
@@ -187,7 +187,7 @@ function Get-FileHashSHA256 {
     $hash.Dispose()
     
     if ($ShowProgress) {
-        Write-Host " ✓" -ForegroundColor Green
+        Write-Host " âœ“" -ForegroundColor Green
     }
     
     return [System.BitConverter]::ToString($hashBytes) -replace '-', ''
@@ -211,7 +211,7 @@ function Test-BackupDuplicate {
     
     if ($previousBackups.Count -eq 0) {
         if ($Verbose) {
-            Write-Host "  ℹ️  No previous backup found for comparison" -ForegroundColor DarkGray
+            Write-Host "  â„¹ï¸  No previous backup found for comparison" -ForegroundColor DarkGray
         }
         return $false
     }
@@ -219,7 +219,7 @@ function Test-BackupDuplicate {
     # Compare with most recent backup
     $previousBackup = $previousBackups[0]
     if ($Verbose) {
-        Write-Host "  🔍 Comparing with previous backup: $(Split-Path $previousBackup.Name -Leaf)" -ForegroundColor DarkGray
+        Write-Host "  ðŸ” Comparing with previous backup: $(Split-Path $previousBackup.Name -Leaf)" -ForegroundColor DarkGray
     }
     
     $newHash = Get-FileHashSHA256 -FilePath $NewBackupPath -ShowProgress:$Verbose
@@ -227,10 +227,10 @@ function Test-BackupDuplicate {
     
     $isDuplicate = ($newHash -eq $previousHash)
     if ($Verbose -and $isDuplicate) {
-        Write-Host "  ✓ Hashes match - duplicate detected" -ForegroundColor Yellow
+        Write-Host "  âœ“ Hashes match - duplicate detected" -ForegroundColor Yellow
     }
     elseif ($Verbose) {
-        Write-Host "  ✓ Hashes differ - backup is new" -ForegroundColor Green
+        Write-Host "  âœ“ Hashes differ - backup is new" -ForegroundColor Green
     }
     
     return $isDuplicate
@@ -453,10 +453,10 @@ function Save-ErrorLog {
         $logContent += ($script:ErrorLog -join "`n`n")
         
         $logContent | Out-File -FilePath $LogPath -Encoding UTF8 -ErrorAction Stop
-        Write-Host "`n📝 Error log saved to: $LogPath" -ForegroundColor Cyan
+        Write-Host "`nðŸ“ Error log saved to: $LogPath" -ForegroundColor Cyan
     }
     catch {
-        Write-Host "⚠️  Failed to save error log: $_" -ForegroundColor Yellow
+        Write-Host "âš ï¸  Failed to save error log: $_" -ForegroundColor Yellow
     }
 }
 
@@ -481,7 +481,7 @@ if ($List) {
     }
 
     if ($repoName -eq "unknown") {
-        Write-Host "❌ Error: Must run from repository root (need pyproject.toml, .git, or package.json) to list backups." -ForegroundColor Red
+        Write-Host "âŒ Error: Must run from repository root (need pyproject.toml, .git, or package.json) to list backups." -ForegroundColor Red
         exit 1
     }
     $desktopDir = Join-Path (Join-Path ([Environment]::GetFolderPath("Desktop")) "repo backup") $repoName
@@ -492,9 +492,9 @@ if ($List) {
     exit 0 # Exit after listing
 }
 
-Write-Host "`n╔═══════════════════════════════════════════════════════════╗" -ForegroundColor Magenta
-Write-Host "║   📦 Repository Backup (SOTA Error Handling) 📦        ║" -ForegroundColor Magenta
-Write-Host "╚═══════════════════════════════════════════════════════════╝`n" -ForegroundColor Magenta
+Write-Host "`nâ•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•-" -ForegroundColor Magenta
+Write-Host "â•‘   ðŸ“¦ Repository Backup (SOTA Error Handling) ðŸ“¦        â•‘" -ForegroundColor Magenta
+Write-Host "â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•`n" -ForegroundColor Magenta
 
 # Validate we're in a repository
 try {
@@ -540,7 +540,7 @@ catch {
 }
 
 # Display configuration
-Write-Host "📋 Backup Configuration:" -ForegroundColor Cyan
+Write-Host "ðŸ“‹ Backup Configuration:" -ForegroundColor Cyan
 Write-Host "  Repository:    $repoName" -ForegroundColor White
 Write-Host "  Timestamp:     $timestamp" -ForegroundColor White
 Write-Host "  Include build: $(if($IncludeBuild){'Yes'}else{'No'})" -ForegroundColor White
@@ -563,7 +563,7 @@ foreach ($dest in $backupDestinations) {
             continue
         }
         
-        Write-Host "  ✅ $($dest.Name): $($dest.Path)" -ForegroundColor Green
+        Write-Host "  âœ… $($dest.Name): $($dest.Path)" -ForegroundColor Green
     }
     catch {
         Write-ErrorLog "Failed to setup $($dest.Name) backup location: $($dest.Path)" "Error" $_
@@ -622,7 +622,7 @@ if (-not $IncludeBuild) {
 # Load repository-specific rules if present
 $rulesFile = Join-Path $repoRoot ".backup-rules.md"
 if (Test-Path $rulesFile) {
-    Write-Host "📜 Found .backup-rules.md - loading custom rules..." -ForegroundColor Cyan
+    Write-Host "ðŸ“œ Found .backup-rules.md - loading custom rules..." -ForegroundColor Cyan
     $rules = Get-Content $rulesFile
     
     # 1. Standard ALWAYS exclude
@@ -635,10 +635,10 @@ if (Test-Path $rulesFile) {
     
     if (-not $isWeeklyDay -and $weeklyRules) {
         $customExclusions += $weeklyRules
-        Write-Host "  📅 Today is not Sunday - applying $($weeklyRules.Count) weekly exclusions" -ForegroundColor Gray
+        Write-Host "  ðŸ“… Today is not Sunday - applying $($weeklyRules.Count) weekly exclusions" -ForegroundColor Gray
     }
     elseif ($isWeeklyDay -and $weeklyRules) {
-        Write-Host "  ✨ Sunday! Including $($weeklyRules.Count) weekly items in backup" -ForegroundColor Green
+        Write-Host "  âœ¨ Sunday! Including $($weeklyRules.Count) weekly items in backup" -ForegroundColor Green
     }
 
     # 3. MONTHLY (Exclude UNLESS today is the 1st)
@@ -647,26 +647,26 @@ if (Test-Path $rulesFile) {
 
     if (-not $isMonthlyDay -and $monthlyRules) {
         $customExclusions += $monthlyRules
-        Write-Host "  📅 Today is not the 1st - applying $($monthlyRules.Count) monthly exclusions" -ForegroundColor Gray
+        Write-Host "  ðŸ“… Today is not the 1st - applying $($monthlyRules.Count) monthly exclusions" -ForegroundColor Gray
     }
     elseif ($isMonthlyDay -and $monthlyRules) {
-        Write-Host "  ✨ 1st of the month! Including $($monthlyRules.Count) monthly items in backup" -ForegroundColor Green
+        Write-Host "  âœ¨ 1st of the month! Including $($monthlyRules.Count) monthly items in backup" -ForegroundColor Green
     }
     
     if ($customExclusions) {
         $exclusions += $customExclusions
-        Write-Host "  ✅ Applied total of $($customExclusions.Count) rules from .backup-rules.md" -ForegroundColor Gray
+        Write-Host "  âœ… Applied total of $($customExclusions.Count) rules from .backup-rules.md" -ForegroundColor Gray
     }
 }
 
-Write-Host "🚫 Excluding:" -ForegroundColor Yellow
+Write-Host "ðŸš« Excluding:" -ForegroundColor Yellow
 foreach ($excl in $exclusions) {
     Write-Host "  - $excl" -ForegroundColor Gray
 }
 Write-Host ""
 
 # Analyze repository size
-Write-Host "📊 Analyzing repository size..." -ForegroundColor Cyan
+Write-Host "ðŸ“Š Analyzing repository size..." -ForegroundColor Cyan
 
 try {
     $allFiles = Get-ChildItem -Recurse -File -ErrorAction SilentlyContinue | Where-Object {
@@ -717,13 +717,13 @@ try {
     
     # Exit early if WhatIf (after file analysis)
     if ($WhatIf) {
-        Write-Host "`n⚠️  DRY-RUN MODE: No files will be created`n" -ForegroundColor Yellow
-        Write-Host "📋 Files that would be backed up: $($backupFiles.Count) files ($([math]::Round($backupSize / 1MB, 2)) MB)" -ForegroundColor Cyan
-        Write-Host "📦 Backup locations:" -ForegroundColor Cyan
+        Write-Host "`nâš ï¸  DRY-RUN MODE: No files will be created`n" -ForegroundColor Yellow
+        Write-Host "ðŸ“‹ Files that would be backed up: $($backupFiles.Count) files ($([math]::Round($backupSize / 1MB, 2)) MB)" -ForegroundColor Cyan
+        Write-Host "ðŸ“¦ Backup locations:" -ForegroundColor Cyan
         foreach ($dest in $backupDestinations) {
             Write-Host "  - $($dest.Name): $($dest.Path)" -ForegroundColor White
         }
-        Write-Host "`n✅ Dry-run complete - no files created`n" -ForegroundColor Green
+        Write-Host "`nâœ… Dry-run complete - no files created`n" -ForegroundColor Green
         exit 0
     }
     
@@ -734,14 +734,14 @@ catch {
 }
 
 # Create backups
-Write-Host "🔄 Creating backups..." -ForegroundColor Cyan
+Write-Host "ðŸ”„ Creating backups..." -ForegroundColor Cyan
 Write-Host ""
 
 $successfulBackups = 0
 $failedBackups = 0
 
 foreach ($dest in $backupDestinations) {
-    Write-Host "  → $($dest.Name) backup..." -ForegroundColor Gray
+    Write-Host "  â†’ $($dest.Name) backup..." -ForegroundColor Gray
     
     try {
         $result = Invoke-WithRetry -ScriptBlock {
@@ -750,7 +750,7 @@ foreach ($dest in $backupDestinations) {
         
         # Check for duplicates (if it's not the first backup)
         if (Test-BackupDuplicate -NewBackupPath $dest.BackupPath -BackupDir $dest.Path -Verbose:$Verbose) {
-            Write-Host "  ⏭️  $($dest.Name) backup identical to previous - removing duplicate" -ForegroundColor Yellow
+            Write-Host "  â­ï¸  $($dest.Name) backup identical to previous - removing duplicate" -ForegroundColor Yellow
             Remove-Item $dest.BackupPath -Force
             $script:BackupResults[$dest.Name] = @{ Success = $true; Skipped = $true }
         }
@@ -760,10 +760,10 @@ foreach ($dest in $backupDestinations) {
             $successfulBackups++
             
             $backupSizeMB = [math]::Round($result.BackupSize / 1MB, 2)
-            Write-Host "  ✅ $($dest.Name) backup complete: $backupSizeMB MB ($($result.FilesAdded) files)" -ForegroundColor Green
+            Write-Host "  âœ… $($dest.Name) backup complete: $backupSizeMB MB ($($result.FilesAdded) files)" -ForegroundColor Green
             
             if ($result.FilesFailed -gt 0) {
-                Write-Host "    ⚠️  Warning: $($result.FilesFailed) files failed to add" -ForegroundColor Yellow
+                Write-Host "    âš ï¸  Warning: $($result.FilesFailed) files failed to add" -ForegroundColor Yellow
             }
         }
         
@@ -772,44 +772,44 @@ foreach ($dest in $backupDestinations) {
         $failedBackups++
         $script:BackupResults[$dest.Name] = @{ Success = $false; Error = $_.Exception.Message }
         Write-ErrorLog "Failed to create $($dest.Name) backup" "Error" $_
-        Write-Host "  ❌ $($dest.Name) backup failed: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "  âŒ $($dest.Name) backup failed: $($_.Exception.Message)" -ForegroundColor Red
     }
     
     Write-Host ""
 }
 
 # Summary
-Write-Host "╔═══════════════════════════════════════════════════════════╗" -ForegroundColor $(if ($failedBackups -eq 0) { "Green" } else { "Yellow" })
-Write-Host "║              📦 Backup Summary 📦                        ║" -ForegroundColor $(if ($failedBackups -eq 0) { "Green" } else { "Yellow" })
-Write-Host "╚═══════════════════════════════════════════════════════════╝" -ForegroundColor $(if ($failedBackups -eq 0) { "Green" } else { "Yellow" })
+Write-Host "â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•-" -ForegroundColor $(if ($failedBackups -eq 0) { "Green" } else { "Yellow" })
+Write-Host "â•‘              ðŸ“¦ Backup Summary ðŸ“¦                        â•‘" -ForegroundColor $(if ($failedBackups -eq 0) { "Green" } else { "Yellow" })
+Write-Host "â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•" -ForegroundColor $(if ($failedBackups -eq 0) { "Green" } else { "Yellow" })
 Write-Host ""
 
 if ($successfulBackups -gt 0) {
-    Write-Host "✅ Successful backups: $successfulBackups" -ForegroundColor Green
+    Write-Host "âœ… Successful backups: $successfulBackups" -ForegroundColor Green
     foreach ($dest in $backupDestinations) {
         $res = $script:BackupResults[$dest.Name]
         if ($res.Success -and -not $res.Skipped) {
             $backupSizeMB = [math]::Round($res.BackupSize / 1MB, 2)
-            Write-Host "  • $($dest.Name): $backupSizeMB MB at $($dest.BackupPath)" -ForegroundColor White
+            Write-Host "  â€¢ $($dest.Name): $backupSizeMB MB at $($dest.BackupPath)" -ForegroundColor White
         }
         elseif ($res.Skipped) {
-            Write-Host "  • $($dest.Name): Skipped (identical to previous)" -ForegroundColor Yellow
+            Write-Host "  â€¢ $($dest.Name): Skipped (identical to previous)" -ForegroundColor Yellow
         }
     }
     Write-Host ""
 }
 
 if ($failedBackups -gt 0) {
-    Write-Host "❌ Failed backups: $failedBackups" -ForegroundColor Red
+    Write-Host "âŒ Failed backups: $failedBackups" -ForegroundColor Red
     foreach ($dest in $backupDestinations) {
         if (-not $script:BackupResults[$dest.Name].Success) {
-            Write-Host "  • $($dest.Name): $($script:BackupResults[$dest.Name].Error)" -ForegroundColor Red
+            Write-Host "  â€¢ $($dest.Name): $($script:BackupResults[$dest.Name].Error)" -ForegroundColor Red
         }
     }
     Write-Host ""
 }
 
-Write-Host "📊 Statistics:" -ForegroundColor Cyan
+Write-Host "ðŸ“Š Statistics:" -ForegroundColor Cyan
 Write-Host "  Files processed: $script:TotalFilesProcessed" -ForegroundColor White
 Write-Host "  Files failed:    $script:TotalFilesFailed" -ForegroundColor $(if ($script:TotalFilesFailed -eq 0) { "Green" } else { "Yellow" })
 Write-Host "  Duration:        $((Get-Date) - $script:StartTime)" -ForegroundColor White
@@ -841,15 +841,15 @@ if ($OutputFormat -eq "json") {
 $totalSuccess = ($script:BackupResults.Values | Where-Object { $_.Success }).Count
 
 if ($totalSuccess -eq 0) {
-    Write-Host "❌ All backups failed!" -ForegroundColor Red
+    Write-Host "âŒ All backups failed!" -ForegroundColor Red
     exit 1
 }
 elseif ($failedBackups -gt 0) {
-    Write-Host "⚠️  Some backups failed, but $totalSuccess succeeded (or were skipped)" -ForegroundColor Yellow
+    Write-Host "âš ï¸  Some backups failed, but $totalSuccess succeeded (or were skipped)" -ForegroundColor Yellow
     exit 0
 }
 else {
-    Write-Host "✅ Backup process completed.`n" -ForegroundColor Green
+    Write-Host "âœ… Backup process completed.`n" -ForegroundColor Green
     exit 0
 }
 
