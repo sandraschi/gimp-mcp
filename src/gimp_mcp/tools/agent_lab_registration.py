@@ -9,7 +9,7 @@ from pydantic import Field
 
 from ..config import GimpConfig
 from ..interaction_manager import GimpInteractionManager
-from .bridge_tools import gimp_bridge, gimp_render
+from .bridge_tools import get_state_snapshot, gimp_bridge, gimp_render
 from .import_tools import gimp_import
 from .sim_art_tools import gimp_sim_art
 from .validation import gimp_validation
@@ -51,6 +51,23 @@ def register_agent_lab_tools(
             operation=operation,  # type: ignore[arg-type]
             output_path=output_path,
             include_base64=include_base64,
+            interaction_manager=interaction_manager,
+            config=config,
+        )
+
+    @app.tool(annotations={"readOnlyHint": True}, version="4.6.0")
+    async def gimp_snapshot_tool(
+        max_size: Annotated[int, Field(description="Scale to fit within max_size×max_size (default 1024).")] = 1024,
+        region: Annotated[dict[str, int] | None, Field(description="Optional crop region {x, y, width, height}.")] = None,
+    ) -> dict[str, Any]:
+        """Return a live base64 PNG of the current GIMP image state.
+
+        The AI can \"see\" the image mid-workflow without saving to disk.
+        Use region to zoom into a specific area for detail inspection.
+        """
+        return await get_state_snapshot(
+            max_size=max_size,
+            region=region,
             interaction_manager=interaction_manager,
             config=config,
         )

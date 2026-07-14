@@ -21,6 +21,49 @@ BridgeOperation = Literal["status", "execution_mode", "ping", "list_open_images"
 RenderOperation = Literal["bridge_status", "capture_active", "get_image_summary"]
 
 
+def _snapshot_python(max_size: int | None = None, region: dict | None = None) -> str:
+    """Generate bridge Python that returns a base64 PNG of the active image.
+
+    Optionally crops to a region and/or scales to fit within max_size.
+    """
+    escaped = "/tmp/_gimp_snap.png"
+    lines = [
+        "import base64 as _b64, traceback as _tb",
+        "from gi.repository import Gimp, Gio",
+        "try:",
+        "  images = Gimp.get_images()",
+        "  if not images: raise RuntimeError('No open images')",
+        "  img = images[0]",
+    ]
+    if region:
+        x = region.get("x", 0)
+        y = region.get("y", 0)
+        w = region.get("width", 100)
+        h = region.get("height", 100)
+        lines.append(f"  img = img.crop({x}, {y}, {w}, {h})")
+    if max_size:
+        lines.append(f"  scale = min({max_size} / img.get_width(), {max_size} / img.get_height(), 1.0)")
+        lines.append("  if scale < 1.0:")
+        lines.append("    img = img.scale(int(img.get_width() * scale), int(img.get_height() * scale))")
+    lines += [
+        f"  _file = Gio.File.new_for_path('{escaped}')",
+        "  _pdb = Gimp.get_pdb()",
+        "  _proc = _pdb.lookup_procedure('file-png-export')",
+        "  if _proc is None: raise RuntimeError('file-png-export not found')",
+        "  _cfg = _proc.create_config()",
+        "  _cfg.set_property('run-mode', Gimp.RunMode.NONINTERACTIVE)",
+        "  _cfg.set_property('image', img)",
+        "  _cfg.set_property('file', _file)",
+        "  _proc.run(_cfg)",
+        f"  with open('{escaped}', 'rb') as _fh: _raw = _fh.read()",
+        "  _b64 = _b64.b64encode(_raw).decode('ascii')",
+        "  print('SNAPSHOT:' + _b64)",
+        "except Exception:",
+        "  print('ERROR:' + _tb.format_exc())",
+    ]
+    return "\n".join(lines)
+
+
 def _capture_active_python(output_path: str) -> str:
     """Generate GIMP 3 Python-Fu that exports the active image to a PNG path."""
     escaped = output_path.replace("\\", "\\\\").replace('"', '\\"')
@@ -172,6 +215,49 @@ async def gimp_bridge(
         "error": f"Unknown operation: {operation}",
         "available_operations": ["status", "execution_mode", "ping", "list_open_images"],
     }
+
+
+async def get_state_snapshot(
+    *,
+    max_size: int = 1024,
+    region: dict[str, int] | None = None,
+    interaction_manager: GimpInteractionManager | None = None,
+    config: GimpConfig | None = None,
+) -> dict[str, Any]:
+    """Return a live base64 PNG of the current GIMP image state.
+
+    Ported from the maorcc/gimp-mcp pattern — enables the AI to "see"
+    the current image mid-workflow without saving to disk.
+    Optional region crops to (x, y, width, height) for detail inspection.
+
+    ## Return Format
+    {"success": true, "image_base64": "...", "mime_type": "image/png"}
+
+    ## Examples
+    get_state_snapshot(max_size=512)
+    get_state_snapshot(region={"x": 140, "y": 80, "width": 240, "height": 300})
+    """
+    cfg = config or (interaction_manager.config if interaction_manager else GimpConfig())
+    bridge = get_bridge_wrapper(cfg)
+    alive = await bridge_available(bridge, cfg)
+    if not alive:
+        return {
+            "success": False,
+            "error": "GIMP Live Bridge required for snapshot",
+            "hint": "Start MCP Bridge in GIMP: Filters > Development > MCP > Start MCP Bridge",
+        }
+    code = _snapshot_python(max_size=max_size, region=region)
+    result = await execute_bridge_python(code, bridge=bridge, config=cfg, timeout=cfg.process_timeout)
+    if result.get("error"):
+        return {"success": False, "error": result["error"]}
+    stdout = result.get("result", {}).get("stdout", "")
+    for line in stdout.split("\n"):
+        line = line.strip()
+        if line.startswith("SNAPSHOT:"):
+            return {"success": True, "image_base64": line[9:], "mime_type": "image/png", "max_size": max_size, "region": region}
+        if line.startswith("ERROR:"):
+            return {"success": False, "error": line[6:]}
+    return {"success": False, "error": "Bridge did not return a snapshot"}
 
 
 async def gimp_render(
