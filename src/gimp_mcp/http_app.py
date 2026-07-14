@@ -70,6 +70,24 @@ _mcp = FastMCP(
     mask_error_details=True,
     client_log_level="info",
 )
+
+# CORS for webapp + Tauri WebView
+from starlette.middleware.cors import CORSMiddleware as _CORSMiddleware
+
+_mcp.add_middleware(
+    _CORSMiddleware,
+    allow_origins=[
+        "http://localhost:10772",
+        "http://127.0.0.1:10772",
+        "tauri://localhost",
+        "http://tauri.localhost",
+        "https://tauri.localhost",
+    ],
+    allow_origin_regex=r"https?://(?:[a-zA-Z0-9-]+\.ts\.net|.*?\.tail-[a-f0-9]+\.ts\.net|tauri\.localhost|localhost|127\.0\.0\.1|192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|100\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?$|^tauri://localhost$",
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 _gimp_server = GimpMcpServer(_config)
 _gimp_server.register_tools(_mcp)
 
@@ -162,8 +180,8 @@ async def _api_demo_run(request: Request) -> Response:
 
     import importlib.util
     import json as _json
-    import urllib.request as _ur
     import traceback as _tb
+    import urllib.request as _ur
 
     spec = importlib.util.spec_from_file_location(demo_id, py_file)
     mod = importlib.util.module_from_spec(spec)
