@@ -1,38 +1,46 @@
-# GIMP MCP Server (v3.1.1)
+# GIMP MCP Server (v4.6.0)
 
-> [!NOTE]
-> **SOTA 2026 Core Manifest**  
-> **Framework:** FastMCP 3.1.1  
-> **Architecture:** Portmanteau (8 Tools)  
+Professional image editing through GIMP 3 — controlled by AI agents via the Model Context Protocol.
+18 portmanteau tools consolidating ~1000 GIMP PDB procedures.
 
-Professional image editing through Model Context Protocol (MCP) using GIMP.
+## Tools
+| Tool | Ops | Description |
+|------|-----|-------------|
+| `gimp_file` | 6 | load, save, convert, info, validate, list_formats |
+| `gimp_transform` | 7 | resize, crop, rotate, flip, scale, perspective, autocrop |
+| `gimp_color` | 12 | brightness, contrast, levels, curves, HSL, balance, auto, invert |
+| `gimp_filter` | 8 | blur, sharpen, noise, edge_detect, artistic, enhance, distort |
+| `gimp_layer` | 8 | create, duplicate, merge, flatten, opacity, blend, reorder, info |
+| `gimp_analysis` | 8 | quality, statistics, histogram, compare, detect_issues, report |
+| `gimp_batch` | 6 | resize, convert, process, watermark, rename, optimize |
+| `gimp_system` | 8 | status, help, diagnostics, cache, config, performance, tools, version |
+| `gimp_pdb` | ∞ | Universal PDB proxy — call any of ~1000+ GIMP procedures |
+| `gimp_workspace` | 10 | list images, undo/redo, undo groups, metadata, resolution |
+| `gimp_channel` | 8 | create, delete, list, set color/opacity, duplicate channels |
+| `gimp_animation` | 5 | list frames, set delay, optimize/export GIF |
+| `gimp_paths` | 8 | create, delete, stroke, import/export SVG, vector paths |
+| `gimp_parasites` | 9 | XCF metadata: list, attach, detach parasites |
+| `gimp_gmic` | 4 | G'MIC filter integration — 500+ filters |
+| `gimp_gegl` | 2 | GEGL non-destructive editing |
+| `gimp_color_management` | 7 | ICC profiles, assignment, conversion, soft proofing |
+| `gimp_snapshot` | 1+ | **get_state_snapshot** — live base64 PNG, region crop, AI vision loop |
 
-## Core Services
+## Quick Start
+```
+git clone https://github.com/sandraschi/gimp-mcp
+cd gimp-mcp
+uv sync
+uv run python -m gimp_mcp.main    # stdio (Claude Desktop)
+# Set MCP_PORT=10773 for SSE mode
+```
 
-- **gimp_file**: File operations (load, save, convert, info, validate).
-- **gimp_transform**: Geometric transformations (resize, crop, rotate, flip, scale, perspective).
-- **gimp_color**: Color adjustments (brightness, contrast, levels, curves, HSL, balance).
-- **gimp_filter**: Professional filters and effects (blur, sharpen, noise, artistic).
-- **gimp_layer**: Layer management (create, delete, merge, flatten, opacity).
-- **gimp_analysis**: Image analysis (quality, statistics, histogram, compare).
-- **gimp_batch**: High-performance multi-image processing.
-- **gimp_system**: Server health, diagnostics, and documentation.
-
-## Technical Context
-
-- **Entry Point**: `uv run gimp_mcp`
-- **Dashboard**: `http://localhost:10772`
-- **API**: `http://localhost:10773`
-- **Configuration**: `config.yaml` with smart GIMP detection.
-- **Standards**: FastMCP 3.1.1 SOTA compliant.
-
-## Documentation Index
-
-- [Installation Guide](docs/installation.md)
-- [Implementation Roadmap](docs/IMPLEMENTATION_ROADMAP.md)
-- [Development Status Report](docs/DEVELOPMENT_STATUS_REPORT.md)
-- [Usage Examples](docs/EXAMPLES.md)
-
-## Portmanteau Patterns
-
-Use category-first dispatching. Instead of 50+ individual tools, all operations are grouped into 8 master tools. AI assistants should first call `gimp_system(operation="tools")` or check the `Tools Explorer` dashboard to introspect available operations and their schemas.
+## Doc Index
+- [README](README.md): Full docs, installation, tools
+- [AGENTS.md](AGENTS.md): Agent context
+- [CLAUDE.md](CLAUDE.md): Agent behavioral instructions
+- [CHANGELOG.md](CHANGELOG.md): Release history
+- [Install](docs/readme/INSTALL.md): Detailed install guide
+- [Architecture](docs/readme/ARCHITECTURE.md): 4-layer design
+- [GIMP Integration](docs/readme/GIMP_INTEGRATION.md): Live Bridge mechanics
+- [GIMP Plugins](docs/readme/GIMP_PLUGINS.md): Bridge plugin install
+- [CLI & API](docs/readme/CLI_API.md): REST API reference

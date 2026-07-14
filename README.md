@@ -8,7 +8,7 @@
   <a href="https://github.com/PrefectHQ/fastmcp"><img src="https://img.shields.io/badge/FastMCP-3.2-7c5cfc?style=flat-square" alt="FastMCP"></a>
 </p>
 
-**Professional image editing through GIMP 3 — controlled by AI agents via the Model Context Protocol.** 17 portmanteau tools consolidate GIMP's ~1000 PDB procedures into clean, discoverable operations.
+**Professional image editing through GIMP 3 — controlled by AI agents via the Model Context Protocol.** 18 portmanteau tools consolidate GIMP's ~1000 PDB procedures into clean, discoverable operations.
 
 ## Quick Start
 
@@ -64,6 +64,22 @@ If you don't have `just` installed:
 | `gimp_gmic` | 4 | G'MIC filter integration — 500+ filters via plug-in-gmic |
 | `gimp_gegl` | 2 | GEGL non-destructive editing operations |
 | `gimp_color_management` | 7 | ICC profiles, assignment, conversion, soft proofing |
+| `gimp_snapshot` | 1+ | **`get_state_snapshot`** — live base64 PNG of current canvas (region crop, max_size). Enables AI vision loop: edit → snapshot → assess → refine. Requires optional GIMP bridge plugin. |
+
+### Optional: GIMP Bridge Plugin
+
+For live interaction with a running GIMP (real-time snapshots, undo/redo, interactive editing),
+install the bridge plugin:
+
+1. Copy `plugins/gimp_mcp_bridge/gimp_mcp_bridge.py` to GIMP's plug-ins directory
+   - Windows: `%APPDATA%\GIMP\3.2\plug-ins\gimp_mcp_bridge\`
+   - macOS: `~/Library/Application Support/GIMP/3.2/plug-ins/gimp_mcp_bridge/`
+   - Linux: `~/.config/GIMP/3.2/plug-ins/gimp_mcp_bridge/`
+2. Restart GIMP
+3. Go to **Filters > Development > MCP > Start MCP Bridge**
+4. Server auto-detects the bridge on port 10824
+
+Without the plugin, all tools fall back to headless CLI mode (`gimp-console-3.exe`).
 
 ## Example: Resize an Image
 
