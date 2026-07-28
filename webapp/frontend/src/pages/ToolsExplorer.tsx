@@ -1,22 +1,6 @@
-import {
-  Activity,
-  Box,
-  Copy,
-  Filter,
-  Layers,
-  Search,
-  Sliders,
-  Terminal,
-} from "lucide-react";
+import { Activity, Box, Copy, Filter, Layers, Search, Sliders, Terminal } from "lucide-react";
 import { useEffect, useState } from "react";
-import {
-  Badge,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "../components/ui-core";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui-core";
 
 interface Tool {
   name: string;
@@ -86,10 +70,7 @@ export default function ToolsExplorer() {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div
-              key={i}
-              className="h-48 bg-card/50 animate-pulse rounded-2xl"
-            />
+            <div key={i} className="h-48 bg-card/50 animate-pulse rounded-2xl" />
           ))}
         </div>
       ) : (
@@ -104,19 +85,14 @@ export default function ToolsExplorer() {
                   <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
                     {getCategoryIcon(tool.name)}
                   </div>
-                  <Badge
-                    variant="secondary"
-                    className="font-mono text-[10px] uppercase"
-                  >
+                  <Badge variant="secondary" className="font-mono text-[10px] uppercase">
                     3.1 SOTA
                   </Badge>
                 </div>
                 <CardTitle className="text-lg font-bold group-hover:text-primary transition-colors">
                   {tool.name}
                 </CardTitle>
-                <CardDescription className="line-clamp-2 text-xs leading-relaxed">
-                  {tool.description}
-                </CardDescription>
+                <CardDescription className="line-clamp-2 text-xs leading-relaxed">{tool.description}</CardDescription>
               </CardHeader>
               <CardContent className="px-6 pb-6 pt-0">
                 <div className="pt-4 border-t border-primary/5 flex items-center justify-between">
@@ -133,8 +109,7 @@ export default function ToolsExplorer() {
                       ))}
                   </div>
                   <span className="text-[10px] text-muted-foreground font-mono">
-                    {Object.keys(tool.inputSchema?.properties || {}).length}{" "}
-                    params
+                    {Object.keys(tool.inputSchema?.properties || {}).length} params
                   </span>
                 </div>
               </CardContent>

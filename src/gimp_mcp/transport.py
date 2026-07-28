@@ -123,10 +123,7 @@ def resolve_transport(args: argparse.Namespace) -> TransportType:
     if args.http:
         return "http"
     elif args.sse:
-        logger.warning(
-            "SSE transport is deprecated. Consider using --http instead. "
-            "SSE support will be removed in a future version."
-        )
+        logger.warning("SSE transport is deprecated. Consider using --http instead. SSE support will be removed in a future version.")
         return "sse"
     elif args.stdio:
         return "stdio"
@@ -224,7 +221,7 @@ async def run_server_async(mcp_app, args: argparse.Namespace | None = None, serv
             port = config["port"]
             logger.warning("SSE mode is deprecated. Migrate to HTTP Streamable (--http).")
             logger.info(f"Running in SSE mode: http://{host}:{port}")
-            await mcp_app.run_async(transport='sse', host=host, port=port)
+            await mcp_app.run_async(transport="sse", host=host, port=port)
 
     except asyncio.CancelledError:
         logger.info(f"{server_name} task cancelled")

@@ -510,13 +510,7 @@ def _detect_issues(input_path: Path, check_types: list[str]) -> dict[str, Any]:
 
                 color_bias = max(abs(r_mean - g_mean), abs(g_mean - b_mean), abs(r_mean - b_mean))
                 if color_bias > 30:
-                    dominant = (
-                        "Red"
-                        if r_mean > g_mean and r_mean > b_mean
-                        else "Green"
-                        if g_mean > r_mean and g_mean > b_mean
-                        else "Blue"
-                    )
+                    dominant = "Red" if r_mean > g_mean and r_mean > b_mean else "Green" if g_mean > r_mean and g_mean > b_mean else "Blue"
                     warnings.append(f"Possible color cast detected ({dominant} dominant)")
 
     return AnalysisResult(

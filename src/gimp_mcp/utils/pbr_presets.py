@@ -85,10 +85,7 @@ def detect_pbr_maps(input_dir: Path) -> dict[str, Path]:
 def list_pbr_presets() -> dict[str, Any]:
     """Catalog for agents and validation."""
     return {
-        "map_slots": [
-            {"slot": spec["slot"], "label": spec["label"], "suffixes": list(spec["suffixes"])}
-            for spec in PBR_MAP_SLOTS
-        ],
+        "map_slots": [{"slot": spec["slot"], "label": spec["label"], "suffixes": list(spec["suffixes"])} for spec in PBR_MAP_SLOTS],
         "required_slots": ["albedo", "normal", "roughness"],
         "optional_slots": ["metallic", "ao"],
         "target_sizes": list(PBR_TARGET_SIZES),

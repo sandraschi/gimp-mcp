@@ -107,6 +107,7 @@ def register_agentic_tools(mcp_instance=None):
             await _notify_client(ctx, f"Generating AI image with {model} in {style_preset} style...")
 
             from .ai_image import generate as ai_generate
+
             generation_result = await ai_generate(
                 provider=model,
                 prompt=description,
@@ -129,9 +130,7 @@ def register_agentic_tools(mcp_instance=None):
             if post_processing and len(post_processing) > 0:
                 await _notify_client(ctx, f"Applying GIMP post-processing: {', '.join(post_processing)}")
 
-                processed_image_path = await _apply_gimp_processing(
-                    base_image_path=base_image_path, post_processing=post_processing, quality_settings=quality
-                )
+                processed_image_path = await _apply_gimp_processing(base_image_path=base_image_path, post_processing=post_processing, quality_settings=quality)
 
                 if processed_image_path:
                     final_image_path = processed_image_path
@@ -238,11 +237,7 @@ def register_agentic_tools(mcp_instance=None):
                     sampling_error = str(se)
                     logger.debug("Sampling failed: %s", se, exc_info=True)
 
-            message = (
-                "Plan generated via server sampling."
-                if plan_text
-                else "Sampling unavailable or empty; use portmanteau tools from the client LLM."
-            )
+            message = "Plan generated via server sampling." if plan_text else "Sampling unavailable or empty; use portmanteau tools from the client LLM."
             return {
                 "success": True,
                 "operation": "agentic_workflow",
@@ -375,9 +370,7 @@ def register_agentic_tools(mcp_instance=None):
 # Helper functions for AI image generation
 
 
-async def _generate_base_image(
-    description: str, style_preset: str, width: int, height: int, model: str, quality: str
-) -> dict[str, Any]:
+async def _generate_base_image(description: str, style_preset: str, width: int, height: int, model: str, quality: str) -> dict[str, Any]:
     """
     Generate base image using AI model.
 

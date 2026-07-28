@@ -175,11 +175,17 @@ try:
             if not _images:
                 print('PDB_RESULT:' + _json.dumps({{"success": False, "error": "No image open in GIMP"}}))
             else:
-                _image = _images[0]{'''
+                _image = _images[0]{
+        '''
                 pdb.gimp_image_set_proof_state(_image, 1)
-                ''' if enabled else '''
+                '''
+        if enabled
+        else '''
                 pdb.gimp_image_set_proof_state(_image, 0)
-                ''' if enabled is not None else ''}
+                '''
+        if enabled is not None
+        else ""
+    }
                 _state = pdb.gimp_image_get_proof_state(_image)
                 print('PDB_RESULT:' + _json.dumps({{"success": True, "soft_proofing_enabled": bool(_state)}}))
 except Exception as _e:
@@ -222,10 +228,16 @@ try:
             if not _images:
                 print('PDB_RESULT:' + _json.dumps({{"success": False, "error": "No image open in GIMP"}}))
             else:
-                _image = _images[0]{'''
-                with open(''' + json.dumps(profile_path) + ''', 'rb') as _f:
+                _image = _images[0]{
+        '''
+                with open('''
+        + json.dumps(profile_path)
+        + ''', 'rb') as _f:
                     pdb.gimp_image_set_simulation_profile(_image, _f.read())
-                ''' if profile_path else ''}
+                '''
+        if profile_path
+        else ""
+    }
                 _sim = pdb.gimp_image_get_simulation_profile(_image)
                 print('PDB_RESULT:' + _json.dumps({{"success": True, "simulation_profile": str(_sim) if _sim else None}}))
 except Exception as _e:
@@ -259,11 +271,13 @@ def _list_system_profiles() -> dict[str, Any]:
         if d_path.is_dir():
             try:
                 for f in sorted(d_path.glob("*.icc")) + sorted(d_path.glob("*.icm")):
-                    profiles.append({
-                        "path": str(f),
-                        "filename": f.name,
-                        "size_bytes": f.stat().st_size,
-                    })
+                    profiles.append(
+                        {
+                            "path": str(f),
+                            "filename": f.name,
+                            "size_bytes": f.stat().st_size,
+                        }
+                    )
             except PermissionError:
                 errors.append(f"Permission denied: {d}")
 
@@ -315,18 +329,14 @@ async def gimp_color_management(
             result = await _exec_color_fu(_make_profile_info_fu(), "profile_info", cli_wrapper)
         elif operation == "assign_profile":
             if not profile_path:
-                result = ColorMgmtResult(
-                    success=False, operation=operation, message="profile_path is required", error="Missing parameter"
-                ).model_dump()
+                result = ColorMgmtResult(success=False, operation=operation, message="profile_path is required", error="Missing parameter").model_dump()
             else:
                 result = await _exec_color_fu(_make_assign_profile_fu(profile_path), "assign_profile", cli_wrapper)
                 if result.get("success"):
                     result["message"] = f"Profile assigned: {profile_path}"
         elif operation == "convert_profile":
             if not profile_path:
-                result = ColorMgmtResult(
-                    success=False, operation=operation, message="profile_path is required", error="Missing parameter"
-                ).model_dump()
+                result = ColorMgmtResult(success=False, operation=operation, message="profile_path is required", error="Missing parameter").model_dump()
             else:
                 result = await _exec_color_fu(_make_convert_profile_fu(profile_path), "convert_profile", cli_wrapper)
                 if result.get("success"):
@@ -364,21 +374,15 @@ async def _exec_color_fu(code: str, operation: str, cli_wrapper: Any) -> dict[st
     """Execute Python-Fu code and parse the PDB_RESULT response."""
     exec_layer = cli_wrapper
     if exec_layer is None:
-        return ColorMgmtResult(
-            success=False, operation=operation, message="No GIMP execution layer available", error="GIMP offline"
-        ).model_dump()
+        return ColorMgmtResult(success=False, operation=operation, message="No GIMP execution layer available", error="GIMP offline").model_dump()
 
     try:
         if hasattr(exec_layer, "execute_python_fu"):
             output = await exec_layer.execute_python_fu(code)
         else:
-            return ColorMgmtResult(
-                success=False, operation=operation, message="No execute_python_fu method", error="Missing method"
-            ).model_dump()
+            return ColorMgmtResult(success=False, operation=operation, message="No execute_python_fu method", error="Missing method").model_dump()
     except Exception as e:
-        return ColorMgmtResult(
-            success=False, operation=operation, message=f"GIMP execution failed: {e!s}", error=str(e)
-        ).model_dump()
+        return ColorMgmtResult(success=False, operation=operation, message=f"GIMP execution failed: {e!s}", error=str(e)).model_dump()
 
     try:
         marker = "PDB_RESULT:"
@@ -387,18 +391,14 @@ async def _exec_color_fu(code: str, operation: str, cli_wrapper: Any) -> dict[st
             payload = json.loads(output[idx + len(marker) :])
             if payload.get("success"):
                 data = {k: v for k, v in payload.items() if k != "success"}
-                return ColorMgmtResult(
-                    success=True, operation=operation, message=f"{operation} completed", data=data
-                ).model_dump()
+                return ColorMgmtResult(success=True, operation=operation, message=f"{operation} completed", data=data).model_dump()
             return ColorMgmtResult(
                 success=False,
                 operation=operation,
                 message=f"Operation failed: {payload.get('error', 'unknown error')}",
                 error=payload.get("error"),
             ).model_dump()
-        return ColorMgmtResult(
-            success=True, operation=operation, message=f"{operation} completed", data={"raw_output": output}
-        ).model_dump()
+        return ColorMgmtResult(success=True, operation=operation, message=f"{operation} completed", data={"raw_output": output}).model_dump()
     except Exception as e:
         return ColorMgmtResult(
             success=False,

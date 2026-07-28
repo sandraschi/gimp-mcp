@@ -97,6 +97,21 @@ Response: {"success": true, "message": "Resized sunset.jpg from
 
 Behind the scenes — the tool detects whether GIMP is running (Live Bridge via TCP :10824) or not (Headless CLI via `gimp-console-3.exe`), and routes the operation accordingly.
 
+## Webapp
+
+The webapp (http://localhost:10772) is a full SOTA React/Tailwind/Zustand dashboard with:
+
+| Page | Features |
+|------|----------|
+| **LLM Chat** | localStorage-persistent conversation history (100 msg cap), 5 personalities (GIMP Expert, Research Assistant, Expert Reviewer, Quick Summarizer, Custom), skills-as-preprompt (fetched from `/api/skills` on mount), 8 clickable example prompts, Export (.txt download), Clear, voice input (STT via Web Speech API), TTS read-aloud per message, editable model name, provider status indicator (green/red dot), `data-testid` attributes on all controls |
+| **Dashboard** | System health, bridge status, version, KPIs |
+| **Apps Hub** | Dynamic fleet discovery |
+| **Tools Explorer** | Portmanteau drill-down with docstrings/schemas |
+| **Skills** | Markdown-rendered skill browser |
+| **Agent Tools** | Bridge, Vision, Validation, Capture Gallery tabs |
+| **Settings** | AI provider API keys, local LLM provider/model |
+| **API Docs** | Swagger UI + ReDoc via iframe |
+
 ## License
 
 MIT — see [LICENSE](LICENSE) for details.

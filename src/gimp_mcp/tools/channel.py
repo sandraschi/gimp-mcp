@@ -32,7 +32,7 @@ def _make_channel_fu(operation: str, image_id: int, **kw: Any) -> str:
         name = kw.get("channel_name", "New Channel")
         width = kw.get("width", 0)
         height = kw.get("height", 0)
-        return f'''
+        return f"""
 import json as _json, traceback as _tb
 _img_id = {image_id}
 _name = {json.dumps(name)}
@@ -54,11 +54,11 @@ try:
     print('CH_RESULT:' + _json.dumps({{"success": True, "result": _result}}))
 except Exception as _e:
     print('CH_RESULT:' + _json.dumps({{"success": False, "error": _tb.format_exc()}}))
-'''
+"""
 
     if operation == "delete":
         channel_id = kw.get("channel_id")
-        return f'''
+        return f"""
 import json as _json, traceback as _tb
 _img_id = {image_id}
 _ch_id = {channel_id}
@@ -78,10 +78,10 @@ try:
     print('CH_RESULT:' + _json.dumps({{"success": True, "result": {{"channel_id": _ch_id}}}}))
 except Exception as _e:
     print('CH_RESULT:' + _json.dumps({{"success": False, "error": _tb.format_exc()}}))
-'''
+"""
 
     if operation == "list":
-        return f'''
+        return f"""
 import json as _json, traceback as _tb
 _img_id = {image_id}
 try:
@@ -113,12 +113,12 @@ try:
     print('CH_RESULT:' + _json.dumps({{"success": True, "result": _result}}))
 except Exception as _e:
     print('CH_RESULT:' + _json.dumps({{"success": False, "error": _tb.format_exc()}}))
-'''
+"""
 
     if operation == "set_color":
         channel_id = kw.get("channel_id")
         color_str = kw.get("color", "red")
-        return f'''
+        return f"""
 import json as _json, traceback as _tb
 _ch_id = {channel_id}
 try:
@@ -138,12 +138,12 @@ try:
     print('CH_RESULT:' + _json.dumps({{"success": True, "result": {{"channel_id": _ch_id, "color": {json.dumps(color_str)}}}}}))
 except Exception as _e:
     print('CH_RESULT:' + _json.dumps({{"success": False, "error": _tb.format_exc()}}))
-'''
+"""
 
     if operation == "set_opacity":
         channel_id = kw.get("channel_id")
         opacity = kw.get("opacity", 100.0)
-        return f'''
+        return f"""
 import json as _json, traceback as _tb
 _ch_id = {channel_id}
 _opacity = float({opacity})
@@ -160,12 +160,12 @@ try:
     print('CH_RESULT:' + _json.dumps({{"success": True, "result": {{"channel_id": _ch_id, "opacity": _opacity}}}}))
 except Exception as _e:
     print('CH_RESULT:' + _json.dumps({{"success": False, "error": _tb.format_exc()}}))
-'''
+"""
 
     if operation == "set_show_masked":
         channel_id = kw.get("channel_id")
         show_masked = kw.get("show_masked", False)
-        return f'''
+        return f"""
 import json as _json, traceback as _tb
 _ch_id = {channel_id}
 _show = {json.dumps(show_masked)}
@@ -182,11 +182,11 @@ try:
     print('CH_RESULT:' + _json.dumps({{"success": True, "result": {{"channel_id": _ch_id, "show_masked": _show}}}}))
 except Exception as _e:
     print('CH_RESULT:' + _json.dumps({{"success": False, "error": _tb.format_exc()}}))
-'''
+"""
 
     if operation == "duplicate":
         channel_id = kw.get("channel_id")
-        return f'''
+        return f"""
 import json as _json, traceback as _tb
 _img_id = {image_id}
 _ch_id = {channel_id}
@@ -210,11 +210,11 @@ try:
     print('CH_RESULT:' + _json.dumps({{"success": True, "result": _result}}))
 except Exception as _e:
     print('CH_RESULT:' + _json.dumps({{"success": False, "error": _tb.format_exc()}}))
-'''
+"""
 
     if operation == "info":
         channel_id = kw.get("channel_id")
-        return f'''
+        return f"""
 import json as _json, traceback as _tb
 _ch_id = {channel_id}
 try:
@@ -246,7 +246,7 @@ try:
     print('CH_RESULT:' + _json.dumps({{"success": True, "result": _result}}))
 except Exception as _e:
     print('CH_RESULT:' + _json.dumps({{"success": False, "error": _tb.format_exc()}}))
-'''
+"""
 
     return None
 
@@ -329,7 +329,8 @@ async def gimp_channel(
             ).model_dump()
 
         code = _make_channel_fu(
-            operation, image_id,
+            operation,
+            image_id,
             channel_id=channel_id,
             channel_name=channel_name,
             width=width,
@@ -352,7 +353,7 @@ async def gimp_channel(
         marker = "CH_RESULT:"
         idx = output.find(marker)
         if idx >= 0:
-            payload = json.loads(output[idx + len(marker):])
+            payload = json.loads(output[idx + len(marker) :])
             execution_time = (time.time() - start_time) * 1000
             return ChannelResult(
                 success=payload.get("success", False),

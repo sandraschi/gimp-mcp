@@ -26,7 +26,7 @@ def _snapshot_python(max_size: int | None = None, region: dict | None = None) ->
 
     Optionally crops to a region and/or scales to fit within max_size.
     """
-    escaped = "/tmp/_gimp_snap.png"
+    escaped = "/tmp/_gimp_snap.png"  # noqa: S108
     lines = [
         "import base64 as _b64, traceback as _tb",
         "from gi.repository import Gimp, Gio",

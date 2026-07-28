@@ -112,9 +112,7 @@ class FileOperationTools:
 
         # Register load_image tool
         @mcp.tool()
-        async def load_image(
-            self, file_path: str, load_metadata: bool = True, max_dimension: int = 0
-        ) -> dict[str, Any]:
+        async def load_image(self, file_path: str, load_metadata: bool = True, max_dimension: int = 0) -> dict[str, Any]:
             """Load an image file and return comprehensive metadata and image handle.
 
             This tool loads an image file from the specified path, validates it against
@@ -266,25 +264,19 @@ class FileOperationTools:
 
                 # Check if output file exists and handle overwrite
                 if os.path.exists(output_path) and not overwrite:
-                    return self._error_response(
-                        f"Output file already exists: {output_path}", "Set overwrite=True to replace existing files"
-                    )
+                    return self._error_response(f"Output file already exists: {output_path}", "Set overwrite=True to replace existing files")
 
                 # Determine output format
                 if not format:
                     _, ext = os.path.splitext(output_path)
                     format = ext.lstrip(".").lower()
                     if not format:
-                        return self._error_response(
-                            "Could not determine output format from file extension. Please specify format parameter."
-                        )
+                        return self._error_response("Could not determine output format from file extension. Please specify format parameter.")
 
                 # Validate format
                 supported_formats = ["jpeg", "jpg", "png", "gif", "bmp", "tiff", "webp"]
                 if format.lower() not in supported_formats:
-                    return self._error_response(
-                        f"Unsupported format: {format}", f"Supported formats: {', '.join(supported_formats)}"
-                    )
+                    return self._error_response(f"Unsupported format: {format}", f"Supported formats: {', '.join(supported_formats)}")
 
                 # Prepare GIMP script with quality parameter for supported formats
                 if format.lower() in ["jpeg", "jpg", "webp"]:

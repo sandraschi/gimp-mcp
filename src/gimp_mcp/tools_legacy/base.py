@@ -315,9 +315,7 @@ class BaseToolCategory(ABC):
             self.logger.error(f"File path validation failed for {file_path}: {e}")
             raise
 
-    def handle_operation_error(
-        self, operation: str, error: Exception, context: dict[str, Any] | None = None
-    ) -> dict[str, Any]:
+    def handle_operation_error(self, operation: str, error: Exception, context: dict[str, Any] | None = None) -> dict[str, Any]:
         """
         Handle operation errors with appropriate logging and response generation.
 

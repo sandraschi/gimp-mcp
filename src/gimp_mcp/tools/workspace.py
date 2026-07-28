@@ -29,7 +29,7 @@ def _make_workspace_fu(operation: str, image_id: int | None, **kw: Any) -> str:
     Handles both GIMP 3 (gi.repository.Gimp) and GIMP 2.x (gimpfu).
     """
     if operation == "list_images":
-        return '''
+        return """
 import json as _json, traceback as _tb
 try:
     try:
@@ -56,10 +56,10 @@ try:
     print('WSP_RESULT:' + _json.dumps({"success": True, "result": _result}))
 except Exception as _e:
     print('WSP_RESULT:' + _json.dumps({"success": False, "error": _tb.format_exc()}))
-'''
+"""
 
     if operation == "current_image" and image_id is not None:
-        return f'''
+        return f"""
 import json as _json, traceback as _tb
 try:
     try:
@@ -77,10 +77,10 @@ try:
     print('WSP_RESULT:' + _json.dumps({{"success": True, "result": {{"image_id": {image_id}}}}}))
 except Exception as _e:
     print('WSP_RESULT:' + _json.dumps({{"success": False, "error": _tb.format_exc()}}))
-'''
+"""
 
     if operation == "current_image":
-        return '''
+        return """
 import json as _json, traceback as _tb
 try:
     try:
@@ -94,10 +94,10 @@ try:
     print('WSP_RESULT:' + _json.dumps({"success": True, "result": _result}))
 except Exception as _e:
     print('WSP_RESULT:' + _json.dumps({"success": False, "error": _tb.format_exc()}))
-'''
+"""
 
     if operation == "undo_count":
-        return f'''
+        return f"""
 import json as _json, traceback as _tb
 _img_id = {image_id}
 try:
@@ -127,10 +127,10 @@ try:
     print('WSP_RESULT:' + _json.dumps({{"success": True, "result": _result}}))
 except Exception as _e:
     print('WSP_RESULT:' + _json.dumps({{"success": False, "error": _tb.format_exc()}}))
-'''
+"""
 
     if operation == "undo":
-        return f'''
+        return f"""
 import json as _json, traceback as _tb
 try:
     try:
@@ -146,10 +146,10 @@ try:
     print('WSP_RESULT:' + _json.dumps({{"success": True, "result": {{"image_id": {image_id}}}}}))
 except Exception as _e:
     print('WSP_RESULT:' + _json.dumps({{"success": False, "error": _tb.format_exc()}}))
-'''
+"""
 
     if operation == "redo":
-        return f'''
+        return f"""
 import json as _json, traceback as _tb
 try:
     try:
@@ -165,10 +165,10 @@ try:
     print('WSP_RESULT:' + _json.dumps({{"success": True, "result": {{"image_id": {image_id}}}}}))
 except Exception as _e:
     print('WSP_RESULT:' + _json.dumps({{"success": False, "error": _tb.format_exc()}}))
-'''
+"""
 
     if operation == "undo_group_start":
-        return f'''
+        return f"""
 import json as _json, traceback as _tb
 try:
     try:
@@ -184,10 +184,10 @@ try:
     print('WSP_RESULT:' + _json.dumps({{"success": True, "result": {{"image_id": {image_id}}}}}))
 except Exception as _e:
     print('WSP_RESULT:' + _json.dumps({{"success": False, "error": _tb.format_exc()}}))
-'''
+"""
 
     if operation == "undo_group_end":
-        return f'''
+        return f"""
 import json as _json, traceback as _tb
 try:
     try:
@@ -203,10 +203,10 @@ try:
     print('WSP_RESULT:' + _json.dumps({{"success": True, "result": {{"image_id": {image_id}}}}}))
 except Exception as _e:
     print('WSP_RESULT:' + _json.dumps({{"success": False, "error": _tb.format_exc()}}))
-'''
+"""
 
     if operation == "get_metadata":
-        return f'''
+        return f"""
 import json as _json, traceback as _tb
 _img_id = {image_id}
 try:
@@ -238,12 +238,12 @@ try:
     print('WSP_RESULT:' + _json.dumps({{"success": True, "result": _result}}))
 except Exception as _e:
     print('WSP_RESULT:' + _json.dumps({{"success": False, "error": _tb.format_exc()}}))
-'''
+"""
 
     if operation == "set_resolution":
         xres = kw.get("xresolution", 72.0)
         yres = kw.get("yresolution", 72.0)
-        return f'''
+        return f"""
 import json as _json, traceback as _tb
 _img_id = {image_id}
 try:
@@ -263,11 +263,11 @@ try:
     print('WSP_RESULT:' + _json.dumps({{"success": True, "result": {{"resolution_x": {xres}, "resolution_y": {yres}}}}}))
 except Exception as _e:
     print('WSP_RESULT:' + _json.dumps({{"success": False, "error": _tb.format_exc()}}))
-'''
+"""
 
     if operation == "set_unit":
         _unit = kw.get("unit", 0)
-        return f'''
+        return f"""
 import json as _json, traceback as _tb
 _img_id = {image_id}
 try:
@@ -286,7 +286,7 @@ try:
     print('WSP_RESULT:' + _json.dumps({{"success": True, "result": {{"unit": {_unit}}}}}))
 except Exception as _e:
     print('WSP_RESULT:' + _json.dumps({{"success": False, "error": _tb.format_exc()}}))
-'''
+"""
 
     return None
 
@@ -352,8 +352,14 @@ async def gimp_workspace(
 
     try:
         requires_image = operation in (
-            "undo_count", "undo", "redo", "undo_group_start",
-            "undo_group_end", "get_metadata", "set_resolution", "set_unit",
+            "undo_count",
+            "undo",
+            "redo",
+            "undo_group_start",
+            "undo_group_end",
+            "get_metadata",
+            "set_resolution",
+            "set_unit",
         )
         if requires_image and image_id is None:
             return WorkspaceResult(
@@ -387,7 +393,7 @@ async def gimp_workspace(
         marker = "WSP_RESULT:"
         idx = output.find(marker)
         if idx >= 0:
-            payload = json.loads(output[idx + len(marker):])
+            payload = json.loads(output[idx + len(marker) :])
             execution_time = (time.time() - start_time) * 1000
             return WorkspaceResult(
                 success=payload.get("success", False),

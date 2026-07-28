@@ -36,11 +36,7 @@ async def describe_execution_mode(
             "headless_note": "Batch folder jobs still route through gimp-console when bridge is offline.",
         }
 
-    headless_ok = bool(
-        interaction_manager
-        and interaction_manager.cli
-        and interaction_manager.cli.is_available()
-    )
+    headless_ok = bool(interaction_manager and interaction_manager.cli and interaction_manager.cli.is_available())
 
     return {
         "success": True,
@@ -56,8 +52,5 @@ async def describe_execution_mode(
             "Script-Fu batch through CLI wrapper",
             "Fleet HTTP webapp on :10773",
         ],
-        "live_gui_hint": (
-            "Open GIMP, run Filters > Development > MCP > Start MCP Bridge, "
-            "then gimp_bridge operation=execution_mode should report hands_in."
-        ),
+        "live_gui_hint": ("Open GIMP, run Filters > Development > MCP > Start MCP Bridge, then gimp_bridge operation=execution_mode should report hands_in."),
     }

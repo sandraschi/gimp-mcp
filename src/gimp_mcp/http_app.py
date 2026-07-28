@@ -45,6 +45,7 @@ if os.getenv("GIMP_MCP_LOG_FORMAT", "").strip().lower() == "json":
 
 try:
     from .ai_image import get_available_providers, get_settings_status, update_settings
+
     _AI_AVAILABLE = True
 except ImportError:
     _AI_AVAILABLE = False
@@ -54,6 +55,7 @@ try:
     from .local_llm import detect as _llm_detect
     from .local_llm import suggest_gimp_ops, understand_image
     from .local_llm import update_settings as _llm_update_settings
+
     _LLM_AVAILABLE = True
 except ImportError:
     _LLM_AVAILABLE = False
@@ -62,10 +64,7 @@ _config = GimpConfig()
 _mcp = FastMCP(
     name="gimp-mcp",
     version="4.6.0",
-    instructions=(
-        "GIMP MCP — FastMCP 3.2 SOTA. Portmanteau tools + sampling + prompts + resources + "
-        "skill://gimp-expert/SKILL.md. Prefer allowed_directories-safe paths."
-    ),
+    instructions=("GIMP MCP — FastMCP 3.2 SOTA. Portmanteau tools + sampling + prompts + resources + skill://gimp-expert/SKILL.md. Prefer allowed_directories-safe paths."),
     strict_input_validation=True,
     mask_error_details=True,
     client_log_level="info",
@@ -74,7 +73,7 @@ _mcp = FastMCP(
 # CORS for webapp + Tauri WebView
 from starlette.middleware.cors import CORSMiddleware as _CORSMiddleware
 
-_mcp.add_middleware(
+_mcp.http_app().add_middleware(
     _CORSMiddleware,
     allow_origins=[
         "http://localhost:10772",
@@ -130,11 +129,13 @@ async def _api_skills_list(_request: Request) -> Response:
         for skill_dir in _SKILLS_DIR.iterdir():
             if skill_dir.is_dir():
                 skill_md = skill_dir / "SKILL.md"
-                skills.append({
-                    "name": skill_dir.name,
-                    "uri": f"skill://{skill_dir.name}/SKILL.md",
-                    "has_content": skill_md.is_file(),
-                })
+                skills.append(
+                    {
+                        "name": skill_dir.name,
+                        "uri": f"skill://{skill_dir.name}/SKILL.md",
+                        "has_content": skill_md.is_file(),
+                    }
+                )
     return JSONResponse({"skills": skills})
 
 
@@ -155,12 +156,14 @@ async def _api_demos_list(_request: Request) -> Response:
                 spec = importlib.util.spec_from_file_location(py_file.stem, py_file)
                 mod = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(mod)
-                demos.append({
-                    "id": py_file.stem,
-                    "description": getattr(mod, "DESCRIPTION", ""),
-                    "steps": len(getattr(mod, "STEPS", [])),
-                    "file": py_file.name,
-                })
+                demos.append(
+                    {
+                        "id": py_file.stem,
+                        "description": getattr(mod, "DESCRIPTION", ""),
+                        "steps": len(getattr(mod, "STEPS", [])),
+                        "file": py_file.name,
+                    }
+                )
             except Exception as exc:
                 demos.append({"id": py_file.stem, "error": str(exc)})
     return JSONResponse({"demos": demos})
@@ -196,35 +199,42 @@ async def _api_demo_run(request: Request) -> Response:
         try:
             payload = _json.dumps({"tool": tool, "arguments": params}).encode()
             req = _ur.Request(
-                api_base, data=payload,
+                api_base,
+                data=payload,
                 headers={"Content-Type": "application/json"},
                 method="POST",
             )
             with _ur.urlopen(req, timeout=120) as resp:
                 result = _json.loads(resp.read())
-            results.append({
-                "step": step_name,
-                "label": step_label,
-                "success": result.get("success", False),
-                "has_snapshot": "image_base64" in result,
-                "result": {k: v for k, v in result.items() if k != "image_base64"},
-            })
+            results.append(
+                {
+                    "step": step_name,
+                    "label": step_label,
+                    "success": result.get("success", False),
+                    "has_snapshot": "image_base64" in result,
+                    "result": {k: v for k, v in result.items() if k != "image_base64"},
+                }
+            )
         except Exception as exc:
-            results.append({
-                "step": step_name,
-                "label": step_label,
-                "success": False,
-                "error": str(exc),
-                "traceback": _tb.format_exc(),
-            })
+            results.append(
+                {
+                    "step": step_name,
+                    "label": step_label,
+                    "success": False,
+                    "error": str(exc),
+                    "traceback": _tb.format_exc(),
+                }
+            )
 
-    return JSONResponse({
-        "success": True,
-        "demo_id": demo_id,
-        "total_steps": len(steps),
-        "completed": len([r for r in results if r.get("success")]),
-        "results": results,
-    })
+    return JSONResponse(
+        {
+            "success": True,
+            "demo_id": demo_id,
+            "total_steps": len(steps),
+            "completed": len([r for r in results if r.get("success")]),
+            "results": results,
+        }
+    )
 
 
 @_mcp.custom_route("/api/skills/{skill_name:str}", methods=["GET"])
@@ -234,11 +244,13 @@ async def _api_skill_content(request: Request) -> Response:
     if not skill_md.is_file():
         return Response(status_code=404)
     content = skill_md.read_text(encoding="utf-8")
-    return JSONResponse({
-        "name": skill_name,
-        "uri": f"skill://{skill_name}/SKILL.md",
-        "content": content,
-    })
+    return JSONResponse(
+        {
+            "name": skill_name,
+            "uri": f"skill://{skill_name}/SKILL.md",
+            "content": content,
+        }
+    )
 
 
 @_mcp.custom_route("/api/tools", methods=["GET"])
@@ -254,10 +266,12 @@ async def _api_tools_list(_request: Request) -> Response:
 async def _api_settings_get(_request: Request) -> Response:
     if not _AI_AVAILABLE:
         return JSONResponse({"providers": {}, "available": False})
-    return JSONResponse({
-        "providers": get_settings_status(),
-        "available": get_available_providers(),
-    })
+    return JSONResponse(
+        {
+            "providers": get_settings_status(),
+            "available": get_available_providers(),
+        }
+    )
 
 
 @_mcp.custom_route("/api/settings", methods=["POST"])
@@ -330,6 +344,7 @@ async def _api_generate(request: Request) -> Response:
     if not _AI_AVAILABLE:
         return JSONResponse({"error": "AI module not available", "success": False}, status_code=500)
     from .ai_image import generate as ai_generate
+
     body = await request.json()
     provider = body.get("provider", "gemini")
     prompt = body.get("prompt", "")

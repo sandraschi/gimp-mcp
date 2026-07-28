@@ -124,9 +124,7 @@ class TransformTools(BaseToolCategory):
 
             # Start GIMP GUI process (non-blocking)
             logger.info(f"Opening GIMP GUI with files: {file_paths}")
-            process = subprocess.Popen(
-                cmd_args, cwd=os.path.expanduser("~"), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
-            )
+            process = subprocess.Popen(cmd_args, cwd=os.path.expanduser("~"), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
             return self.create_success_response(
                 {

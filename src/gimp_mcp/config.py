@@ -80,16 +80,12 @@ class GimpConfig(BaseModel):
         return None
 
     # Performance Settings
-    max_concurrent_processes: int = Field(
-        default=3, ge=1, le=10, description="Maximum number of concurrent GIMP processes"
-    )
+    max_concurrent_processes: int = Field(default=3, ge=1, le=10, description="Maximum number of concurrent GIMP processes")
 
     process_timeout: int = Field(default=30, ge=5, le=300, description="Timeout for GIMP operations in seconds")
 
     # File Handling
-    temp_directory: str = Field(
-        default_factory=lambda: tempfile.gettempdir(), description="Directory for temporary files"
-    )
+    temp_directory: str = Field(default_factory=lambda: tempfile.gettempdir(), description="Directory for temporary files")
 
     max_file_size_mb: int = Field(default=100, ge=1, le=1000, description="Maximum file size in MB")
 
@@ -116,9 +112,7 @@ class GimpConfig(BaseModel):
     enable_plugins: bool = Field(default=True, description="Enable plugin system")
 
     # Bridge Configuration
-    enable_live_mode: bool = Field(
-        default=True, description="Enable real-time 'Live' interaction mode with running GIMP instance"
-    )
+    enable_live_mode: bool = Field(default=True, description="Enable real-time 'Live' interaction mode with running GIMP instance")
 
     bridge_host: str = Field(default="127.0.0.1", description="Host for the GIMP Live Bridge")
 
@@ -140,9 +134,7 @@ class GimpConfig(BaseModel):
     # Security Settings
     enable_file_validation: bool = Field(default=True, description="Enable file type validation")
 
-    allowed_directories: list[str] = Field(
-        default_factory=list, description="List of allowed directories for file operations"
-    )
+    allowed_directories: list[str] = Field(default_factory=list, description="List of allowed directories for file operations")
 
     @field_validator("temp_directory")
     @classmethod

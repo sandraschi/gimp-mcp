@@ -47,22 +47,16 @@ class ImageMetadata(BaseModel):
 class LoadImageRequest(BaseModel):
     """Request to load an image and retrieve its metadata."""
 
-    file_path: str = Field(
-        ..., description="Absolute filesystem path to the image file. Must be within allowed directories."
-    )
+    file_path: str = Field(..., description="Absolute filesystem path to the image file. Must be within allowed directories.")
     load_metadata: bool = Field(True, description="Whether to perform deep metadata extraction (Exif, XMP, etc.)")
-    max_dimension: int = Field(
-        0, ge=0, description="Optional: Maximum dimension for thumbnail generation. 0 disables thumbnails."
-    )
+    max_dimension: int = Field(0, ge=0, description="Optional: Maximum dimension for thumbnail generation. 0 disables thumbnails.")
 
 
 class SaveImageRequest(BaseModel):
     """Request to save the current image buffer to disk."""
 
     output_path: str = Field(..., description="Absolute path for the output file.")
-    format: str | None = Field(
-        None, description="Target format (e.g., 'png', 'jpg'). Derived from extension if omitted."
-    )
+    format: str | None = Field(None, description="Target format (e.g., 'png', 'jpg'). Derived from extension if omitted.")
     quality: int = Field(90, ge=1, le=100, description="Compression quality for lossy formats (1-100).")
     overwrite: bool = Field(False, description="Whether to overwrite an existing file at the output path.")
 
@@ -75,9 +69,7 @@ class ResizeImageRequest(BaseModel):
     width: int | None = Field(None, ge=1, description="Target width in pixels.")
     height: int | None = Field(None, ge=1, description="Target height in pixels.")
     maintain_aspect: bool = Field(True, description="Whether to maintain the original aspect ratio.")
-    interpolation: Literal["none", "linear", "cubic", "nohalo", "lohalo"] = Field(
-        "cubic", description="Resampling algorithm for quality preservation."
-    )
+    interpolation: Literal["none", "linear", "cubic", "nohalo", "lohalo"] = Field("cubic", description="Resampling algorithm for quality preservation.")
 
 
 class CropImageRequest(BaseModel):
@@ -148,9 +140,7 @@ class BlurRequest(BaseModel):
     input_path: str = Field(..., description="Path to the source image file.")
     output_path: str = Field(..., description="Path where the blurred image will be saved.")
     radius: float = Field(1.0, ge=0.1, le=100.0, description="Blur radius in pixels.")
-    method: Literal["gaussian", "motion", "radial", "pixelize", "zoom", "lens", "selective_gaussian"] = Field(
-        "gaussian", description="Blur algorithm."
-    )
+    method: Literal["gaussian", "motion", "radial", "pixelize", "zoom", "lens", "selective_gaussian"] = Field("gaussian", description="Blur algorithm.")
     angle: float = Field(0.0, description="Angle for motion/zoom blur.")
 
 

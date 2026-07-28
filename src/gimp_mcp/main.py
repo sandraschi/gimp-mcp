@@ -636,6 +636,7 @@ Each portmanteau tool handles multiple related operations through an 'operation'
                 gimp_pdb_tool(procedure="plug_in_gauss", args=[5.0])
                 """
                 from .tools import gimp_pdb as _gimp_pdb
+
                 return await _gimp_pdb(
                     procedure=procedure,
                     args=args or [],

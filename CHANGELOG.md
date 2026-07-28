@@ -1,5 +1,14 @@
 
-## [Unreleased] — 2026-06-14
+## [Unreleased] — 2026-07-21
+
+### Added
+- SOTA chat compliance: localStorage persistence, 5 personalities with skills-as-preprompt, 8 clickable example prompts, Export/Clear, TTS/STT speech, model/provider controls, `data-testid` attributes
+- `webapp/frontend/src/common/speech.ts` — shared TTS/STT module (Web Speech API)
+
+### Fixed
+- CORS middleware: `_mcp.add_middleware()` → `_mcp.http_app().add_middleware()` — FastMCP was passing starlette kwargs to wrong signature
+
+## [4.6.0] — 2026-06-14
 
 ### Added
 - Tauri native wrapper (native/ directory) with bundle.resources + std::process::Command

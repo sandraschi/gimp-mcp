@@ -34,6 +34,7 @@ async def test_execute_python_fu_live_success(mock_bridge, interaction_manager):
 @pytest.mark.asyncio
 async def test_execute_python_fu_fallback(interaction_manager, mock_cli_wrapper):
     """Verify fallback to Headless CLI when bridge is offline."""
+
     async def _fallback(code, timeout=None):
         return "CLI_SUCCESS|fallback_done"
 

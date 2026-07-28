@@ -1,20 +1,11 @@
-import {
-  Activity,
-  AlertCircle,
-  CheckCircle2,
-  Server,
-  Terminal,
-  Zap,
-} from "lucide-react";
+import { Activity, AlertCircle, CheckCircle2, Server, Terminal, Zap } from "lucide-react";
 import { type GimpSystemStatus, useStore } from "../store";
 
 interface SystemStatusProps {
   status?: GimpSystemStatus | null;
 }
 
-export default function SystemStatusPage({
-  status: propStatus,
-}: SystemStatusProps) {
+export default function SystemStatusPage({ status: propStatus }: SystemStatusProps) {
   const storeStatus = useStore((s) => s.systemStatus);
   const status = propStatus ?? storeStatus;
   const getModeIcon = (mode: string) => {
@@ -33,58 +24,39 @@ export default function SystemStatusPage({
       <div className="flex justify-between items-end">
         <div>
           <h2 className="text-2xl font-bold">System Status</h2>
-          <p className="text-muted-foreground">
-            Monitor GIMP server performance and connections
-          </p>
+          <p className="text-muted-foreground">Monitor GIMP server performance and connections</p>
         </div>
         {status?.version && (
-          <span className="px-2 py-1 bg-secondary rounded text-xs text-muted-foreground">
-            v{status.version}
-          </span>
+          <span className="px-2 py-1 bg-secondary rounded text-xs text-muted-foreground">v{status.version}</span>
         )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-card p-6 rounded-xl border border-border/50 bg-gradient-to-br from-card to-secondary/10 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-muted-foreground">
-              Connection Mode
-            </span>
+            <span className="text-sm font-medium text-muted-foreground">Connection Mode</span>
             {getModeIcon(status?.live_mode?.mode || "offline")}
           </div>
-          <div className="text-2xl font-bold capitalize">
-            {status?.live_mode?.mode || "Offline"}
-          </div>
+          <div className="text-2xl font-bold capitalize">{status?.live_mode?.mode || "Offline"}</div>
           <p className="text-xs text-muted-foreground">
-            Bridge:{" "}
-            {status?.live_mode?.mode === "live"
-              ? "Connected"
-              : "Fallback/Legacy"}
+            Bridge: {status?.live_mode?.mode === "live" ? "Connected" : "Fallback/Legacy"}
           </p>
         </div>
 
         <div className="bg-card p-6 rounded-xl border border-border/50 bg-gradient-to-br from-card to-secondary/10 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-muted-foreground">
-              Endpoint Status
-            </span>
+            <span className="text-sm font-medium text-muted-foreground">Endpoint Status</span>
             <Server className="w-4 h-4 text-primary" />
           </div>
-          <div className="text-2xl font-bold capitalize">
-            {status?.status || "Unknown"}
-          </div>
+          <div className="text-2xl font-bold capitalize">{status?.status || "Unknown"}</div>
           <div className="w-full bg-secondary h-1.5 rounded-full overflow-hidden">
-            <div
-              className={`h-full ${status?.status === "healthy" ? "bg-green-500 w-full" : "bg-red-500 w-[10%]"}`}
-            />
+            <div className={`h-full ${status?.status === "healthy" ? "bg-green-500 w-full" : "bg-red-500 w-[10%]"}`} />
           </div>
         </div>
 
         <div className="bg-card p-6 rounded-xl border border-border/50 bg-gradient-to-br from-card to-secondary/10 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-muted-foreground">
-              Command Queue
-            </span>
+            <span className="text-sm font-medium text-muted-foreground">Command Queue</span>
             <Activity className="w-4 h-4 text-blue-500" />
           </div>
           <div className="text-2xl font-bold">Ready</div>
@@ -100,8 +72,7 @@ export default function SystemStatusPage({
           {[
             {
               label: "GIMP Connectivity",
-              status:
-                status?.live_mode?.mode !== "offline" ? "connected" : "error",
+              status: status?.live_mode?.mode !== "offline" ? "connected" : "error",
               msg: status?.live_mode?.details || "GIMP bridge unreachable",
             },
             {
@@ -132,9 +103,7 @@ export default function SystemStatusPage({
                 )}
                 <span className="font-medium">{item.label}</span>
               </div>
-              <span className="text-sm text-muted-foreground font-mono">
-                {item.msg}
-              </span>
+              <span className="text-sm text-muted-foreground font-mono">{item.msg}</span>
             </div>
           ))}
         </div>

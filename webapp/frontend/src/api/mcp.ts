@@ -5,13 +5,19 @@
 
 const API_BASE = "/api";
 
-export async function getBackendHealth(): Promise<{ ok: boolean; error?: string }> {
+export async function getBackendHealth(): Promise<{
+  ok: boolean;
+  error?: string;
+}> {
   try {
     const r = await fetch(`${API_BASE}/health`);
     if (!r.ok) return { ok: false, error: `HTTP ${r.status}` };
     return { ok: true };
   } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : "Network error" };
+    return {
+      ok: false,
+      error: e instanceof Error ? e.message : "Network error",
+    };
   }
 }
 
@@ -22,10 +28,7 @@ interface MCPResponse<T = unknown> {
   message?: string;
 }
 
-export async function callTool<T>(
-  tool: string,
-  params: Record<string, unknown> = {},
-): Promise<MCPResponse<T>> {
+export async function callTool<T>(tool: string, params: Record<string, unknown> = {}): Promise<MCPResponse<T>> {
   try {
     const response = await fetch(`${API_BASE}/v1/tool`, {
       method: "POST",

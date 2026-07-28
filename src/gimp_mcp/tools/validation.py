@@ -104,24 +104,16 @@ async def gimp_validation(
 
     if operation in ("validate_image", "check_resolution", "audit_texture"):
         if info["width"] < min_width or info["height"] < min_height:
-            issues.append(
-                f"Resolution {info['width']}x{info['height']} below minimum {min_width}x{min_height}"
-            )
+            issues.append(f"Resolution {info['width']}x{info['height']} below minimum {min_width}x{min_height}")
         if info["width"] > max_width or info["height"] > max_height:
-            issues.append(
-                f"Resolution {info['width']}x{info['height']} exceeds maximum {max_width}x{max_height}"
-            )
+            issues.append(f"Resolution {info['width']}x{info['height']} exceeds maximum {max_width}x{max_height}")
         pot_required = require_power_of_two or operation == "audit_texture"
         if pot_required:
             if not _is_power_of_two(info["width"]) or not _is_power_of_two(info["height"]):
-                issues.append(
-                    f"Dimensions {info['width']}x{info['height']} are not power-of-two"
-                )
+                issues.append(f"Dimensions {info['width']}x{info['height']} are not power-of-two")
 
     if operation in ("validate_image", "check_alpha", "audit_texture"):
-        alpha_required = require_alpha or (
-            operation == "audit_texture" and target_platform in ("vrchat",)
-        )
+        alpha_required = require_alpha or (operation == "audit_texture" and target_platform in ("vrchat",))
         if alpha_required and not info["has_alpha"]:
             issues.append("Image has no alpha channel (expected RGBA/LA)")
 

@@ -34,7 +34,7 @@ function App() {
           setSystemStatus(data);
           addLog("info", "Health check OK");
         }
-      } catch (error) {
+      } catch (_error) {
         addLog("warn", "Health check failed");
         setSystemStatus((prev) => {
           if (prev) return { ...prev, status: "unreachable" };

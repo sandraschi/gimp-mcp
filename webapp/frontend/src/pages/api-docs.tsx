@@ -11,9 +11,7 @@ export default function ApiDocsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">API Documentation</h2>
-          <p className="text-muted-foreground mt-1">
-            REST API reference — FastMCP 3.2 backend
-          </p>
+          <p className="text-muted-foreground mt-1">REST API reference — FastMCP 3.2 backend</p>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -41,11 +39,7 @@ export default function ApiDocsPage() {
             ReDoc
           </button>
           <a
-            href={
-              view === "swagger"
-                ? `${backendBase}/docs`
-                : `${backendBase}/redoc`
-            }
+            href={view === "swagger" ? `${backendBase}/docs` : `${backendBase}/redoc`}
             target="_blank"
             rel="noopener noreferrer"
             className="px-4 py-2 bg-secondary text-muted-foreground hover:text-foreground rounded-lg text-sm font-medium transition-all"
@@ -75,9 +69,7 @@ export default function ApiDocsPage() {
             className="shrink-0 flex items-center gap-2 bg-secondary/50 border border-border/30 rounded-lg px-3 py-1.5"
           >
             <span
-              className={`text-[10px] font-bold uppercase ${
-                ep.method === "GET" ? "text-green-400" : "text-amber-400"
-              }`}
+              className={`text-[10px] font-bold uppercase ${ep.method === "GET" ? "text-green-400" : "text-amber-400"}`}
             >
               {ep.method}
             </span>

@@ -95,10 +95,12 @@ class GimpDetector:
         """Detect GIMP from running process list using WMI."""
         try:
             import subprocess
+
             result = subprocess.run(
-                ["powershell", "-NoProfile", "-Command",
-                 "Get-CimInstance Win32_Process -Filter \"name='gimp-3.exe'\" | Select-Object -ExpandProperty ExecutablePath"],
-                capture_output=True, text=True, timeout=10
+                ["powershell", "-NoProfile", "-Command", "Get-CimInstance Win32_Process -Filter \"name='gimp-3.exe'\" | Select-Object -ExpandProperty ExecutablePath"],
+                capture_output=True,
+                text=True,
+                timeout=10,
             )
             path = result.stdout.strip()
             if path and path.lower().endswith("gimp-3.exe") and os.path.exists(path):
@@ -287,9 +289,7 @@ class GimpDetector:
 
             # Check minimum version requirements
             if major < 2 or (major == 2 and minor < 10):
-                raise RuntimeError(
-                    f"GIMP version {version} is too old. Please install GIMP 2.10+ or preferably GIMP 3.0+"
-                )
+                raise RuntimeError(f"GIMP version {version} is too old. Please install GIMP 2.10+ or preferably GIMP 3.0+")
 
             self.logger.info(f"Validated GIMP version: {version}")
             return version

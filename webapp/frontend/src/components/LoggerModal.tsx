@@ -36,9 +36,7 @@ export function LoggerModal() {
           <div className="flex items-center gap-2">
             <ScrollText className="w-5 h-5 text-primary" />
             <h2 className="text-lg font-semibold">Global Logger</h2>
-            <span className="text-xs text-muted-foreground">
-              ({logs.length} entries)
-            </span>
+            <span className="text-xs text-muted-foreground">({logs.length} entries)</span>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -60,26 +58,13 @@ export function LoggerModal() {
         </div>
         <div className="flex-1 overflow-y-auto p-4 font-mono text-xs space-y-1">
           {logs.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">
-              No log entries yet.
-            </p>
+            <p className="text-muted-foreground text-center py-8">No log entries yet.</p>
           ) : (
             logs.map((entry) => (
-              <div
-                key={entry.id}
-                className="flex gap-2 hover:bg-secondary/30 px-2 py-0.5 rounded"
-              >
-                <span className="text-muted-foreground shrink-0">
-                  {new Date(entry.timestamp).toLocaleTimeString()}
-                </span>
-                <span
-                  className={`shrink-0 uppercase ${levelStyles[entry.level]}`}
-                >
-                  [{entry.level}]
-                </span>
-                <span className="text-foreground/80 break-all">
-                  {entry.message}
-                </span>
+              <div key={entry.id} className="flex gap-2 hover:bg-secondary/30 px-2 py-0.5 rounded">
+                <span className="text-muted-foreground shrink-0">{new Date(entry.timestamp).toLocaleTimeString()}</span>
+                <span className={`shrink-0 uppercase ${levelStyles[entry.level]}`}>[{entry.level}]</span>
+                <span className="text-foreground/80 break-all">{entry.message}</span>
               </div>
             ))
           )}

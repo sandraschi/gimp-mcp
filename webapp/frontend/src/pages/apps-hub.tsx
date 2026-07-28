@@ -1,13 +1,6 @@
 import { ExternalLink, Globe, Search, Wifi, WifiOff } from "lucide-react";
 import { useEffect, useState } from "react";
-import {
-  Badge,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "../components/ui-core";
+import { Badge, Card, CardContent } from "../components/ui-core";
 
 interface FleetApp {
   name: string;
@@ -54,9 +47,7 @@ export default function AppsHub() {
     const scan = async () => {
       const results: FleetApp[] = [];
       for (const app of KNOWN_APPS) {
-        const url = app.vite
-          ? `http://localhost:${app.port}`
-          : `http://localhost:${app.port}/api/health`;
+        const url = app.vite ? `http://localhost:${app.port}` : `http://localhost:${app.port}/api/health`;
         try {
           const resp = await fetch(url, { signal: AbortSignal.timeout(2000) });
           results.push({
@@ -90,9 +81,7 @@ export default function AppsHub() {
     scan();
   }, []);
 
-  const filtered = apps.filter((a) =>
-    a.name.toLowerCase().includes(search.toLowerCase()),
-  );
+  const filtered = apps.filter((a) => a.name.toLowerCase().includes(search.toLowerCase()));
 
   const reachable = apps.filter((a) => a.status === "reachable").length;
 
@@ -102,10 +91,7 @@ export default function AppsHub() {
         <div>
           <h2 className="text-2xl font-bold">Apps Hub</h2>
           <p className="text-muted-foreground mt-1">
-            Fleet Discovery —{" "}
-            {scanning
-              ? "Scanning..."
-              : `${reachable} / ${apps.length} apps reachable`}
+            Fleet Discovery — {scanning ? "Scanning..." : `${reachable} / ${apps.length} apps reachable`}
           </p>
         </div>
         <div className="relative w-64">
@@ -122,29 +108,16 @@ export default function AppsHub() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map((app) => (
-          <a
-            key={app.name}
-            href={app.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group"
-          >
+          <a key={app.name} href={app.url} target="_blank" rel="noopener noreferrer" className="group">
             <Card className="bg-card/60 backdrop-blur-sm border-primary/5 hover:border-primary/20 hover:shadow-lg transition-all">
               <CardContent className="p-5">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <Globe className="w-4 h-4 text-primary" />
-                    <span className="font-mono text-sm font-semibold">
-                      {app.name}
-                    </span>
+                    <span className="font-mono text-sm font-semibold">{app.name}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge
-                      variant={
-                        app.status === "reachable" ? "default" : "secondary"
-                      }
-                      className="text-[10px]"
-                    >
+                    <Badge variant={app.status === "reachable" ? "default" : "secondary"} className="text-[10px]">
                       {app.status === "reachable" ? "UP" : "DOWN"}
                     </Badge>
                     <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground transition-colors" />

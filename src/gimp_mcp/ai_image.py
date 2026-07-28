@@ -58,6 +58,7 @@ async def _gemini_generate(prompt: str, width: int, height: int, quality: str, s
         return {"success": False, "error": "Gemini API key not configured. Set GEMINI_API_KEY or use Settings page."}
     try:
         from google import genai
+
         client = genai.Client(api_key=api_key)
         aspect = f"{width}x{height}"
         styled_prompt = f"{prompt} --style {style}" if style else prompt
@@ -71,6 +72,7 @@ async def _gemini_generate(prompt: str, width: int, height: int, quality: str, s
             return {"success": False, "error": "No images returned by Gemini"}
         img_data = response.generated_images[0].image.image_bytes
         import hashlib
+
         path = _OUTPUT_DIR / f"gemini_{hashlib.md5(prompt.encode()).hexdigest()[:8]}_{width}x{height}.png"
         path.write_bytes(img_data)
         return {"success": True, "image_path": str(path), "provider": "gemini"}
@@ -87,6 +89,7 @@ async def _stability_generate(prompt: str, width: int, height: int, quality: str
     try:
         import stability_sdk.interfaces.gooseai.generation.generation_pb2 as generation
         from stability_sdk import client as stability_client
+
         stability_api = stability_client.StabilityInference(key=api_key, verbose=False)
         answers = stability_api.generate(prompt=prompt, width=width, height=height, samples=1)
         for resp in answers:
@@ -95,6 +98,7 @@ async def _stability_generate(prompt: str, width: int, height: int, quality: str
                     return {"success": False, "error": "Prompt filtered by Safety API"}
                 if artifact.type == generation.ARTIFACT_IMAGE:
                     import hashlib
+
                     path = _OUTPUT_DIR / f"sd_{hashlib.md5(prompt.encode()).hexdigest()[:8]}_{width}x{height}.png"
                     path.write_bytes(artifact.binary)
                     return {"success": True, "image_path": str(path), "provider": "stability"}
@@ -111,11 +115,14 @@ async def _bfl_generate(prompt: str, width: int, height: int, quality: str, styl
         return {"success": False, "error": "BFL API key not configured. Set BFL_API_KEY or use Settings page."}
     try:
         from bfl import Bfl
+
         client = Bfl(api_key=api_key)
         result = client.generate_image(prompt=prompt, width=width, height=height, quality=quality)
         import hashlib
+
         path = _OUTPUT_DIR / f"bfl_{hashlib.md5(prompt.encode()).hexdigest()[:8]}_{width}x{height}.png"
         import httpx
+
         resp = httpx.get(result.url)
         resp.raise_for_status()
         path.write_bytes(resp.content)

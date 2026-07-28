@@ -14,24 +14,25 @@ from typing import Any, Dict
 from fastmcp import tool
 from .base_plugin import GimpToolPlugin
 
+
 class MyPlugin(GimpToolPlugin):
     """Example plugin that demonstrates basic functionality."""
-    
+
     PLUGIN_NAME = "my_plugin"
     PLUGIN_DESCRIPTION = "An example plugin for GIMP MCP"
-    
+
     def register_tools(self, app) -> None:
         """Register all tools provided by this plugin."""
-        
+
         @app.tool()
         async def my_tool(param1: str, param2: int = 42) -> Dict[str, Any]:
             """
             Example tool that demonstrates plugin functionality.
-            
+
             Args:
                 param1: A string parameter
                 param2: An integer parameter with default value 42
-                
+
             Returns:
                 A dictionary with the operation results
             """
@@ -39,7 +40,7 @@ class MyPlugin(GimpToolPlugin):
                 # Plugin logic goes here
                 result = {"status": "success", "message": f"Processed {param1} with {param2}"}
                 return self.create_success_response(data=result)
-                
+
             except Exception as e:
                 self.logger.error(f"Error in my_tool: {e}", exc_info=True)
                 return self.create_error_response(f"Failed to process: {str(e)}")

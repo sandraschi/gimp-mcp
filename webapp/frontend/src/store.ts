@@ -78,8 +78,7 @@ export const useStore = create<AppState>((set, get) => ({
     setTimeout(() => get().removeToast(id), 4000);
   },
 
-  removeToast: (id) =>
-    set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
+  removeToast: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
 
   addLog: (level, message) => {
     const entry: LogEntry = {

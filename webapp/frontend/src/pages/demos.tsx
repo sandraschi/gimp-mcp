@@ -1,9 +1,16 @@
-import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Play, CheckCircle2, XCircle, Loader2, Sparkles,
-  Image as ImageIcon, Wand2, Palette, SquareStack,
+  CheckCircle2,
+  Image as ImageIcon,
+  Loader2,
+  Palette,
+  Play,
+  Sparkles,
+  SquareStack,
+  Wand2,
+  XCircle,
 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { Card } from "../components/ui-core";
 
 interface Demo {
@@ -119,8 +126,7 @@ export default function DemosPage() {
                   <div
                     key={step.step}
                     className={`flex items-center gap-3 text-sm py-1 px-2 rounded transition-colors ${
-                      isCurrent ? "bg-blue-500/10 text-blue-300" :
-                      done ? "text-slate-300" : "text-slate-600"
+                      isCurrent ? "bg-blue-500/10 text-blue-300" : done ? "text-slate-300" : "text-slate-600"
                     }`}
                   >
                     {isCurrent ? (
@@ -151,8 +157,7 @@ export default function DemosPage() {
             <Card
               key={demo.id}
               className={`border-slate-800 bg-slate-950/50 p-5 transition-all ${
-                isRunning ? "ring-2 ring-blue-500/50" :
-                results?.demo_id === demo.id ? "ring-1 ring-emerald-500/30" : ""
+                isRunning ? "ring-2 ring-blue-500/50" : results?.demo_id === demo.id ? "ring-1 ring-emerald-500/30" : ""
               }`}
             >
               <div className="flex items-start justify-between mb-3">
@@ -172,29 +177,21 @@ export default function DemosPage() {
                       : "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20"
                   }`}
                 >
-                  {isRunning ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : (
-                    <Play className="h-3 w-3" />
-                  )}
+                  {isRunning ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />}
                   {isRunning ? "Running..." : "Run Demo"}
                 </button>
               </div>
               <p className="text-xs text-slate-400 leading-relaxed">
                 {demo.description || "No description available."}
               </p>
-              {demo.file && (
-                <p className="text-[10px] text-slate-600 mt-2 font-mono">{demo.file}</p>
-              )}
+              {demo.file && <p className="text-[10px] text-slate-600 mt-2 font-mono">{demo.file}</p>}
             </Card>
           );
         })}
       </div>
 
       {error && (
-        <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-4 text-red-400 text-sm">
-          {error}
-        </div>
+        <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-4 text-red-400 text-sm">{error}</div>
       )}
     </div>
   );

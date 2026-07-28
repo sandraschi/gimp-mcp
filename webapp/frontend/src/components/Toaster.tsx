@@ -31,10 +31,7 @@ export function Toaster() {
           >
             {icons[t.variant]}
             <span className="text-sm text-foreground flex-1">{t.message}</span>
-            <button
-              onClick={() => removeToast(t.id)}
-              className="text-muted-foreground hover:text-foreground"
-            >
+            <button onClick={() => removeToast(t.id)} className="text-muted-foreground hover:text-foreground">
               <X className="w-3.5 h-3.5" />
             </button>
           </motion.div>

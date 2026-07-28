@@ -93,6 +93,4 @@ class ColorAdjustmentTools(BaseToolCategory):
             Returns:
                 Dict containing adjustment operation results
             """
-            return await self._adjust_brightness_contrast_impl(
-                input_path, output_path, brightness, contrast, preserve_colors
-            )
+            return await self._adjust_brightness_contrast_impl(input_path, output_path, brightness, contrast, preserve_colors)

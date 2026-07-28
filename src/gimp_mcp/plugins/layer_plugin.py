@@ -68,9 +68,7 @@ class LayerPlugin(GimpToolPlugin):
 
                 valid_fill_types = ["transparent", "foreground", "background", "color"]
                 if fill_type not in valid_fill_types:
-                    return self.create_error_response(
-                        f"Invalid fill type. Must be one of: {', '.join(valid_fill_types)}"
-                    )
+                    return self.create_error_response(f"Invalid fill type. Must be one of: {', '.join(valid_fill_types)}")
 
                 if fill_type == "color" and not self.validate_color(fill_color):
                     return self.create_error_response("Invalid fill color format")
@@ -145,9 +143,7 @@ class LayerPlugin(GimpToolPlugin):
                 return self.create_error_response(f"Failed to create layer: {e!s}")
 
         @app.tool()
-        async def merge_layers(
-            image_path: str, layer_indices: list[int], merge_type: str = "flatten", new_name: str | None = None
-        ) -> dict[str, Any]:
+        async def merge_layers(image_path: str, layer_indices: list[int], merge_type: str = "flatten", new_name: str | None = None) -> dict[str, Any]:
             """
             Merge multiple layers into a single layer.
 
@@ -170,9 +166,7 @@ class LayerPlugin(GimpToolPlugin):
 
                 valid_merge_types = ["flatten", "visible", "linked", "layer_group"]
                 if merge_type not in valid_merge_types:
-                    return self.create_error_response(
-                        f"Invalid merge type. Must be one of: {', '.join(valid_merge_types)}"
-                    )
+                    return self.create_error_response(f"Invalid merge type. Must be one of: {', '.join(valid_merge_types)}")
 
                 # Build Script-Fu command
                 script = """
@@ -444,9 +438,7 @@ class LayerPlugin(GimpToolPlugin):
                 }
             ],
         )
-        async def set_layer_visibility(
-            image_path: str, layer_indices: list[int], visible: bool = True, affect_others: str = "none"
-        ) -> dict[str, Any]:
+        async def set_layer_visibility(image_path: str, layer_indices: list[int], visible: bool = True, affect_others: str = "none") -> dict[str, Any]:
             """
             Show or hide specific layers in the image.
 
@@ -483,9 +475,7 @@ class LayerPlugin(GimpToolPlugin):
 
                 valid_affect = ["none", "show", "hide", "invert"]
                 if affect_others not in valid_affect:
-                    return self.create_error_response(
-                        f"Invalid affect_others value. Must be one of: {', '.join(valid_affect)}"
-                    )
+                    return self.create_error_response(f"Invalid affect_others value. Must be one of: {', '.join(valid_affect)}")
 
                 # Convert layer indices to a set for faster lookups
                 set(layer_indices)
@@ -638,9 +628,7 @@ class LayerPlugin(GimpToolPlugin):
                 },
             ],
         )
-        async def create_layer_mask(
-            image_path: str, layer_index: int, mask_type: str = "white", color: str = "#000000", invert: bool = False
-        ) -> dict[str, Any]:
+        async def create_layer_mask(image_path: str, layer_index: int, mask_type: str = "white", color: str = "#000000", invert: bool = False) -> dict[str, Any]:
             """
             Create a mask for a layer with various initialization options.
 
@@ -678,14 +666,10 @@ class LayerPlugin(GimpToolPlugin):
 
                 valid_mask_types = ["white", "black", "alpha", "selection", "grayscale", "transfer_alpha", "color"]
                 if mask_type not in valid_mask_types:
-                    return self.create_error_response(
-                        f"Invalid mask type. Must be one of: {', '.join(valid_mask_types)}"
-                    )
+                    return self.create_error_response(f"Invalid mask type. Must be one of: {', '.join(valid_mask_types)}")
 
                 if mask_type == "color" and not self.validate_color(color, allow_alpha=True):
-                    return self.create_error_response(
-                        "Invalid color format. Use hex format like '#RRGGBB' or '#RRGGBBAA'"
-                    )
+                    return self.create_error_response("Invalid color format. Use hex format like '#RRGGBB' or '#RRGGBBAA'")
 
                 # Convert color to RGBA if needed
                 color_values = [0, 0, 0, 255]  # Default black
@@ -851,9 +835,7 @@ class LayerPlugin(GimpToolPlugin):
                 },
             ],
         )
-        async def toggle_layer_visibility(
-            image_path: str, layer_indices: list[int], affect_others: str = "none"
-        ) -> dict[str, Any]:
+        async def toggle_layer_visibility(image_path: str, layer_indices: list[int], affect_others: str = "none") -> dict[str, Any]:
             """
             Toggle visibility of specified layers in the image.
 
@@ -889,9 +871,7 @@ class LayerPlugin(GimpToolPlugin):
 
                 valid_affect = ["none", "show", "hide", "toggle"]
                 if affect_others not in valid_affect:
-                    return self.create_error_response(
-                        f"Invalid affect_others value. Must be one of: {', '.join(valid_affect)}"
-                    )
+                    return self.create_error_response(f"Invalid affect_others value. Must be one of: {', '.join(valid_affect)}")
 
                 # Convert layer indices to a set for faster lookups
                 set(layer_indices)
@@ -1043,9 +1023,7 @@ class LayerPlugin(GimpToolPlugin):
                 },
             ],
         )
-        async def set_layer_opacity(
-            image_path: str, layer_indices: list[int], opacity: float, affect_others: bool = False
-        ) -> dict[str, Any]:
+        async def set_layer_opacity(image_path: str, layer_indices: list[int], opacity: float, affect_others: bool = False) -> dict[str, Any]:
             """
             Set the opacity of one or more layers in the image.
 
@@ -1232,9 +1210,7 @@ class LayerPlugin(GimpToolPlugin):
                 },
             ],
         )
-        async def set_layer_blend_mode(
-            image_path: str, layer_indices: list[int], blend_mode: str, affect_others: bool = False
-        ) -> dict[str, Any]:
+        async def set_layer_blend_mode(image_path: str, layer_indices: list[int], blend_mode: str, affect_others: bool = False) -> dict[str, Any]:
             """
             Set the blend mode of one or more layers in the image.
 
@@ -1531,9 +1507,7 @@ class LayerPlugin(GimpToolPlugin):
                 result = await self.cli_wrapper.execute_script_fu(
                     script.format(
                         image_path=image_path.replace("\\", "\\\\"),
-                        target_indices_list=" ".join(
-                            map(str, sorted(layer_indices, reverse=True))
-                        ),  # Sort descending for proper removal
+                        target_indices_list=" ".join(map(str, sorted(layer_indices, reverse=True))),  # Sort descending for proper removal
                         group_name=group_name.replace('"', '\\"'),
                         position=gimp_position,
                         group_visible="TRUE" if visible else "FALSE",
@@ -1746,8 +1720,7 @@ class LayerPlugin(GimpToolPlugin):
                         "image_path": image_path,
                         "group_deleted": group_deleted,
                     },
-                    message=f"Ungrouped {layers_ungrouped} layers"
-                    + (" and deleted empty group" if group_deleted else ""),
+                    message=f"Ungrouped {layers_ungrouped} layers" + (" and deleted empty group" if group_deleted else ""),
                 )
 
             except Exception as e:

@@ -1,8 +1,8 @@
 import clsx from "clsx";
 import {
   Activity,
-  Bot,
   BookOpen,
+  Bot,
   Code2,
   Cog,
   Copy,
@@ -44,9 +44,7 @@ export function Sidebar() {
     { id: "settings", icon: Cog, label: "Settings" },
   ];
 
-  const bottomNavItems = [
-    { icon: ScrollText, label: "Logger", action: () => setLoggerOpen(true) },
-  ];
+  const bottomNavItems = [{ icon: ScrollText, label: "Logger", action: () => setLoggerOpen(true) }];
 
   const getModeColor = () => {
     const mode = systemStatus?.live_mode?.mode;

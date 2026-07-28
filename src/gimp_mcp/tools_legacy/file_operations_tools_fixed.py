@@ -35,9 +35,7 @@ class FileOperationTools(FileOperationBase):
         """
         super().__init__(cli_wrapper, config)
 
-    async def _get_image_info(
-        self, file_path: str, load_metadata: bool = True, max_dimension: int = 0
-    ) -> dict[str, Any]:
+    async def _get_image_info(self, file_path: str, load_metadata: bool = True, max_dimension: int = 0) -> dict[str, Any]:
         """Get image information using GIMP CLI wrapper.
 
         Args:

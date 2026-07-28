@@ -139,28 +139,20 @@ async def gimp_gmic(
             result = _list_filters()
         elif operation == "apply":
             if not filter_command:
-                result = GmicResult(
-                    success=False, operation=operation, message="filter_command is required for apply", error="Missing parameter"
-                ).model_dump()
+                result = GmicResult(success=False, operation=operation, message="filter_command is required for apply", error="Missing parameter").model_dump()
             else:
                 result = await _apply_filter(filter_command, cli_wrapper)
         elif operation == "apply_named":
             if not filter_name:
-                result = GmicResult(
-                    success=False, operation=operation, message="filter_name is required for apply_named", error="Missing parameter"
-                ).model_dump()
+                result = GmicResult(success=False, operation=operation, message="filter_name is required for apply_named", error="Missing parameter").model_dump()
             else:
                 resolved = _resolve_named_filter(filter_name, filter_params)
                 if not resolved["success"]:
-                    result = GmicResult(
-                        success=False, operation=operation, message=resolved["message"], error=resolved.get("error")
-                    ).model_dump()
+                    result = GmicResult(success=False, operation=operation, message=resolved["message"], error=resolved.get("error")).model_dump()
                 else:
                     result = await _apply_filter(resolved["command"], cli_wrapper)
         else:
-            result = GmicResult(
-                success=False, operation=operation, message=f"Unknown operation: {operation}", error="Invalid operation"
-            ).model_dump()
+            result = GmicResult(success=False, operation=operation, message=f"Unknown operation: {operation}", error="Invalid operation").model_dump()
 
         execution_time = (time.time() - start_time) * 1000
         result["execution_time_ms"] = round(execution_time, 2)
@@ -227,21 +219,15 @@ async def _apply_filter(filter_command: str, cli_wrapper: Any) -> dict[str, Any]
 
     exec_layer = cli_wrapper
     if exec_layer is None:
-        return GmicResult(
-            success=False, operation="apply", message="No GIMP execution layer available", error="GIMP offline"
-        ).model_dump()
+        return GmicResult(success=False, operation="apply", message="No GIMP execution layer available", error="GIMP offline").model_dump()
 
     try:
         if hasattr(exec_layer, "execute_python_fu"):
             output = await exec_layer.execute_python_fu(code)
         else:
-            return GmicResult(
-                success=False, operation="apply", message="Execution layer has no execute_python_fu", error="Missing method"
-            ).model_dump()
+            return GmicResult(success=False, operation="apply", message="Execution layer has no execute_python_fu", error="Missing method").model_dump()
     except Exception as e:
-        return GmicResult(
-            success=False, operation="apply", message=f"GIMP execution failed: {e!s}", error=str(e)
-        ).model_dump()
+        return GmicResult(success=False, operation="apply", message=f"GIMP execution failed: {e!s}", error=str(e)).model_dump()
 
     try:
         marker = "PDB_RESULT:"

@@ -57,7 +57,7 @@ def register_agent_lab_tools(
 
     @app.tool(annotations={"readOnlyHint": True}, version="4.6.0")
     async def gimp_snapshot_tool(
-        max_size: Annotated[int, Field(description="Scale to fit within max_size×max_size (default 1024).")] = 1024,
+        max_size: Annotated[int, Field(description="Scale to fit within max_size x max_size (default 1024).")] = 1024,
         region: Annotated[dict[str, int] | None, Field(description="Optional crop region {x, y, width, height}.")] = None,
     ) -> dict[str, Any]:
         """Return a live base64 PNG of the current GIMP image state.
@@ -77,10 +77,7 @@ def register_agent_lab_tools(
         operation: Annotated[
             str,
             Field(
-                description=(
-                    "Operation: validate_image, check_resolution, check_alpha, check_icc, "
-                    "audit_texture, audit_pbr_pack."
-                ),
+                description=("Operation: validate_image, check_resolution, check_alpha, check_icc, audit_texture, audit_pbr_pack."),
             ),
         ],
         input_path: Annotated[str, Field(description="Image file path to validate.")],

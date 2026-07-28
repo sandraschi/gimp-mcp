@@ -87,9 +87,7 @@ async def import_from_blender_render(
             "blender_response": result,
         }
 
-    files = sorted(
-        p for p in root.rglob("*") if p.is_file() and p.suffix.lower() in SUPPORTED_IMAGE_SUFFIXES
-    )
+    files = sorted(p for p in root.rglob("*") if p.is_file() and p.suffix.lower() in SUPPORTED_IMAGE_SUFFIXES)
     if operation == "screenshot_viewport" and output_path and Path(output_path).is_file():
         files = [Path(output_path)]
 
@@ -116,7 +114,5 @@ def list_staging_files(staging_dir: Path | None = None) -> dict[str, Any]:
     if not root.is_dir():
         return {"success": True, "files": [], "count": 0, "staging_dir": str(root)}
 
-    files = sorted(
-        str(p) for p in root.rglob("*") if p.is_file() and p.suffix.lower() in SUPPORTED_IMAGE_SUFFIXES
-    )
+    files = sorted(str(p) for p in root.rglob("*") if p.is_file() and p.suffix.lower() in SUPPORTED_IMAGE_SUFFIXES)
     return {"success": True, "files": files, "count": len(files), "staging_dir": str(root)}

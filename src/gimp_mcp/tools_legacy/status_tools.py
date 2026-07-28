@@ -107,9 +107,7 @@ class StatusTools(BaseToolCategory):
 
                 health_check = {
                     "timestamp": time.time(),
-                    "categories_checked": len(instance.config.tool_categories)
-                    if hasattr(instance.config, "tool_categories")
-                    else 0,
+                    "categories_checked": len(instance.config.tool_categories) if hasattr(instance.config, "tool_categories") else 0,
                     "health_status": "operational",  # Would be expanded with actual checks
                     "issues_found": [],
                     "recommendations": [
@@ -372,7 +370,7 @@ class StatusTools(BaseToolCategory):
                     }
                 )
         except Exception:
-             pass
+            pass
 
         # Check disk space
         try:
@@ -387,7 +385,7 @@ class StatusTools(BaseToolCategory):
                     }
                 )
         except Exception:
-             pass
+            pass
 
         return issues
 

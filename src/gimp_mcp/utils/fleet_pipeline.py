@@ -89,9 +89,7 @@ async def run_fleet_pipeline(
             output_dir=stage / "blender_renders",
             operation=blender_operation,
             angles=blender_angles,
-            output_path=str(stage / "blender_renders" / "viewport.png")
-            if blender_operation == "screenshot_viewport"
-            else None,
+            output_path=str(stage / "blender_renders" / "viewport.png") if blender_operation == "screenshot_viewport" else None,
         )
         report.steps.append(PipelineStep("blender_render", bool(render_result.get("success")), render_result))
         if not render_result.get("success"):

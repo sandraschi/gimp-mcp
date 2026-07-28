@@ -6,9 +6,7 @@ export default function BatchProcessor() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Batch Processing</h2>
-          <p className="text-muted-foreground">
-            Apply operations to multiple images simultaneously
-          </p>
+          <p className="text-muted-foreground">Apply operations to multiple images simultaneously</p>
         </div>
         <button className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
           <Play className="w-4 h-4" />
@@ -28,9 +26,7 @@ export default function BatchProcessor() {
 
           <div className="bg-secondary/30 border border-dashed rounded-lg p-8 text-center">
             <FileImage className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">
-              Drop files here to process
-            </p>
+            <p className="text-sm text-muted-foreground">Drop files here to process</p>
           </div>
         </div>
 
@@ -56,9 +52,7 @@ export default function BatchProcessor() {
               >
                 <div>
                   <div className="font-medium text-sm">{op.name}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {op.detail}
-                  </div>
+                  <div className="text-xs text-muted-foreground">{op.detail}</div>
                 </div>
                 <button className="opacity-0 group-hover:opacity-100 p-1 hover:bg-destructive/10 hover:text-destructive rounded transition-all">
                   <Trash2 className="w-4 h-4" />

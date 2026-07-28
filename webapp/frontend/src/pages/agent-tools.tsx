@@ -1,22 +1,6 @@
-import {
-  Activity,
-  Bot,
-  Camera,
-  GitPullRequest,
-  ImageIcon,
-  ScanEye,
-  ShieldCheck,
-  Boxes,
-} from "lucide-react";
+import { Activity, Bot, Boxes, Camera, GitPullRequest, ImageIcon, ScanEye, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
-import {
-  callTool,
-  clearCaptures,
-  getBackendHealth,
-  loadCaptures,
-  saveCapture,
-  type CaptureRecord,
-} from "../api/mcp";
+import { type CaptureRecord, callTool, clearCaptures, getBackendHealth, loadCaptures, saveCapture } from "../api/mcp";
 
 type TabId = "bridge" | "vision" | "validation" | "gallery" | "fleet" | "simart";
 
@@ -48,9 +32,7 @@ export default function AgentToolsPage() {
   const [simPipeline, setSimPipeline] = useState("gazebo");
   const [simTemplate, setSimTemplate] = useState("gazebo_icon_256");
   const [simLayout, setSimLayout] = useState("4x4");
-  const [simModelsRoot, setSimModelsRoot] = useState(
-    "C:/Users/Public/.gz/fuel/fuel.gazebosim.org/OpenRobotics/models",
-  );
+  const [simModelsRoot, setSimModelsRoot] = useState("C:/Users/Public/.gz/fuel/fuel.gazebosim.org/OpenRobotics/models");
   const [simModelId, setSimModelId] = useState("MyAvatar");
   const [simAutoImport, setSimAutoImport] = useState(true);
 
@@ -86,8 +68,7 @@ export default function AgentToolsPage() {
           id: crypto.randomUUID(),
           outputPath: String(data.output_path ?? outputPath),
           capturedAt: new Date().toISOString(),
-          previewBase64:
-            typeof data.image_base64 === "string" ? data.image_base64 : undefined,
+          previewBase64: typeof data.image_base64 === "string" ? data.image_base64 : undefined,
         };
         saveCapture(record);
         setCaptures(loadCaptures());
@@ -452,7 +433,10 @@ export default function AgentToolsPage() {
                 disabled={loading}
                 className="px-4 py-2 bg-secondary rounded-md text-sm"
                 onClick={() =>
-                  run("gimp_import_tool", { operation: "list_staging", staging_dir: stagingDir })
+                  run("gimp_import_tool", {
+                    operation: "list_staging",
+                    staging_dir: stagingDir,
+                  })
                 }
               >
                 List staging
@@ -526,11 +510,7 @@ export default function AgentToolsPage() {
               />
             </label>
             <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={simAutoImport}
-                onChange={(e) => setSimAutoImport(e.target.checked)}
-              />
+              <input type="checkbox" checked={simAutoImport} onChange={(e) => setSimAutoImport(e.target.checked)} />
               Auto-import to Gazebo models / avatar thumbnail
             </label>
             <div className="flex flex-wrap gap-2">

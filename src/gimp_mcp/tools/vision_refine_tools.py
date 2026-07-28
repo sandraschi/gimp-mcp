@@ -26,9 +26,7 @@ async def build_texture_review_bundle(
     if not root.is_dir():
         return {"success": False, "error": f"Input directory not found: {input_dir}"}
 
-    images = sorted(
-        p for p in root.rglob("*") if p.is_file() and p.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp", ".tga"}
-    )
+    images = sorted(p for p in root.rglob("*") if p.is_file() and p.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp", ".tga"})
     if not images:
         return {"success": False, "error": f"No images found under {input_dir}"}
 

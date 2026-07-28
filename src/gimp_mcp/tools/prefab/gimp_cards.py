@@ -27,10 +27,7 @@ async def gimp_capabilities_card(ctx: Context | None = None) -> Any:
 
     total_ops = sum(len(t["operations"]) for t in PORTMANTEAU_TOOLS)
     [f"{t['name']}: {len(t['operations'])} ops" for t in PORTMANTEAU_TOOLS]
-    summary = (
-        f"GIMP MCP — {len(PORTMANTEAU_TOOLS)} portmanteau tools, {total_ops} operations. "
-        "FastMCP 3.2: sampling, prompts, resources, skill://gimp-expert, MCPB."
-    )
+    summary = f"GIMP MCP — {len(PORTMANTEAU_TOOLS)} portmanteau tools, {total_ops} operations. FastMCP 3.2: sampling, prompts, resources, skill://gimp-expert, MCPB."
 
     with Card(css_class="max-w-xl") as view:
         with CardHeader():

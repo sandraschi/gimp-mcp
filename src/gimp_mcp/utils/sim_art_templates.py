@@ -84,10 +84,7 @@ DEFAULT_SIM_STAGING = "D:/Temp/fleet_pipeline/sim_art"
 
 
 def list_template_catalog() -> list[dict[str, Any]]:
-    return [
-        {**template, "layout": None}
-        for template in SIM_ART_TEMPLATES.values()
-    ]
+    return [{**template, "layout": None} for template in SIM_ART_TEMPLATES.values()]
 
 
 def list_atlas_layouts() -> list[dict[str, Any]]:

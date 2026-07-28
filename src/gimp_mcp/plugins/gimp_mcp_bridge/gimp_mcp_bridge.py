@@ -16,7 +16,7 @@ import gi
 
 # Require GIMP 3.0
 gi.require_version("Gimp", "3.0")
-from gi.repository import Gimp, GLib, GObject  # noqa: E402
+from gi.repository import Gimp, GLib, GObject
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

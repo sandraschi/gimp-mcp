@@ -124,9 +124,7 @@ class PluginManager:
                 if issubclass(obj, GimpPlugin) and obj != GimpPlugin and not inspect.isabstract(obj):
                     plugin_name = obj.get_plugin_name()
                     if plugin_name in self.plugins:
-                        self.logger.warning(
-                            f"Plugin '{plugin_name}' from {file_path} already loaded. Skipping duplicate."
-                        )
+                        self.logger.warning(f"Plugin '{plugin_name}' from {file_path} already loaded. Skipping duplicate.")
                         continue
 
                     self.logger.info(f"Loading plugin: {plugin_name}")

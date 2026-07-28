@@ -1,11 +1,19 @@
-import { useState, useEffect } from "react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../components/ui-core";
-import { Key, Eye, EyeOff, CheckCircle2, XCircle, Sparkles, Loader2, Cpu, RefreshCw } from "lucide-react";
+import { CheckCircle2, Cpu, Eye, EyeOff, Key, Loader2, RefreshCw, Sparkles, XCircle } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui-core";
 import { useStore } from "../store";
 
 const PROVIDERS = [
-  { id: "gemini", label: "Google Gemini", doc: "https://aistudio.google.com/app/apikey" },
-  { id: "stability", label: "Stability AI", doc: "https://platform.stability.ai/account/keys" },
+  {
+    id: "gemini",
+    label: "Google Gemini",
+    doc: "https://aistudio.google.com/app/apikey",
+  },
+  {
+    id: "stability",
+    label: "Stability AI",
+    doc: "https://platform.stability.ai/account/keys",
+  },
   { id: "bfl", label: "BFL / Flux", doc: "https://api.bfl.ml/settings" },
 ];
 
@@ -54,7 +62,10 @@ export default function SettingsPage() {
       const resp = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider, prompt: "A beautiful mountain landscape at sunset, photorealistic" }),
+        body: JSON.stringify({
+          provider,
+          prompt: "A beautiful mountain landscape at sunset, photorealistic",
+        }),
       });
       const data = await resp.json();
       if (data.success) {
@@ -97,7 +108,11 @@ export default function SettingsPage() {
       const resp = await fetch("/api/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ scope: "local_llm", provider: llmProvider, model: llmModel }),
+        body: JSON.stringify({
+          scope: "local_llm",
+          provider: llmProvider,
+          model: llmModel,
+        }),
       });
       const data = await resp.json();
       setLlmDetected(data.detected || {});
@@ -136,7 +151,12 @@ export default function SettingsPage() {
                     </p>
                   </div>
                 </div>
-                <a href={p.doc} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
+                <a
+                  href={p.doc}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-primary hover:underline"
+                >
                   Get API key
                 </a>
               </div>
@@ -231,8 +251,8 @@ export default function SettingsPage() {
                 className="w-full bg-secondary border-none rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/50"
               >
                 <option value="disabled">Disabled</option>
-{llmDetected.ollama?.running && <option value="ollama">Ollama (:11434)</option>}
-{llmDetected.lmstudio?.running && <option value="lmstudio">LM Studio (:1234)</option>}
+                {llmDetected.ollama?.running && <option value="ollama">Ollama (:11434)</option>}
+                {llmDetected.lmstudio?.running && <option value="lmstudio">LM Studio (:1234)</option>}
               </select>
             </div>
             <div>
@@ -244,7 +264,9 @@ export default function SettingsPage() {
               >
                 <option value="">Select model</option>
                 {(llmDetected[llmProvider]?.models || []).map((m: string) => (
-                  <option key={m} value={m}>{m}</option>
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
                 ))}
               </select>
             </div>

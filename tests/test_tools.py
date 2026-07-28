@@ -58,9 +58,7 @@ async def test_tool_execution_live_fallback(mock_bridge, mcp_server):
         await mcp_server.initialize()
 
     pdb_output = 'CLI_SUCCESS|PDB_RESULT:{"success": true, "result": null}'
-    with patch.object(
-        mcp_server.interaction_manager.bridge, "execute_live_python", side_effect=Exception("Bridge failed")
-    ):
+    with patch.object(mcp_server.interaction_manager.bridge, "execute_live_python", side_effect=Exception("Bridge failed")):
         with patch.object(
             mcp_server.interaction_manager.cli,
             "is_available",

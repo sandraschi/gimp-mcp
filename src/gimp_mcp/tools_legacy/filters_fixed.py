@@ -125,6 +125,4 @@ class FilterTools(BaseToolCategory):
             Returns:
                 Dict containing blur operation results
             """
-            return await self._apply_blur_impl(
-                input_path, output_path, radius, method, horizontal, vertical, angle, center_x, center_y
-            )
+            return await self._apply_blur_impl(input_path, output_path, radius, method, horizontal, vertical, angle, center_x, center_y)

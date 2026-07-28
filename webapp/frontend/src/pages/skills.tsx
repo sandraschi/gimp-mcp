@@ -2,13 +2,7 @@ import { BookOpen, Code2, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "../components/ui-core";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui-core";
 
 interface Skill {
   name: string;
@@ -40,9 +34,7 @@ export default function SkillsPage() {
             setSkills(skillList);
           }
         } catch {
-          setSkills([
-            { name: "gimp-expert", uri: "skill://gimp-expert/SKILL.md" },
-          ]);
+          setSkills([{ name: "gimp-expert", uri: "skill://gimp-expert/SKILL.md" }]);
         }
       } finally {
         setLoading(false);
@@ -80,9 +72,7 @@ export default function SkillsPage() {
     <div className="max-w-6xl mx-auto space-y-6">
       <div>
         <h2 className="text-2xl font-bold">Skills</h2>
-        <p className="text-muted-foreground mt-1">
-          FastMCP 3.2 skills provider — Markdown resources for AI agents
-        </p>
+        <p className="text-muted-foreground mt-1">FastMCP 3.2 skills provider — Markdown resources for AI agents</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -104,13 +94,9 @@ export default function SkillsPage() {
               >
                 <div className="flex items-center gap-2 mb-1">
                   <BookOpen className="w-4 h-4 text-primary" />
-                  <span className="font-mono text-sm font-medium">
-                    {skill.name}
-                  </span>
+                  <span className="font-mono text-sm font-medium">{skill.name}</span>
                 </div>
-                <span className="text-[10px] text-muted-foreground font-mono">
-                  {skill.uri}
-                </span>
+                <span className="text-[10px] text-muted-foreground font-mono">{skill.uri}</span>
               </button>
             ))
           )}
@@ -124,14 +110,10 @@ export default function SkillsPage() {
                   <Code2 className="w-5 h-5 text-primary" />
                   {selected.uri}
                 </CardTitle>
-                <CardDescription>
-                  Skill documentation for AI agents
-                </CardDescription>
+                <CardDescription>Skill documentation for AI agents</CardDescription>
               </CardHeader>
               <CardContent className="prose prose-invert prose-sm max-w-none prose-headings:text-foreground prose-code:text-primary prose-pre:bg-secondary prose-a:text-primary">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {selected.content}
-                </ReactMarkdown>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{selected.content}</ReactMarkdown>
               </CardContent>
             </Card>
           ) : (

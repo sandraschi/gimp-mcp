@@ -6,15 +6,10 @@ export default function ScriptFuConsole() {
       <div className="flex items-center justify-between shrink-0">
         <div>
           <h2 className="text-2xl font-bold">Script-Fu Console</h2>
-          <p className="text-muted-foreground">
-            Execute Scheme scripts directly in GIMP
-          </p>
+          <p className="text-muted-foreground">Execute Scheme scripts directly in GIMP</p>
         </div>
         <div className="flex gap-2">
-          <button
-            className="bg-secondary hover:bg-secondary/80 p-2 rounded-md"
-            title="Clear console"
-          >
+          <button className="bg-secondary hover:bg-secondary/80 p-2 rounded-md" title="Clear console">
             <Play className="w-4 h-4 rotate-90" />
           </button>
           <button className="bg-secondary hover:bg-secondary/80 px-3 py-2 rounded-md text-sm font-medium flex items-center gap-2">
@@ -28,12 +23,8 @@ export default function ScriptFuConsole() {
 
       <div className="flex-1 bg-card rounded-xl border grid grid-rows-[1fr_auto] overflow-hidden">
         <div className="p-4 font-mono text-sm space-y-2 overflow-y-auto">
-          <div className="text-muted-foreground">
-            # GIMP Script-Fu Console initialized
-          </div>
-          <div className="text-muted-foreground">
-            # Connected to GIMP 2.10.38
-          </div>
+          <div className="text-muted-foreground"># GIMP Script-Fu Console initialized</div>
+          <div className="text-muted-foreground"># Connected to GIMP 2.10.38</div>
           <div>
             <span className="text-green-500">➜</span> (gimp-image-list)
           </div>

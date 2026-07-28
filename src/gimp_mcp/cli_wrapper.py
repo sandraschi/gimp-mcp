@@ -56,14 +56,9 @@ class GimpCliWrapper:
         # Validate GIMP executable (non-fatal warning during init)
         self._available = False
         if not self.config.gimp_executable:
-            self.logger.warning(
-                "GIMP executable not configured and auto-detection failed. Headless CLI operations will be unavailable."
-            )
+            self.logger.warning("GIMP executable not configured and auto-detection failed. Headless CLI operations will be unavailable.")
         elif not Path(self.config.gimp_executable).exists():
-            self.logger.warning(
-                f"GIMP executable not found at: {self.config.gimp_executable}. "
-                "Headless CLI operations will be unavailable."
-            )
+            self.logger.warning(f"GIMP executable not found at: {self.config.gimp_executable}. Headless CLI operations will be unavailable.")
         else:
             self._available = True
             self.logger.info(f"Using GIMP executable: {self.config.gimp_executable}")
@@ -185,9 +180,7 @@ class GimpCliWrapper:
         except Exception as e:
             raise GimpExecutionError(f"Failed to load image info for {file_path}: {e}")
 
-    async def convert_image(
-        self, input_path: str, output_path: str, output_format: str | None = None, quality: int | None = None
-    ) -> bool:
+    async def convert_image(self, input_path: str, output_path: str, output_format: str | None = None, quality: int | None = None) -> bool:
         """
         Convert image format using GIMP.
 
@@ -224,9 +217,7 @@ class GimpCliWrapper:
             self.logger.error(f"Image conversion failed: {e}")
             return False
 
-    async def resize_image(
-        self, input_path: str, output_path: str, width: int, height: int, maintain_aspect: bool = True
-    ) -> bool:
+    async def resize_image(self, input_path: str, output_path: str, width: int, height: int, maintain_aspect: bool = True) -> bool:
         """
         Resize image using GIMP.
 

@@ -18,9 +18,7 @@ export default function LayerManager() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Layer Management</h2>
-          <p className="text-muted-foreground">
-            Advanced layer operations and organization
-          </p>
+          <p className="text-muted-foreground">Advanced layer operations and organization</p>
         </div>
         <div className="flex gap-2">
           <button className="bg-secondary hovering:bg-secondary/80 text-foreground px-3 py-2 rounded-md text-sm font-medium">
@@ -40,18 +38,10 @@ export default function LayerManager() {
           >
             <div className="flex items-center gap-2 text-muted-foreground">
               <button className="hover:text-foreground">
-                {layer.visible ? (
-                  <Eye className="w-4 h-4" />
-                ) : (
-                  <EyeOff className="w-4 h-4" />
-                )}
+                {layer.visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
               </button>
               <button className="hover:text-foreground">
-                {layer.locked ? (
-                  <Lock className="w-4 h-4" />
-                ) : (
-                  <Unlock className="w-4 h-4" />
-                )}
+                {layer.locked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
               </button>
             </div>
 
@@ -65,19 +55,13 @@ export default function LayerManager() {
                 defaultValue={layer.name}
                 className="bg-transparent font-medium focus:outline-none focus:underline"
               />
-              <div className="text-xs text-muted-foreground capitalize">
-                {layer.type} Layer
-              </div>
+              <div className="text-xs text-muted-foreground capitalize">{layer.type} Layer</div>
             </div>
 
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <span className="text-xs text-muted-foreground">Opacity</span>
-                <input
-                  type="range"
-                  className="w-24 accent-primary"
-                  defaultValue={100}
-                />
+                <input type="range" className="w-24 accent-primary" defaultValue={100} />
               </div>
               <select className="bg-secondary border rounded text-xs p-1">
                 <option>Normal</option>

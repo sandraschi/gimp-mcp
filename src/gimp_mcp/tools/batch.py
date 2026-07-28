@@ -336,7 +336,6 @@ async def gimp_batch(
             execution_time_ms=round(execution_time, 2),
         ).model_dump()
 
-
     return True
 
 
@@ -404,10 +403,7 @@ async def _batch_pbr_pack(
     return BatchResult(
         success=success,
         operation="pbr_pack",
-        message=(
-            f"PBR pack: {len(results) - failed}/{len(results)} map(s) normalized to {map_size}px"
-            + (f"; {len(validation_issues)} validation issue(s)" if validation_issues else "")
-        ),
+        message=(f"PBR pack: {len(results) - failed}/{len(results)} map(s) normalized to {map_size}px" + (f"; {len(validation_issues)} validation issue(s)" if validation_issues else "")),
         data={
             "map_size": map_size,
             "pack_prefix": pack_prefix,

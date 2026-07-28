@@ -1,13 +1,4 @@
-import {
-  Globe,
-  HelpCircle,
-  ScrollText,
-  Minimize2,
-  Maximize2,
-  ExternalLink,
-  Menu,
-  ChevronDown,
-} from "lucide-react";
+import { ChevronDown, ExternalLink, HelpCircle, Maximize2, Menu, Minimize2, ScrollText } from "lucide-react";
 import { useState } from "react";
 import { useStore } from "../store";
 
@@ -50,11 +41,7 @@ export function Navbar() {
   const healthy = systemStatus?.status === "healthy";
 
   const handlePopOut = () => {
-    const w = window.open(
-      window.location.href,
-      "gimp-mcp",
-      "width=480,height=720,menubar=no,toolbar=no,location=no"
-    );
+    const _w = window.open(window.location.href, "gimp-mcp", "width=480,height=720,menubar=no,toolbar=no,location=no");
   };
 
   return (
@@ -82,7 +69,10 @@ export function Navbar() {
                   {Object.entries(pageLabels).map(([id, label]) => (
                     <button
                       key={id}
-                      onClick={() => { setCurrentPage(id); setNavOpen(false); }}
+                      onClick={() => {
+                        setCurrentPage(id);
+                        setNavOpen(false);
+                      }}
                       className={`w-full text-left px-3 py-1.5 text-xs hover:bg-secondary transition-colors ${
                         id === currentPage ? "text-primary font-medium" : "text-muted-foreground"
                       }`}

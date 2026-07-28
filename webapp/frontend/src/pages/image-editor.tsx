@@ -1,13 +1,4 @@
-import {
-  Crop,
-  Eraser,
-  Layers,
-  Move,
-  Sliders,
-  Type,
-  Upload,
-  Wand2,
-} from "lucide-react";
+import { Crop, Eraser, Layers, Move, Sliders, Type, Upload, Wand2 } from "lucide-react";
 import { useState } from "react";
 
 export default function ImageEditor() {
@@ -50,9 +41,7 @@ export default function ImageEditor() {
         <div className="text-center p-8 transition-opacity group-hover:opacity-50">
           <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-medium">No Image Loaded</h3>
-          <p className="text-sm text-muted-foreground mt-1">
-            Drag and drop or click to upload
-          </p>
+          <p className="text-sm text-muted-foreground mt-1">Drag and drop or click to upload</p>
           <button className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
             Open Image
           </button>
@@ -68,16 +57,12 @@ export default function ImageEditor() {
 
         <div className="space-y-6">
           <div className="space-y-2">
-            <label className="text-xs font-medium text-muted-foreground">
-              Opacity
-            </label>
+            <label className="text-xs font-medium text-muted-foreground">Opacity</label>
             <input type="range" className="w-full accent-primary" />
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-medium text-muted-foreground">
-              Blend Mode
-            </label>
+            <label className="text-xs font-medium text-muted-foreground">Blend Mode</label>
             <select className="w-full bg-secondary border rounded-md p-2 text-sm">
               <option>Normal</option>
               <option>Multiply</option>
@@ -87,9 +72,7 @@ export default function ImageEditor() {
           </div>
 
           <div className="p-4 bg-secondary/50 rounded-lg">
-            <p className="text-xs text-muted-foreground text-center">
-              Select a layer to view properties
-            </p>
+            <p className="text-xs text-muted-foreground text-center">Select a layer to view properties</p>
           </div>
         </div>
       </div>

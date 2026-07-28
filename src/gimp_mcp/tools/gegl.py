@@ -168,13 +168,9 @@ async def _list_gegl_ops(cli_wrapper: Any) -> dict[str, Any]:
         if hasattr(exec_layer, "execute_python_fu"):
             output = await exec_layer.execute_python_fu(code)
         else:
-            return GeglResult(
-                success=False, operation="list_ops", message="No execute_python_fu method", error="Missing method"
-            ).model_dump()
+            return GeglResult(success=False, operation="list_ops", message="No execute_python_fu method", error="Missing method").model_dump()
     except Exception as e:
-        return GeglResult(
-            success=False, operation="list_ops", message=f"GIMP execution failed: {e!s}", error=str(e)
-        ).model_dump()
+        return GeglResult(success=False, operation="list_ops", message=f"GIMP execution failed: {e!s}", error=str(e)).model_dump()
 
     try:
         marker = "PDB_RESULT:"
@@ -228,13 +224,9 @@ async def _apply_gegl(operation_name: str, config_string: str, cli_wrapper: Any)
         if hasattr(exec_layer, "execute_python_fu"):
             output = await exec_layer.execute_python_fu(code)
         else:
-            return GeglResult(
-                success=False, operation="apply", message="No execute_python_fu method", error="Missing method"
-            ).model_dump()
+            return GeglResult(success=False, operation="apply", message="No execute_python_fu method", error="Missing method").model_dump()
     except Exception as e:
-        return GeglResult(
-            success=False, operation="apply", message=f"GIMP execution failed: {e!s}", error=str(e)
-        ).model_dump()
+        return GeglResult(success=False, operation="apply", message=f"GIMP execution failed: {e!s}", error=str(e)).model_dump()
 
     try:
         marker = "PDB_RESULT:"

@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 
 from gimp_mcp.cli_wrapper import GimpCliWrapper
 from gimp_mcp.config import GimpConfig
+from gimp_mcp.http_app import app as gimp_http_app
 from gimp_mcp.interaction_manager import GimpInteractionManager
 from gimp_mcp.main import GimpMCPServer
 
@@ -40,7 +41,7 @@ class MockBridgeServer:
                 s.settimeout(0.1)
                 s.connect((self.host, self.port))
         except Exception:
-             pass
+            pass
         if self.server_thread:
             self.server_thread.join(timeout=1.0)
 
@@ -125,4 +126,4 @@ def mcp_server():
 def api_client(mcp_server):
     """Fixture for FastAPI TestClient."""
     # FastMCP nesting: server.mcp.app is the FastAPI instance
-    return TestClient(mcp_server.mcp.http_app)
+    return TestClient(gimp_http_app)

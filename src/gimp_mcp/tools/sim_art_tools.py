@@ -396,9 +396,7 @@ async def gimp_sim_art(
             return SimArtResult(
                 success=bool(atlas.get("success")),
                 operation=operation,
-                message=f"Decal sheet {layout} with {atlas.get('cell_count', 0)} cell(s)"
-                if operation == "build_decal_sheet"
-                else f"Atlas {layout} with {atlas.get('cell_count', 0)} cell(s)",
+                message=f"Decal sheet {layout} with {atlas.get('cell_count', 0)} cell(s)" if operation == "build_decal_sheet" else f"Atlas {layout} with {atlas.get('cell_count', 0)} cell(s)",
                 data=atlas,
                 files=files,
                 execution_time_ms=round(elapsed, 2),
