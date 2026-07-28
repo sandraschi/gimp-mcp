@@ -92,7 +92,7 @@ dev = [
     "black>=23.7.0,<24.0.0",
     "isort>=5.12.0,<6.0.0",
     "mypy>=1.4.0,<2.0.0",
-    "ruff>=0.0.280,<1.0.0",
+    "ruff>=0.16.0,<0.17",
     "pre-commit>=3.3.0,<4.0.0",
     
     # Documentation
@@ -163,7 +163,7 @@ all = [
 name = "gimp-mcp"
 display_name = "GIMP MCP Server"
 version = "4.6.0"
-description = "FastMCP 3.2.0 SOTA — portmanteau tools, sampling, prompts, resources, skills, prefab, MCPB"
+description = "FastMCP 3.2.0 SOTA â€” portmanteau tools, sampling, prompts, resources, skills, prefab, MCPB"
 entry_point = "gimp_mcp.main:main"
 architecture = "portmanteau"
 
