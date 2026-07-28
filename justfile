@@ -1,4 +1,4 @@
-set windows-shell := ["pwsh.exe", "-NoLogo", "-Command"]
+﻿set windows-shell := ["powershell.exe", "-NoProfile", "-Command"]
 import 'scripts/just/fleet.just'
 
 gimp_bin := "C:\\Users\\sandr\\AppData\\Local\\Programs\\GIMP 3\\bin\\gimp-console-3.exe"
@@ -7,7 +7,14 @@ gimp_bin := "C:\\Users\\sandr\\AppData\\Local\\Programs\\GIMP 3\\bin\\gimp-conso
 default:
     @just --list
 
-# ── Startup ───────────────────────────────────────────────────────────────────
+
+# Synchronize deps, pre-commit hooks, and web frontend
+bootstrap:
+    uv sync --extra dev --group dev
+    uv run pre-commit install
+    Set-Location webapp/frontend; npm ci; if ($LASTEXITCODE -ne 0) { npm install }
+    Write-Host "Pre-commit hooks installed." -ForegroundColor Green
+# â”€â”€ Startup â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 # Start everything: backend + frontend + bridge
 start:
@@ -34,7 +41,7 @@ build:
     Set-Location '{{justfile_directory()}}\webapp\frontend'
     npm run build
 
-# ── Bridge ────────────────────────────────────────────────────────────────────
+# â”€â”€ Bridge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 # Check if GIMP bridge is active on port 10824
 bridge-status:
@@ -51,7 +58,7 @@ bridge-install:
         Write-Host "Installed to $d" -ForegroundColor Green; \
     }
 
-# ── PDB Proxy ─────────────────────────────────────────────────────────────────
+# â”€â”€ PDB Proxy â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 # Call any GIMP PDB procedure. Usage: just pdb "gimp-version"
 pdb procedure:
@@ -64,7 +71,7 @@ tools:
     @Set-Location '{{justfile_directory()}}'
     @uv run python scripts/list_tools.py
 
-# ── Testing ───────────────────────────────────────────────────────────────────
+# â”€â”€ Testing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 # Run all tests
 test:
@@ -72,7 +79,7 @@ test:
     uv run pytest tests/ -v --tb=short
 
 e2e:
-    pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File "D:\Dev\repos\mcp-central-docs\scripts\playwright-audit.ps1" -RepoPath "{{justfile_directory()}}"
+    powershell.exe -NoProfile -NoProfile -ExecutionPolicy Bypass -File "D:\Dev\repos\mcp-central-docs\scripts\playwright-audit.ps1" -RepoPath "{{justfile_directory()}}"
 
 # Run tests with coverage
 test-cov:
@@ -91,7 +98,7 @@ test-pdb:
     $env:GIMP_BIN = '{{gimp_bin}}'
     uv run python scripts/test_pdb.py
 
-# ── Quality ───────────────────────────────────────────────────────────────────
+# â”€â”€ Quality â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 # Lint Python (ruff) and frontend (biome)
 lint:
@@ -108,7 +115,7 @@ fix:
     Set-Location '{{justfile_directory()}}\webapp\frontend'
     npx @biomejs/biome check --write .
 
-# ── Hardening ─────────────────────────────────────────────────────────────────
+# â”€â”€ Hardening â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 # Bandit security audit
 check-sec:
@@ -120,7 +127,7 @@ audit-deps:
     Set-Location '{{justfile_directory()}}'
     uv run safety check
 
-# ── Cleanup ───────────────────────────────────────────────────────────────────
+# â”€â”€ Cleanup â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 # Kill all gimp-mcp processes (frontend, backend, bridge)
 kill:
@@ -147,7 +154,7 @@ clean-gimp:
 	Remove-Item -Recurse -Force "$env:APPDATA\GIMP\3.2\plug-ins\gimp_mcp_bridge" -ErrorAction SilentlyContinue
 	Write-Host "GIMP bridge plugin removed" -ForegroundColor Yellow
 
-# ── Tauri NSIS ─────────────────────────────────────────────────────────────────
+# â”€â”€ Tauri NSIS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 # Build the Tauri NSIS desktop installer (full pipeline: frontend -> Rust -> NSIS)
 build-native:
@@ -158,6 +165,3 @@ build-native:
 	Set-Location '{{justfile_directory()}}\native'
 	npx @tauri-apps/cli build --bundles nsis
 
-# Run the CUA smoke test against the installed NSIS app
-cua-nsis-test:
-	C:\Windows\py.exe scripts/cua-smoke.py

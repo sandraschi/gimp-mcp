@@ -8,7 +8,7 @@ version = "4.6.0"
 description = "FastMCP 3.4.2 SOTA server for professional image editing using GIMP - Industrial Modernization"
 readme = "README.md"
 authors = [
-    {name = "Sandra Schipal", email = "sandra@sandraschi.dev"},
+    {name = "Sandra Schipal", email = "sandraschipal@gmail.com"},
     {name = "FastMCP Community", email = "fastmcp@example.com"}
 ]
 requires-python = ">=3.12"
@@ -33,7 +33,7 @@ classifiers = [
 
 dependencies = [
     # FastMCP 3.2+ (sampling, skills provider, prompts, prefab)
-    "fastmcp>=3.4.2,<4",
+    "fastmcp>=3.4.4,<4",
     "pydantic>=2.0.0,<3.0.0",
     "typing-extensions>=4.5.0,<5.0.0",
     # Image processing
