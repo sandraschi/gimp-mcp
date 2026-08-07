@@ -1,6 +1,32 @@
-import { ChevronDown, ExternalLink, HelpCircle, Maximize2, Menu, Minimize2, ScrollText } from "lucide-react";
-import { useState } from "react";
+import { ChevronDown, ExternalLink, HelpCircle, Maximize2, Menu, Minimize2, Moon, ScrollText, Sun } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useStore } from "../store";
+
+// EXPERIMENTAL light mode (invert hack). Not fleet standard — see index.css.
+// Toggling `.dark` off the root flips the invert filter; persisted so the
+// choice survives reloads. Delete this + the CSS block to revert.
+const THEME_KEY = "gimp-light-mode";
+
+function useExperimentalTheme() {
+  const [light, setLight] = useState(() => {
+    try {
+      return localStorage.getItem(THEME_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", !light);
+    try {
+      localStorage.setItem(THEME_KEY, light ? "1" : "0");
+    } catch {
+      // ignore storage errors
+    }
+  }, [light]);
+
+  return { light, toggle: () => setLight((v) => !v) };
+}
 
 const pageLabels: Record<string, string> = {
   dashboard: "Dashboard",
@@ -30,6 +56,7 @@ export function Navbar() {
   const setHelpOpen = useStore((s) => s.setHelpOpen);
   const toggleCompactMode = useStore((s) => s.toggleCompactMode);
   const [navOpen, setNavOpen] = useState(false);
+  const { light, toggle } = useExperimentalTheme();
 
   const mode = (() => {
     const m = systemStatus?.live_mode?.mode;
@@ -101,6 +128,16 @@ export function Navbar() {
 
       {/* Right: controls */}
       <div className="flex items-center gap-1">
+        <button
+          type="button"
+          onClick={toggle}
+          className="p-1.5 hover:bg-secondary rounded-lg transition-colors text-muted-foreground hover:text-foreground"
+          title={light ? "Switch to dark (experimental light mode)" : "Switch to light (experimental, ugly)"}
+          aria-label="Toggle light mode (experimental)"
+        >
+          {light ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+        </button>
+
         {!compactMode && (
           <div className="flex items-center gap-1.5 px-2 py-1 bg-secondary rounded-full text-[11px] mr-1">
             <span className={`w-1.5 h-1.5 rounded-full ${mode.color}`} />
