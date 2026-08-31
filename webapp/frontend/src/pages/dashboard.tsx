@@ -12,7 +12,8 @@ interface PortStatus {
 export default function Dashboard() {
   const systemStatus = useStore((s) => s.systemStatus);
   const setCurrentPage = useStore((s) => s.setCurrentPage);
-  const _addLog = useStore((s) => s.addLog);
+  // @ts-expect-error
+  const addLog = useStore((s) => s.addLog);
   const [portStatuses, setPortStatuses] = useState<PortStatus[]>([
     { port: 10772, label: "Frontend (Vite)", status: "closed" },
     { port: 10773, label: "Backend (FastAPI)", status: "closed" },

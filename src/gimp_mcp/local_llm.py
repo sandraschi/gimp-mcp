@@ -1,4 +1,4 @@
-"""Local LLM integration — Ollama and LM Studio with auto-detection (Glom On)."""
+"""Local LLM integration - Ollama and LM Studio with auto-detection (Glom On)."""
 
 from __future__ import annotations
 

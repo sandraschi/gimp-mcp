@@ -66,7 +66,8 @@ const EXAMPLE_PROMPTS = [
   { category: "Advanced", text: "How can I use GIMP for photo retouching?" },
 ];
 
-async function _checkBackendHealth(): Promise<{
+// @ts-expect-error
+async function checkBackendHealth(): Promise<{
   ok: boolean;
   error?: string;
   provider?: string;

@@ -179,7 +179,7 @@ PORTMANTEAU_TOOLS = [
         "function": gimp_pdb,
         "category": "pdb_proxy",
         "operations": ["pdb_call"],
-        "description": "Generic GIMP PDB proxy — calls any procedure by name. Universal escape hatch to the full ~1000-procedure PDB.",
+        "description": "Generic GIMP PDB proxy - calls any procedure by name. Universal escape hatch to the full ~1000-procedure PDB.",
     },
     {
         "name": "gimp_workspace",
@@ -261,14 +261,14 @@ PORTMANTEAU_TOOLS = [
         "function": gimp_gmic,
         "category": "gmic_filters",
         "operations": ["list_categories", "apply", "apply_named", "list_filters"],
-        "description": "G'MIC filter integration — 500+ filters via plug-in-gmic PDB procedure.",
+        "description": "G'MIC filter integration - 500+ filters via plug-in-gmic PDB procedure.",
     },
     {
         "name": "gimp_gegl",
         "function": gimp_gegl,
         "category": "gegl_operations",
         "operations": ["list_ops", "apply"],
-        "description": "GEGL operation wrapper — GIMP 3 non-destructive editing engine.",
+        "description": "GEGL operation wrapper - GIMP 3 non-destructive editing engine.",
     },
     {
         "name": "gimp_color_management",
@@ -283,7 +283,7 @@ PORTMANTEAU_TOOLS = [
             "simulation_profile",
             "list_profiles",
         ],
-        "description": "ICC color management — profile info, assignment, conversion, soft proofing.",
+        "description": "ICC color management - profile info, assignment, conversion, soft proofing.",
     },
 ]
 

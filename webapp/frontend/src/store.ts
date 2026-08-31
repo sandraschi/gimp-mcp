@@ -2,6 +2,7 @@ import { create } from "zustand";
 
 export interface GimpSystemStatus {
   status: string;
+  uptime_seconds?: number;
   live_mode: {
     mode: "live" | "headless" | "offline";
     last_check?: string;

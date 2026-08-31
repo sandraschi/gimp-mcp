@@ -36,10 +36,12 @@ function App() {
         }
       } catch (_error) {
         addLog("warn", "Health check failed");
-        setSystemStatus((prev) => {
-          if (prev) return { ...prev, status: "unreachable" };
-          return null;
-        });
+        const prev = useStore.getState().systemStatus;
+        if (prev) {
+          setSystemStatus({ ...prev, status: "unreachable" });
+        } else {
+          setSystemStatus(null);
+        }
       }
     };
 

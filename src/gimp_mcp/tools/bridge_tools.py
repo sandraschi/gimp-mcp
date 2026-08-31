@@ -226,7 +226,7 @@ async def get_state_snapshot(
 ) -> dict[str, Any]:
     """Return a live base64 PNG of the current GIMP image state.
 
-    Ported from the maorcc/gimp-mcp pattern — enables the AI to "see"
+    Ported from the maorcc/gimp-mcp pattern - enables the AI to "see"
     the current image mid-workflow without saving to disk.
     Optional region crops to (x, y, width, height) for detail inspection.
 

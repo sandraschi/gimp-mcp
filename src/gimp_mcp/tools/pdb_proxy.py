@@ -1,4 +1,4 @@
-"""Generic GIMP PDB proxy — calls any PDB procedure by name."""
+"""Generic GIMP PDB proxy - calls any PDB procedure by name."""
 
 from __future__ import annotations
 

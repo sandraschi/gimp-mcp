@@ -68,7 +68,7 @@ export function Navbar() {
   const healthy = systemStatus?.status === "healthy";
 
   const handlePopOut = () => {
-    const _w = window.open(window.location.href, "gimp-mcp", "width=480,height=720,menubar=no,toolbar=no,location=no");
+    window.open(window.location.href, "gimp-mcp", "width=480,height=720,menubar=no,toolbar=no,location=no");
   };
 
   return (

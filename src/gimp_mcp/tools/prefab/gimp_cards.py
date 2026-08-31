@@ -1,5 +1,5 @@
 """
-Prefab UI tools — FastMCP 3.2 app=True surfaces for capable MCP hosts.
+Prefab UI tools - FastMCP 3.2 app=True surfaces for capable MCP hosts.
 """
 
 from __future__ import annotations
@@ -27,15 +27,15 @@ async def gimp_capabilities_card(ctx: Context | None = None) -> Any:
 
     total_ops = sum(len(t["operations"]) for t in PORTMANTEAU_TOOLS)
     [f"{t['name']}: {len(t['operations'])} ops" for t in PORTMANTEAU_TOOLS]
-    summary = f"GIMP MCP — {len(PORTMANTEAU_TOOLS)} portmanteau tools, {total_ops} operations. FastMCP 3.2: sampling, prompts, resources, skill://gimp-expert, MCPB."
+    summary = f"GIMP MCP - {len(PORTMANTEAU_TOOLS)} portmanteau tools, {total_ops} operations. FastMCP 3.2: sampling, prompts, resources, skill://gimp-expert, MCPB."
 
     with Card(css_class="max-w-xl") as view:
         with CardHeader():
-            CardTitle("GIMP MCP — Capabilities")
+            CardTitle("GIMP MCP - Capabilities")
         with CardContent():
             Text("Portmanteau tools (operation parameter):")
             for t in PORTMANTEAU_TOOLS:
-                Text(f"• {t['name']} — {', '.join(t['operations'][:6])}{'…' if len(t['operations']) > 6 else ''}")
+                Text(f"• {t['name']} - {', '.join(t['operations'][:6])}{'…' if len(t['operations']) > 6 else ''}")
             Text("SOTA: ctx.sample workflows, resource://gimp/*, skill://gimp-expert/SKILL.md")
 
     return ToolResult(

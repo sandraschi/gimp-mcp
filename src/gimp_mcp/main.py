@@ -105,7 +105,7 @@ class GimpMCPServer:
             name="gimp-mcp",
             version="4.6.0",
             lifespan=_gimp_mcp_lifespan,
-            instructions="""You are GIMP MCP Server — FastMCP 3.2 SOTA for professional image editing with GIMP.
+            instructions="""You are GIMP MCP Server - FastMCP 3.2 SOTA for professional image editing with GIMP.
 
 FASTMCP 3.2 SURFACE:
 - Sampling (ctx.sample / agentic workflows) when the host supports MCP sampling
@@ -747,7 +747,7 @@ Each portmanteau tool handles multiple related operations through an 'operation'
                 filter_name: Annotated[str | None, Field(description="Known filter name from presets. Used with operation='apply_named'.")] = None,
                 filter_params: Annotated[dict[str, Any] | None, Field(description="Optional parameter overrides for named filter.")] = None,
             ) -> dict[str, Any]:
-                """G'MIC filter integration — 500+ filters through plug-in-gmic.
+                """G'MIC filter integration - 500+ filters through plug-in-gmic.
 
                 [RATIONALE] G'MIC provides 500+ filters via a single PDB procedure.
                 Consolidating category listing, raw command execution, and named filter
@@ -776,7 +776,7 @@ Each portmanteau tool handles multiple related operations through an 'operation'
                 operation_name: Annotated[str | None, Field(description="GEGL operation name (e.g. 'gaussian-blur', 'crop'). Used with operation='apply'.")] = None,
                 config_string: Annotated[str | None, Field(description="JSON config string for the GEGL operation (e.g. '{\"radius\": 5.0}'). Used with operation='apply'.")] = None,
             ) -> dict[str, Any]:
-                """GEGL operation wrapper — GIMP 3 non-destructive editing engine.
+                """GEGL operation wrapper - GIMP 3 non-destructive editing engine.
 
                 [RATIONALE] GEGL operations power GIMP 3's non-destructive editing.
                 Wrapping operation discovery and application into one tool prevents
@@ -803,7 +803,7 @@ Each portmanteau tool handles multiple related operations through an 'operation'
                 profile_path: Annotated[str | None, Field(description="Path to ICC profile file. Required for: assign_profile, convert_profile, simulation_profile.")] = None,
                 soft_proofing_enabled: Annotated[bool | None, Field(description="Enable/disable soft proofing. Used with operation='soft_proofing'.")] = None,
             ) -> dict[str, Any]:
-                """ICC color management — profile info, assignment, conversion, soft proofing.
+                """ICC color management - profile info, assignment, conversion, soft proofing.
 
                 [RATIONALE] All color management operations are consolidated into one
                 portmanteau to prevent tool explosion across profile info, assignment,

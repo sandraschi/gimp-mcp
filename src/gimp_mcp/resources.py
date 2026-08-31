@@ -1,5 +1,5 @@
 """
-GIMP MCP — resource:// documentation surface (FastMCP 3.2+).
+GIMP MCP - resource:// documentation surface (FastMCP 3.2+).
 skill:// URIs are served via SkillsDirectoryProvider in sota_registration.
 """
 

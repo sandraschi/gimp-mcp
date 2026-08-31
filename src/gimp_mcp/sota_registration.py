@@ -52,11 +52,11 @@ def _register_skills_provider(mcp: FastMCP) -> None:
     try:
         from fastmcp.server.providers.skills import SkillsDirectoryProvider
     except ImportError:
-        logger.warning("SkillsDirectoryProvider not available — skip skill:// provider")
+        logger.warning("SkillsDirectoryProvider not available - skip skill:// provider")
         return
 
     if not skills_dir.is_dir():
-        logger.warning("Skills directory missing at %s — skip", skills_dir)
+        logger.warning("Skills directory missing at %s - skip", skills_dir)
         return
 
     try:
@@ -68,7 +68,7 @@ def _register_skills_provider(mcp: FastMCP) -> None:
 
 def _register_prefab_tools(mcp: FastMCP) -> None:
     if os.getenv("GIMP_PREFAB_TOOLS", "1") == "0":
-        logger.info("GIMP_PREFAB_TOOLS=0 — prefab tools skipped")
+        logger.info("GIMP_PREFAB_TOOLS=0 - prefab tools skipped")
         return
     try:
         from gimp_mcp.tools.prefab import register_prefab_tools
