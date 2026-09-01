@@ -190,6 +190,9 @@ for ($i = 0; $i -lt 30; $i++) {
 }
 if (-not $backendReady) {
     Write-Host "  Backend not ready after 30s. Frontend may fail." -ForegroundColor Yellow
+} else {
+    # Fleet depot advertise — let depot-mcp know where this repo's depot lives
+    try { & "D:\Dev\repos\mcp-central-docs\scripts\advertise-depot.ps1" -DepotMcpUrl "http://127.0.0.1:10727" } catch {}
 }
 
 # 4. Start Frontend

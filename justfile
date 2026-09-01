@@ -167,3 +167,7 @@ build-native:
 
 
 # Bootstrap: install dev deps + pre-commit hook
+
+# Fleet depot advertise
+advertise:
+    powershell.exe -NoProfile -File "D:\Dev\repos\mcp-central-docs\scripts\advertise-depot.ps1" -DepotMcpUrl "http://127.0.0.1:10727"
