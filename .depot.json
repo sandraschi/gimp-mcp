@@ -1,0 +1,6 @@
+{
+  "depot": "gimp-mcp",
+  "path": "depot",
+  "tags": ["xcf", "image"],
+  "note": "GIMP assets — will be created on first export, advertised to depot-mcp"
+}
