@@ -5,6 +5,7 @@ FastMCP 3.2: Context sampling (ctx.sample), client logging (ctx.info), and
 orchestration helpers for GIMP automation.
 """
 
+import asyncio
 import hashlib
 import json
 import os
@@ -497,7 +498,7 @@ async def _apply_gimp_processing(base_image_path: str, post_processing: list[str
         if current_path != str(processed_path):
             import shutil
 
-            shutil.copy2(current_path, processed_path)
+            await asyncio.to_thread(shutil.copy2, current_path, processed_path)
 
         return str(processed_path)
 
@@ -611,7 +612,7 @@ async def _save_image_to_repository(
         repo_image_path = repo_dir / f"{image_id}.png"
         import shutil
 
-        shutil.copy2(image_path, repo_image_path)
+        await asyncio.to_thread(shutil.copy2, image_path, repo_image_path)
 
         # Create metadata
         metadata = {

@@ -6,6 +6,7 @@ Comprehensive batch operations for GIMP MCP.
 
 from __future__ import annotations
 
+import asyncio
 import time
 from pathlib import Path
 from typing import Any, Literal
@@ -576,7 +577,7 @@ async def _batch_rename(input_path: Path, output_path: Path) -> bool:
     """Rename/copy file."""
     import shutil
 
-    shutil.copy2(input_path, output_path)
+    await asyncio.to_thread(shutil.copy2, input_path, output_path)
     return True
 
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import shutil
@@ -257,7 +258,7 @@ async def _stage_files(
     copied: list[str] = []
     for src in _iter_images(source_dir):
         target = dest / src.name
-        shutil.copy2(src, target)
+        await asyncio.to_thread(shutil.copy2, src, target)
         copied.append(str(target))
 
     return {

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import shutil
 from pathlib import Path
@@ -38,7 +39,7 @@ async def import_file_to_staging(
     try:
         dest_dir.mkdir(parents=True, exist_ok=True)
         dest = dest_dir / src.name
-        shutil.copy2(src, dest)
+        await asyncio.to_thread(shutil.copy2, src, dest)
     except OSError as exc:
         logger.exception("Failed to copy to staging")
         return {"success": False, "error": str(exc)}

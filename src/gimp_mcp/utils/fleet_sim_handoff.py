@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import shutil
 from pathlib import Path
@@ -122,7 +123,7 @@ async def import_icon_to_gazebo_model(
         written: list[str] = []
         for dest in targets:
             dest.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(src, dest)
+            await asyncio.to_thread(shutil.copy2, src, dest)
             written.append(str(dest))
     except OSError as exc:
         logger.exception("Gazebo model icon import failed")
@@ -215,7 +216,7 @@ async def import_icon_to_avatar_model(
     directory, mid = resolved
     dest = directory / f"{mid}.thumb.png"
     try:
-        shutil.copy2(src, dest)
+        await asyncio.to_thread(shutil.copy2, src, dest)
     except OSError as exc:
         logger.exception("Avatar thumbnail import failed")
         return {"success": False, "error": str(exc)}

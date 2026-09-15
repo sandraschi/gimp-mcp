@@ -6,6 +6,7 @@ but they need to access the class instance methods. This is done by capturing 's
 in the closure and calling the actual implementation methods.
 """
 
+import asyncio
 import logging
 from typing import Any
 
@@ -51,7 +52,7 @@ class ColorAdjustmentTools(BaseToolCategory):
             # Placeholder implementation - copy file for now
             import shutil
 
-            shutil.copy2(input_path, output_path)
+            await asyncio.to_thread(shutil.copy2, input_path, output_path)
 
             return self.create_success_response(
                 {
