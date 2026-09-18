@@ -33,13 +33,11 @@ serve:
 
 # Start webapp frontend only (Vite dev)
 webapp:
-    Set-Location '{{justfile_directory()}}\webapp\frontend'
-    npm run dev -- --port 10772 --host
+    Set-Location '{{justfile_directory()}}\webapp\frontend'; npm run dev -- --port 10772 --host
 
 # Build frontend for production
 build:
-    Set-Location '{{justfile_directory()}}\webapp\frontend'
-    npm run build
+    Set-Location '{{justfile_directory()}}\webapp\frontend'; npm run build
 
 # --- Bridge ---
 
@@ -102,18 +100,11 @@ test-pdb:
 
 # Lint Python (ruff) and frontend (biome)
 lint:
-    Set-Location '{{justfile_directory()}}'
-    uv run ruff check .
-    Set-Location '{{justfile_directory()}}\webapp\frontend'
-    npx @biomejs/biome ci .
+    Set-Location '{{justfile_directory()}}'; uv run ruff check .; Set-Location '{{justfile_directory()}}\webapp\frontend'; npx @biomejs/biome ci .
 
 # Auto-fix lint issues
 fix:
-    Set-Location '{{justfile_directory()}}'
-    uv run ruff check . --fix --unsafe-fixes
-    uv run ruff format .
-    Set-Location '{{justfile_directory()}}\webapp\frontend'
-    npx @biomejs/biome check --write .
+    Set-Location '{{justfile_directory()}}'; uv run ruff check . --fix --unsafe-fixes; uv run ruff format .; Set-Location '{{justfile_directory()}}\webapp\frontend'; npx @biomejs/biome check --write .
 
 # --- Hardening ---
 
@@ -158,12 +149,7 @@ clean-gimp:
 
 # Build the Tauri NSIS desktop installer (full pipeline: frontend -> Rust -> NSIS)
 build-native:
-	$env:Path = "$env:USERPROFILE\.cargo\bin;$env:Path"
-	$vcvars = "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
-	$envOutput = cmd /c "`"$vcvars`" > nul & set" | Where-Object { $_ -match '^(INCLUDE|LIB|LIBPATH|VCToolsVersion|WindowsSdkDir|UniversalCRTSdkDir|UCRTVersion)=' }
-	foreach ($line in $envOutput) { $parts = $line.Split('=', 2); Set-Item -Path "env:$($parts[0])" -Value $parts[1] -ErrorAction SilentlyContinue }
-	Set-Location '{{justfile_directory()}}\native'
-	pwsh -NoProfile -File '{{justfile_directory()}}\native\build.ps1'
+	$env:Path = "$env:USERPROFILE\.cargo\bin;$env:Path"; $vcvars = "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"; $envOutput = cmd /c "`"$vcvars`" > nul & set" | Where-Object { $_ -match '^(INCLUDE|LIB|LIBPATH|VCToolsVersion|WindowsSdkDir|UniversalCRTSdkDir|UCRTVersion)=' }; foreach ($line in $envOutput) { $parts = $line.Split('=', 2); Set-Item -Path "env:$($parts[0])" -Value $parts[1] -ErrorAction SilentlyContinue }; Set-Location '{{justfile_directory()}}\native'; pwsh -NoProfile -File '{{justfile_directory()}}\native\build.ps1'
 
 
 # Bootstrap: install dev deps + pre-commit hook
