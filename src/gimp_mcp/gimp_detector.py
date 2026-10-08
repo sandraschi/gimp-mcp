@@ -63,9 +63,11 @@ class GimpDetector:
 
         # Try common installation paths
         common_paths = [
+            r"C:\Program Files\GIMP 3\bin\gimp-console-3.exe",
+            r"C:\Program Files\GIMP 3\bin\gimp-3.exe",
             r"C:\Program Files\GIMP 3\bin\gimp-3.0.exe",
             r"C:\Program Files\GIMP 2\bin\gimp-2.10.exe",
-            r"C:\Program Files (x86)\GIMP 3\bin\gimp-3.0.exe",
+            r"C:\Program Files (x86)\GIMP 3\bin\gimp-3.exe",
             r"C:\Program Files (x86)\GIMP 2\bin\gimp-2.10.exe",
             r"C:\Users\{}\AppData\Local\Programs\GIMP 3\bin\gimp-3.exe".format(os.environ.get("USERNAME", "")),
             r"C:\Users\{}\AppData\Local\Programs\GIMP 3\bin\gimp-console-3.exe".format(os.environ.get("USERNAME", "")),
@@ -85,7 +87,7 @@ class GimpDetector:
                         return str(exe_candidate)
 
         # Try PATH environment
-        path_executable = self._check_path_environment(["gimp-3.0.exe", "gimp-2.10.exe", "gimp.exe"])
+        path_executable = self._check_path_environment(["gimp-console-3.exe", "gimp-3.exe", "gimp-3.0.exe", "gimp-2.10.exe", "gimp.exe"])
         if path_executable:
             return path_executable
 
@@ -308,10 +310,10 @@ class GimpDetector:
         """
         if self.system == "windows":
             return [
-                r"C:\Program Files\GIMP 3\bin\gimp-3.0.exe",
+                r"C:\Program Files\GIMP 3\bin\gimp-console-3.exe",
+                r"C:\Program Files\GIMP 3\bin\gimp-3.exe",
+                r"C:\Program Files\GIMP 2\bin\gimp-console-2.10.exe",
                 r"C:\Program Files\GIMP 2\bin\gimp-2.10.exe",
-                r"C:\Program Files (x86)\GIMP 3\bin\gimp-3.0.exe",
-                r"C:\Program Files (x86)\GIMP 2\bin\gimp-2.10.exe",
             ]
         elif self.system == "darwin":
             return [

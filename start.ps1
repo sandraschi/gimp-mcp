@@ -125,7 +125,11 @@ if ($gimpProc) {
 }
 if ($gimpPluginDir) {
     if (-not (Test-Path $gimpPluginDir)) { New-Item -ItemType Directory -Path $gimpPluginDir -Force | Out-Null }
-    Copy-Item (Join-Path $RepoRoot "src\gimp_mcp\plugins\gimp_mcp_bridge\gimp_mcp_bridge.py") (Join-Path $gimpPluginDir "gimp_mcp_bridge.py") -Force
+    # GIMP 3 loads Python plugins ONLY from subfolders: plug-ins\<name>\<name>.py
+    # (a flat plug-ins\*.py is silently ignored - TRAPS #43 family).
+    $bridgePluginDir = Join-Path $gimpPluginDir "gimp_mcp_bridge"
+    if (-not (Test-Path $bridgePluginDir)) { New-Item -ItemType Directory -Path $bridgePluginDir -Force | Out-Null }
+    Copy-Item (Join-Path $RepoRoot "src\gimp_mcp\plugins\gimp_mcp_bridge\gimp_mcp_bridge.py") (Join-Path $bridgePluginDir "gimp_mcp_bridge.py") -Force
     Write-Host "  [ok] Bridge plugin installed" -ForegroundColor DarkGreen
 } else {
     Write-Host "  GIMP not running - plugin dir unknown. Bridge unavailable." -ForegroundColor Yellow

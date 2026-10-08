@@ -26,7 +26,9 @@ just bridge-status
 ### First-Time Activation
 
 The bridge plugin must be started once per GIMP session. Either:
-1. Use `.\start.ps1 -RestartGimp` (auto-starts the bridge)
+1. Use `.\start.ps1 -RestartGimp`, then start the bridge from the menu below
+   (the restart reinstalls the plugin and relaunches GIMP; the bridge itself
+   starts on first menu click, then stays up until GIMP closes)
 2. Or manually: `Filters > Development > MCP > Start MCP Bridge`
 
 After this, the bridge stays active until GIMP is closed.
