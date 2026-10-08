@@ -4,7 +4,11 @@ import { Card, CardContent } from "../components/ui-core";
 
 export default function ApiDocsPage() {
   const [view, setView] = useState<"swagger" | "redoc">("swagger");
-  const backendBase = "http://localhost:10773";
+  // Same-origin relative by default (vite proxy); absolute backend URL only
+  // inside the Tauri WebView where same-origin does not reach the sidecar.
+  const w = window as unknown as Record<string, unknown>;
+  const isTauri = Boolean(w.__TAURI__ ?? w.__TAURI_INTERNALS__);
+  const backendBase = isTauri ? "http://localhost:10773" : "";
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">

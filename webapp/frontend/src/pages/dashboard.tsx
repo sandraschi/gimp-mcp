@@ -12,8 +12,6 @@ interface PortStatus {
 export default function Dashboard() {
   const systemStatus = useStore((s) => s.systemStatus);
   const setCurrentPage = useStore((s) => s.setCurrentPage);
-  // @ts-expect-error
-  const addLog = useStore((s) => s.addLog);
   const [portStatuses, setPortStatuses] = useState<PortStatus[]>([
     { port: 10772, label: "Frontend (Vite)", status: "closed" },
     { port: 10773, label: "Backend (FastAPI)", status: "closed" },
@@ -166,6 +164,18 @@ export default function Dashboard() {
           />
         </div>
       </div>
+
+      {!connected && (
+        <a
+          href="https://github.com/sandraschi/gimp-mcp/blob/main/docs/ONBOARDING.md"
+          target="_blank"
+          rel="noopener noreferrer"
+          data-testid="onboarding-cue"
+          className="block rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-center font-semibold text-red-200 hover:bg-red-500/20 transition-colors"
+        >
+          Backend offline — first time here? Follow the onboarding guide (GIMP 3 + bridge plugin setup).
+        </a>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((card, i) => (

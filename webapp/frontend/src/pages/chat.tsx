@@ -66,25 +66,6 @@ const EXAMPLE_PROMPTS = [
   { category: "Advanced", text: "How can I use GIMP for photo retouching?" },
 ];
 
-// @ts-expect-error
-async function checkBackendHealth(): Promise<{
-  ok: boolean;
-  error?: string;
-  provider?: string;
-  model?: string;
-}> {
-  try {
-    const r = await fetch("/api/health");
-    if (!r.ok) return { ok: false, error: `HTTP ${r.status}` };
-    return { ok: true };
-  } catch (e) {
-    return {
-      ok: false,
-      error: e instanceof Error ? e.message : "Network error",
-    };
-  }
-}
-
 function buildSystemPrompt(skillContent: string, personality: Personality, customPrompt: string): string {
   const base = skillContent || "You are a helpful GIMP assistant.";
   if (personality.id === "custom") return customPrompt || base;
@@ -487,7 +468,7 @@ export default function ChatPage() {
                         speak(msg.content);
                       }}
                       title="Speak"
-                      className="shrink-0 mt-0.5 p-1 rounded transition-colors text-slate-500 hover:text-white opacity-50 hover:opacity-100"
+                      className="shrink-0 mt-0.5 p-1 rounded transition-colors text-slate-300 hover:text-white opacity-50 hover:opacity-100"
                     >
                       <Volume2 className="h-3 w-3" />
                     </button>

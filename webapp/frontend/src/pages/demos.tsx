@@ -95,12 +95,12 @@ export default function DemosPage() {
             <Sparkles className="h-6 w-6 text-amber-400" />
             Demo Studio
           </h1>
-          <p className="text-slate-400 mt-1">
+          <p className="text-slate-300 mt-1">
             One-click multi-step GIMP automation demos — watch the AI edit images in real time
           </p>
         </div>
         {results && (
-          <div className="text-sm text-slate-400">
+          <div className="text-sm text-slate-300">
             {results.completed}/{results.total_steps} steps passed
           </div>
         )}
@@ -136,7 +136,7 @@ export default function DemosPage() {
                     ) : (
                       <XCircle className="h-3.5 w-3.5 text-red-500 shrink-0" />
                     )}
-                    <span className="font-mono text-xs text-slate-500 w-24 shrink-0">{step.step}</span>
+                    <span className="font-mono text-xs text-slate-300 w-24 shrink-0">{step.step}</span>
                     <span>{step.label}</span>
                     {step.has_snapshot && <ImageIcon className="h-3 w-3 text-blue-400 shrink-0" />}
                     {step.error && <span className="text-red-400 text-xs ml-2">{step.error}</span>}
@@ -165,7 +165,7 @@ export default function DemosPage() {
                   <Icon className="h-5 w-5 text-amber-400" />
                   <div>
                     <h3 className="text-white font-medium text-sm">{demo.id.replace(/_/g, " ")}</h3>
-                    <span className="text-xs text-slate-500">{demo.steps} steps</span>
+                    <span className="text-xs text-slate-300">{demo.steps} steps</span>
                   </div>
                 </div>
                 <button
@@ -173,7 +173,7 @@ export default function DemosPage() {
                   disabled={isRunning}
                   className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                     isRunning
-                      ? "bg-slate-800 text-slate-500 cursor-not-allowed"
+                      ? "bg-slate-800 text-slate-300 cursor-not-allowed"
                       : "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20"
                   }`}
                 >
@@ -181,7 +181,7 @@ export default function DemosPage() {
                   {isRunning ? "Running..." : "Run Demo"}
                 </button>
               </div>
-              <p className="text-xs text-slate-400 leading-relaxed">
+              <p className="text-xs text-slate-300 leading-relaxed">
                 {demo.description || "No description available."}
               </p>
               {demo.file && <p className="text-[10px] text-slate-600 mt-2 font-mono">{demo.file}</p>}
