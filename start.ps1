@@ -16,8 +16,11 @@ if ($Headless -and ($Host.Name -ne 'ConsoleHost' -or -not (Get-Variable -Name "N
 
 $ErrorActionPreference = "Stop"
 $RepoRoot = $PSScriptRoot
+$RepoVersion = try {
+    ((Select-String -LiteralPath (Join-Path $RepoRoot 'pyproject.toml') -Pattern '^version = "(.*)"' | Select-Object -First 1).Matches.Groups[1].Value)
+} catch { 'unknown' }
 
-Write-Host "=== gimp-mcp Industrial Startup (v4.1.0) ===" -ForegroundColor Cyan
+Write-Host "=== gimp-mcp Industrial Startup (v$RepoVersion) ===" -ForegroundColor Cyan
 
 # 1. Kill stale ports
 $WebPort = 10772
@@ -150,14 +153,19 @@ if (-not $bridgeListening) {
             }
             Write-Host "  Launching GIMP with bridge..." -ForegroundColor Cyan
             $gimpExe = "$env:LOCALAPPDATA\Programs\GIMP 3\bin\gimp-3.exe"
-            Start-Process -FilePath $gimpExe
-            for ($i = 0; $i -lt 30; $i++) {
-                Start-Sleep -Seconds 2
-                $bp = Get-NetTCPConnection -LocalPort $BridgePort -ErrorAction SilentlyContinue | Where-Object { $_.State -eq 'Listen' }
-                if ($bp) { Write-Host "  [ok] GIMP bridge active on port $BridgePort" -ForegroundColor DarkGreen; break }
-            }
-            if (-not $bp) {
-                Write-Host "  Bridge not detected after 60s. Start manually via GIMP menu." -ForegroundColor Yellow
+            if (-not (Test-Path -LiteralPath $gimpExe)) {
+                Write-Host "  Standalone GIMP not found at $gimpExe." -ForegroundColor Yellow
+                Write-Host "  Store-GIMP installs cannot be relaunched headless: start the bridge manually via Filters > Development > MCP > Start MCP Bridge." -ForegroundColor DarkGray
+            } else {
+                Start-Process -FilePath $gimpExe
+                for ($i = 0; $i -lt 30; $i++) {
+                    Start-Sleep -Seconds 2
+                    $bp = Get-NetTCPConnection -LocalPort $BridgePort -ErrorAction SilentlyContinue | Where-Object { $_.State -eq 'Listen' }
+                    if ($bp) { Write-Host "  [ok] GIMP bridge active on port $BridgePort" -ForegroundColor DarkGreen; break }
+                }
+                if (-not $bp) {
+                    Write-Host "  Bridge not detected after 60s. Start manually via GIMP menu." -ForegroundColor Yellow
+                }
             }
         } else {
             Write-Host "  GIMP is running (PID $($gimpProc.Id)) but bridge is inactive on port $BridgePort" -ForegroundColor DarkYellow
@@ -213,7 +221,20 @@ if (-not (Test-Path $frontendDir)) { $frontendDir = Join-Path $RepoRoot "webapp"
 if (-not (Test-Path $frontendDir)) { Write-Host "  Frontend directory not found!" -ForegroundColor Red; exit 1 }
 Set-Location $frontendDir
 if (-not (Test-Path "node_modules")) { npm install }
-Start-Process npm -ArgumentList "run", "dev", "--", "--port", "$WebPort" -WorkingDirectory $frontendDir
+# NOTE: launch vite via node directly, NOT `Start-Process npm` - npm resolves to
+# npm.ps1 under PowerShell, which Start-Process cannot CreateProcess (dies as
+# "%1 is not a valid Win32 application" and the frontend never listens).
+$viteBin = Join-Path $frontendDir "node_modules\vite\bin\vite.js"
+$frontendLog = Join-Path ([IO.Path]::GetTempPath()) "gimp-mcp-frontend.log"
+$frontendProc = Start-Process node -ArgumentList "`"$viteBin`"", "--port", "$WebPort", "--host" `
+    -WorkingDirectory $frontendDir -RedirectStandardOutput $frontendLog -RedirectStandardError "$frontendLog.err" `
+    -NoNewWindow -PassThru
+Start-Sleep -Seconds 3
+if ($frontendProc.HasExited) {
+    Write-Host "  Frontend failed to start. Tail of $frontendLog :" -ForegroundColor Red
+    Get-Content $frontendLog -Tail 15 -ErrorAction SilentlyContinue
+    Get-Content "$frontendLog.err" -Tail 15 -ErrorAction SilentlyContinue
+}
 
 Write-Host "Startup Complete." -ForegroundColor Green
 if (-not $NoBrowser) {
