@@ -173,7 +173,7 @@ if (-not $bridgeListening) {
             }
         } else {
             Write-Host "  GIMP is running (PID $($gimpProc.Id)) but bridge is inactive on port $BridgePort" -ForegroundColor DarkYellow
-            Write-Host "  Use --restart-gimp to auto-start the bridge." -ForegroundColor DarkGray
+            Write-Host "  Start it once via Filters > Development > MCP > Start MCP Bridge (--restart-gimp relaunches GIMP but does not click the menu for you)." -ForegroundColor DarkGray
         }
     }
 } else {
@@ -184,9 +184,13 @@ if (-not $bridgeListening) {
 if ($env:SKIP_SYNC -eq "1") {
     Write-Host "[1/3] Skipping Python deps (SKIP_SYNC=1)" -ForegroundColor DarkGray
 } else {
-    Write-Host "[1/3] Syncing Python deps (uv sync) ..." -ForegroundColor Cyan
+    Write-Host "[1/3] Syncing Python deps (uv sync --extra dev) ..." -ForegroundColor Cyan
     Set-Location $RepoRoot
-    uv sync
+    # NOTE: --extra dev is deliberate (not bare `uv sync`): bare sync PRUNES dev
+    # packages (pre-commit, pytest) from .venv on every launch and breaks the
+    # repo's own commit hooks right after starting the app. End-user cost is
+    # a few extra packages; dev-machine correctness wins.
+    uv sync --extra dev
     if ($LASTEXITCODE -ne 0) { exit 1 }
 }
 
