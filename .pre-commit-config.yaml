@@ -21,6 +21,15 @@ repos:
         pass_filenames: false
         require_serial: true
 
+      - id: bat-crlf
+        name: bat files must be CRLF (TRAPS #43)
+        entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/pre-commit-bat-crlf.ps1
+        language: system
+        # Check-only: fails on LF-only .bat/.cmd (cmd.exe misparses paren blocks).
+        # AI file tools write LF, so this fires exactly when an agent adds a bat.
+        files: \.(bat|cmd)$
+        require_serial: true
+
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
