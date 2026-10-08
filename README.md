@@ -112,6 +112,44 @@ The webapp (http://localhost:10772) is a full SOTA React/Tailwind/Zustand dashbo
 | **Settings** | AI provider API keys, local LLM provider/model |
 | **API Docs** | Swagger UI + ReDoc via iframe |
 
+## Claude Desktop
+
+Claude-only one-liner (Windows, installs the released `.mcpb` bundle):
+
+```powershell
+irm https://github.com/sandraschi/gimp-mcp/releases/latest/download/install.ps1 | iex
+```
+
+Every other client (manual config, local clone):
+
+```json
+{
+  "mcpServers": {
+    "gimp-mcp": {
+      "command": "uvx",
+      "args": ["--from", "git+https://github.com/sandraschi/gimp-mcp", "gimp-mcp"]
+    }
+  }
+}
+```
+
+Developer fallback (local checkout, stdio):
+
+```json
+{
+  "mcpServers": {
+    "gimp-mcp": {
+      "command": "uv",
+      "args": ["run", "python", "-m", "gimp_mcp.main"],
+      "cwd": "D:\\Dev\\repos\\gimp-mcp"
+    }
+  }
+}
+```
+
+Stdio transport is the default (`uv run python -m gimp_mcp.main`); the HTTP
+backend (`http://127.0.0.1:10773`) serves the webapp and Tauri wrapper.
+
 ## License
 
 MIT — see [LICENSE](LICENSE) for details.

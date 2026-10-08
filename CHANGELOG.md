@@ -1,4 +1,24 @@
 
+## [Unreleased] — 2026-10-08
+
+### Added
+- REST: `GET /api/capabilities` (standard shape), `GET /api/v1/diagnostics` (CUA-NSIS), `POST /api/shutdown` (orderly fleet-launcher exit)
+- Docs: `docs/ONBOARDING.md`, `docs/CONFIGURATION.md`, `docs/DEVELOPMENT.md`, `docs/TOOLS.md`, `docs/TROUBLESHOOTING.md`
+- Dashboard under-hero onboarding cue (`data-testid="onboarding-cue"`, shows when backend offline)
+- `start.bat` root launcher (delegates to `start.ps1`); `just fmt` recipe
+- NSIS: vendored fleet `mcp-clients.nsh` + register/unregister hooks (client registration on install)
+- Session context: `.cursorrules` Session Context section, `.windsurfrules`, `.github/copilot-instructions.md`, `.claude-plugin/` (+ hooks)
+- Frontend: `@tauri-apps/api` dependency, `bun.lock` committed, Tauri-gated backend URL in api-docs
+
+### Fixed
+- Biome 2.x: removed `preset` key (hard error); fixed unused `checkBackendHealth` (chat), `addLog` (dashboard)
+- `justfile`: joined split `Set-Location` recipe lines (`;`), `pwsh` → `powershell.exe` in build-native
+- `glama.json`: version 4.6.0, 18 tools (was stale 4.1.0/9)
+- `.gitignore`: added `.venv/`, `node_modules/`, `reports/`, `*.mcpb`, `*.bak.*`, un-ignored root `start.bat`
+- Contrast: `text-slate-400/500` → `text-slate-300` (demos, chat)
+- Installed missing `.git/hooks/pre-commit`
+- README/INSTALL: Claude Desktop config snippet + release-bundle install notes
+
 ## [Unreleased] — 2026-07-21
 
 ### Added
@@ -224,4 +244,3 @@ When making changes, add them under the appropriate section:
 - **Removed** for now removed features
 - **Fixed** for any bug fixes
 - **Security** for vulnerability fixes
-

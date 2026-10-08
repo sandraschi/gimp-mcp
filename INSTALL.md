@@ -61,6 +61,35 @@ If you prefer not to use `just`:
 
 ---
 
+## Claude Desktop
+
+Claude-only one-liner (Windows, installs the released `.mcpb` bundle):
+
+```powershell
+irm https://github.com/sandraschi/gimp-mcp/releases/latest/download/install.ps1 | iex
+```
+
+Every other client (manual config):
+
+```json
+{
+  "mcpServers": {
+    "gimp-mcp": {
+      "command": "uvx",
+      "args": ["--from", "git+https://github.com/sandraschi/gimp-mcp", "gimp-mcp"]
+    }
+  }
+}
+```
+
+Developer fallback (local checkout, stdio): same `uv run python -m
+gimp_mcp.main` entry used above, with `"cwd": "D:\\Dev\\repos\\gimp-mcp"`.
+
+Windows desktop users can also run the NSIS installer from `dist/`
+for the Tauri-wrapped app.
+
+---
+
 ## ❓ Troubleshooting
 
 | Issue | Fix |
