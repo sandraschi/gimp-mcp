@@ -1,1 +1,1 @@
-{"timestamp": "2026-08-31T22:27:30.1890066+02:00", "commit": "f0969ec9ef48ac693033b2d441be2c52380cb19d", "host": "Goliath"}
+{"commit": "53f9630f66a7787abd234bfa685c81664b1bb9bc", "host": "Goliath", "report": "docs/assess-reports/2026-10-08.md", "score_after": 67, "score_after_note": "self-assessed (unverified) - same context fixed and scored; prefer cold-context rescore", "score_before": 0, "timestamp": "2026-10-08T19:15:01.5206319+02:00"}
