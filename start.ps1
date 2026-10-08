@@ -136,7 +136,18 @@ if (-not $bridgeListening) {
         if ($RestartGimp) {
             Write-Host "  --restart-gimp: Killing old GIMP (PID $($gimpProc.Id))..." -ForegroundColor Cyan
             try { Stop-Process -Id $gimpProc.Id -Force } catch { taskkill /F /PID $gimpProc.Id 2> $null }
-            Start-Sleep -Seconds 3
+            # HARDENED 2026-09-17: was a blind Start-Sleep -Seconds 3 then launched a
+            # new GIMP unconditionally, risking two instances if the old one hadn't
+            # actually died yet (TRAPS_AND_PITFALLS.md #36). Poll instead.
+            $gimpKillWaitSec = 15
+            $gimpKillElapsed = 0
+            while ($gimpKillElapsed -lt $gimpKillWaitSec -and (Get-Process -Id $gimpProc.Id -ErrorAction SilentlyContinue)) {
+                Start-Sleep -Milliseconds 500
+                $gimpKillElapsed += 0.5
+            }
+            if (Get-Process -Id $gimpProc.Id -ErrorAction SilentlyContinue) {
+                Write-Host "  WARNING: old GIMP (PID $($gimpProc.Id)) still alive after ${gimpKillWaitSec}s - launching new instance anyway" -ForegroundColor DarkYellow
+            }
             Write-Host "  Launching GIMP with bridge..." -ForegroundColor Cyan
             $gimpExe = "$env:LOCALAPPDATA\Programs\GIMP 3\bin\gimp-3.exe"
             Start-Process -FilePath $gimpExe
