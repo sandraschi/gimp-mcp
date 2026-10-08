@@ -15,19 +15,23 @@
   "prompts": [
     {
       "name": "gimp_edit_session",
-      "description": "Plan a safe GIMP editing session for a stated goal."
+      "description": "Plan a safe GIMP editing session for a stated goal.",
+      "text": "Plan a safe step-by-step GIMP session: 1) gimp_file validate/info, 2) gimp_transform geometry, 3) gimp_color levels first, 4) gimp_filter creative, 5) gimp_layer non-destructive, 6) gimp_analysis QC, 7) gimp_file export. Stay in allowed directories; never overwrite sources."
     },
     {
       "name": "gimp_batch_folder_prep",
-      "description": "Checklist for batch-processing a directory of images."
+      "description": "Checklist for batch-processing a directory of images.",
+      "text": "Batch checklist: list files under an allowed directory, gimp_batch resize/convert with explicit input/output directories, spot-check 1-2 samples with gimp_analysis, verify disk space before large runs."
     },
     {
       "name": "gimp_color_grading_pass",
-      "description": "Order of operations for a color grading pass."
+      "description": "Order of operations for a color grading pass.",
+      "text": "Grade on a duplicate layer: gimp_color brightness_contrast (small moves), levels/curves (black/white points), hue_saturation, optional mild sharpen after resize, export via gimp_file convert."
     },
     {
       "name": "gimp_agentic_sampling_hint",
-      "description": "When to use server-side sampling vs client tool loops."
+      "description": "When to use server-side sampling vs client tool loops.",
+      "text": "Use ctx.sample/gimp_agentic_workflow when the host supports MCP sampling and the server-side model should plan; use direct portmanteau tool loops when the client LLM orchestrates. Read skill://gimp-expert/SKILL.md for conventions."
     }
   ],
   "server": {
