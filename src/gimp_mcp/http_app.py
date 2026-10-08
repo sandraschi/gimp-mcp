@@ -419,4 +419,75 @@ async def _api_v1_tool(request: Request) -> Response:
     )
 
 
+@_mcp.custom_route("/api/capabilities", methods=["GET"])
+async def _api_capabilities(_request: Request) -> Response:
+    """Standard capability shape for fleet webapps (WEBAPP_STANDARDS 1.4)."""
+    manifest = get_sota_feature_manifest()
+    return JSONResponse(
+        {
+            "server": "gimp-mcp",
+            "version": __version__,
+            "transport": ["stdio", "streamable-http", "sse"],
+            "tools": manifest.get("tools", []),
+            "features": {
+                "sampling": True,
+                "prompts": True,
+                "resources": True,
+                "skills": True,
+                "prefab": True,
+            },
+            "endpoints": [
+                "/api/health",
+                "/api/status",
+                "/api/capabilities",
+                "/api/skills",
+                "/api/tools",
+                "/api/llm/detect",
+                "/api/llm/chat",
+                "/api/v1/tool",
+                "/api/v1/diagnostics",
+            ],
+        }
+    )
+
+
+@_mcp.custom_route("/api/v1/diagnostics", methods=["GET"])
+async def _api_v1_diagnostics(_request: Request) -> Response:
+    """Full diagnostics for CUA-NSIS smoke testing: tool list, system info, errors."""
+    import platform
+
+    tools: Any = []
+    exec_layer = _gimp_server.interaction_manager or _gimp_server.cli_wrapper
+    try:
+        if hasattr(exec_layer, "list_operations"):
+            tools = await exec_layer.list_operations() if callable(exec_layer.list_operations) else exec_layer.list_operations
+    except Exception as exc:
+        logger.exception("Diagnostics tool list failed: %s", exc)
+        tools = {"error": str(exc)}
+    return JSONResponse(
+        {
+            "server": "gimp-mcp",
+            "version": __version__,
+            "platform": platform.platform(),
+            "python": platform.python_version(),
+            "tools": tools,
+            "sota": get_sota_feature_manifest(),
+            "errors": [],
+        }
+    )
+
+
+@_mcp.custom_route("/api/shutdown", methods=["POST"])
+async def _api_shutdown(_request: Request) -> Response:
+    """Orderly exit for fleet launcher restarts: 200 now, exit 500 ms later."""
+    import threading
+
+    def _delayed_exit() -> None:
+        logger.info("Shutdown endpoint: exiting on launcher request")
+        os._exit(0)
+
+    threading.Timer(0.5, _delayed_exit).start()
+    return JSONResponse({"success": True, "message": "gimp-mcp shutting down"})
+
+
 app = _mcp.http_app()

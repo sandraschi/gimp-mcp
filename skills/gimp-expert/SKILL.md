@@ -1,3 +1,7 @@
+---
+name: gimp-expert
+description: Professional image editing with GIMP 3 via portmanteau tools, PDB proxy, batch pipelines, and live bridge workflows.
+---
 # GIMP MCP Expert
 
 ## When to use
