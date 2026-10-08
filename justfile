@@ -18,18 +18,15 @@ bootstrap:
 
 # Start everything: backend + frontend + bridge
 start:
-    Set-Location '{{justfile_directory()}}'
-    .\start.ps1
+    Set-Location '{{justfile_directory()}}'; .\start.ps1
 
 # Start with GIMP restart (kills old GIMP, launches fresh with bridge)
 start-gimp:
-    Set-Location '{{justfile_directory()}}'
-    .\start.ps1 -RestartGimp
+    Set-Location '{{justfile_directory()}}'; .\start.ps1 -RestartGimp
 
 # Start backend only (uvicorn)
 serve:
-    Set-Location '{{justfile_directory()}}'
-    uv run uvicorn gimp_mcp.http_app:app --host 127.0.0.1 --port 10773 --reload
+    Set-Location '{{justfile_directory()}}'; uv run uvicorn gimp_mcp.http_app:app --host 127.0.0.1 --port 10773 --reload
 
 # Start webapp frontend only (Vite dev)
 webapp:
@@ -60,41 +57,35 @@ bridge-install:
 
 # Call any GIMP PDB procedure. Usage: just pdb "gimp-version"
 pdb procedure:
-    @Set-Location '{{justfile_directory()}}'
-    @$env:GIMP_BIN = '{{gimp_bin}}'
-    @uv run python scripts/pdb_call.py {{procedure}}
+    @Set-Location '{{justfile_directory()}}'; $env:GIMP_BIN = '{{gimp_bin}}'; uv run python scripts/pdb_call.py {{procedure}}
 
 # List all registered MCP tools
 tools:
-    @Set-Location '{{justfile_directory()}}'
-    @uv run python scripts/list_tools.py
+    @Set-Location '{{justfile_directory()}}'; uv run python scripts/list_tools.py
 
 # --- Testing ---
 
 # Run all tests
 test:
-    Set-Location '{{justfile_directory()}}'
-    uv run pytest tests/ -v --tb=short
+    Set-Location '{{justfile_directory()}}'; uv run pytest tests/ -v --tb=short
 
 e2e:
-    powershell.exe -NoProfile -NoProfile -ExecutionPolicy Bypass -File "D:\Dev\repos\mcp-central-docs\scripts\playwright-audit.ps1" -RepoPath "{{justfile_directory()}}"
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "D:\Dev\repos\mcp-central-docs\scripts\playwright-audit.ps1" -RepoPath "{{justfile_directory()}}"
+
+# Pre-Tauri browser walk is provided by scripts/just/fleet.just (cua-webapp-test).
+# CUA NSIS smoke is provided by scripts/just/fleet.just (cua-nsis-test).
 
 # Run tests with coverage
 test-cov:
-    Set-Location '{{justfile_directory()}}'
-    uv run pytest tests/ --cov=gimp_mcp --cov-report=term-missing
+    Set-Location '{{justfile_directory()}}'; uv run pytest tests/ --cov=gimp_mcp --cov-report=term-missing
 
 # Test CLI batch mode (requires standalone GIMP 3.2.4)
 test-cli:
-    Set-Location '{{justfile_directory()}}'
-    $env:GIMP_BIN = '{{gimp_bin}}'
-    uv run python scripts/test_cli.py
+    Set-Location '{{justfile_directory()}}'; $env:GIMP_BIN = '{{gimp_bin}}'; uv run python scripts/test_cli.py
 
 # Test PDB proxy end-to-end
 test-pdb:
-    Set-Location '{{justfile_directory()}}'
-    $env:GIMP_BIN = '{{gimp_bin}}'
-    uv run python scripts/test_pdb.py
+    Set-Location '{{justfile_directory()}}'; $env:GIMP_BIN = '{{gimp_bin}}'; uv run python scripts/test_pdb.py
 
 # --- Quality ---
 
@@ -106,17 +97,19 @@ lint:
 fix:
     Set-Location '{{justfile_directory()}}'; uv run ruff check . --fix --unsafe-fixes; uv run ruff format .; Set-Location '{{justfile_directory()}}\webapp\frontend'; npx @biomejs/biome check --write .
 
+# Format only (ruff format + biome format, no lint fixes)
+fmt:
+    Set-Location '{{justfile_directory()}}'; uv run ruff format .; Set-Location '{{justfile_directory()}}\webapp\frontend'; npx @biomejs/biome format --write .
+
 # --- Hardening ---
 
 # Bandit security audit
 check-sec:
-    Set-Location '{{justfile_directory()}}'
-    uv run bandit -r src/
+    Set-Location '{{justfile_directory()}}'; uv run bandit -r src/
 
 # Safety audit of dependencies
 audit-deps:
-    Set-Location '{{justfile_directory()}}'
-    uv run safety check
+    Set-Location '{{justfile_directory()}}'; uv run safety check
 
 # --- Cleanup ---
 
@@ -149,7 +142,7 @@ clean-gimp:
 
 # Build the Tauri NSIS desktop installer (full pipeline: frontend -> Rust -> NSIS)
 build-native:
-	$env:Path = "$env:USERPROFILE\.cargo\bin;$env:Path"; $vcvars = "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"; $envOutput = cmd /c "`"$vcvars`" > nul & set" | Where-Object { $_ -match '^(INCLUDE|LIB|LIBPATH|VCToolsVersion|WindowsSdkDir|UniversalCRTSdkDir|UCRTVersion)=' }; foreach ($line in $envOutput) { $parts = $line.Split('=', 2); Set-Item -Path "env:$($parts[0])" -Value $parts[1] -ErrorAction SilentlyContinue }; Set-Location '{{justfile_directory()}}\native'; pwsh -NoProfile -File '{{justfile_directory()}}\native\build.ps1'
+	$env:Path = "$env:USERPROFILE\.cargo\bin;$env:Path"; $vcvars = "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"; $envOutput = cmd /c "`"$vcvars`" > nul & set" | Where-Object { $_ -match '^(INCLUDE|LIB|LIBPATH|VCToolsVersion|WindowsSdkDir|UniversalCRTSdkDir|UCRTVersion)=' }; foreach ($line in $envOutput) { $parts = $line.Split('=', 2); Set-Item -Path "env:$($parts[0])" -Value $parts[1] -ErrorAction SilentlyContinue }; Set-Location '{{justfile_directory()}}\native'; powershell.exe -NoProfile -File '{{justfile_directory()}}\native\build.ps1'
 
 
 # Bootstrap: install dev deps + pre-commit hook

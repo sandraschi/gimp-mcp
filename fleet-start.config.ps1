@@ -1,15 +1,16 @@
-﻿# Per-repo fleet start config for gimp-mcp
+# Per-repo fleet start config for gimp-mcp
 # Edit ports/backend target here - start.ps1 is fleet-standard.
 @{
     Name         = 'gimp-mcp'
     BackendPort  = 10773
     FrontendPort = 10772
     HealthPath   = '/api/health'
-    WebRoot      = 'D:\Dev\repos\gimp-mcp\webapp'
+    WebRoot      = 'webapp\frontend'
     Backend = @{
         Kind          = 'uvicorn'
         UvicornTarget = 'gimp_mcp.http_app:app'
         SyncExtras    = @('dev')
+        SyncOnStart  = $true
         Env           = @{ WEB_PORT = '10773' }
     }
     Frontend = @{
