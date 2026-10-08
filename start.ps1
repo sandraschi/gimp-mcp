@@ -22,7 +22,7 @@ Write-Host "=== gimp-mcp Industrial Startup (v4.1.0) ===" -ForegroundColor Cyan
 # 1. Kill stale ports
 $WebPort = 10772
 $BackendPort = 10773
-$FleetStartPath = Join-Path $ProjectRoot "scripts\FleetStartMode.ps1"
+$FleetStartPath = Join-Path $RepoRoot "scripts\FleetStartMode.ps1"
 if (-not (Test-Path -LiteralPath $FleetStartPath)) {
     Write-Host "ERROR: Missing vendored launcher helper: $FleetStartPath" -ForegroundColor Red
     exit 1

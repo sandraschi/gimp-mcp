@@ -10,7 +10,7 @@ default:
 
 # Synchronize deps, pre-commit hooks, and web frontend
 bootstrap:
-    uv sync --extra dev --group dev
+    uv sync --extra dev
     uv run pre-commit install
     Set-Location webapp/frontend; npm ci; if ($LASTEXITCODE -ne 0) { npm install }
     Write-Host "Pre-commit hooks installed." -ForegroundColor Green
