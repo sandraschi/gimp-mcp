@@ -1,0 +1,1 @@
+{"description": "GIMP 3 image editing via 18 portmanteau MCP tools plus universal PDB proxy.", "hooks": "hooks/hooks.json", "name": "gimp-mcp"}

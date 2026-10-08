@@ -1,0 +1,1 @@
+{"hooks": {"SessionStart": [{"command": "echo gimp-mcp session context loaded", "timeout": 5}]}}
