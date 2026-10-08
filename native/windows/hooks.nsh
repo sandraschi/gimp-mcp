@@ -1,3 +1,9 @@
+; Fleet AI-client registration (mcp-central-docs/scripts/nsis/mcp-clients.nsh).
+; Vendored copy - refresh from canonical when rebuilding the installer.
+!define MCP_REG_NAME "gimp-mcp"
+!define MCP_REG_EXE  "gimp-mcp-backend.exe"
+!include "mcp-clients.nsh"
+
 !macro KillFleetProcesses
   DetailPrint "Stopping gimp-mcp processes..."
   ExecWait 'taskkill /F /IM gimp-mcp-backend.exe /T' $0
@@ -20,6 +26,11 @@
   !insertmacro KillFleetProcesses
 !macroend
 
+!macro NSIS_HOOK_POSTINSTALL
+  !insertmacro McpClientsRegister
+!macroend
+
 !macro NSIS_HOOK_PREUNINSTALL
   !insertmacro KillFleetProcesses
+  !insertmacro McpClientsUnregister
 !macroend
