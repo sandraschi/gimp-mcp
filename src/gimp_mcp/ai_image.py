@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import os
 from pathlib import Path
 from typing import Any
@@ -123,7 +124,7 @@ async def _bfl_generate(prompt: str, width: int, height: int, quality: str, styl
         path = _OUTPUT_DIR / f"bfl_{hashlib.md5(prompt.encode()).hexdigest()[:8]}_{width}x{height}.png"
         import httpx
 
-        resp = httpx.get(result.url)
+        resp = await asyncio.to_thread(httpx.get, result.url)
         resp.raise_for_status()
         path.write_bytes(resp.content)
         return {"success": True, "image_path": str(path), "provider": "bfl"}

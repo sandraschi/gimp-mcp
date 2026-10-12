@@ -9,6 +9,7 @@ Registers FastMCP 3.2 surface (prompts, resources, skills, prefab) via
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import os
@@ -204,7 +205,7 @@ async def _api_demo_run(request: Request) -> Response:
                 headers={"Content-Type": "application/json"},
                 method="POST",
             )
-            with _ur.urlopen(req, timeout=120) as resp:
+            with await asyncio.to_thread(_ur.urlopen, req, timeout=120) as resp:
                 result = _json.loads(resp.read())
             results.append(
                 {
