@@ -1,0 +1,72 @@
+# Central Documentation Rules
+
+## Rule #1: Read Central Docs First
+
+**BEFORE making any changes or starting work, ALWAYS:**
+
+1. **Read the Central Documentation README:**
+   - Location: `D:\Dev\repos\mcp-central-docs\README.md`
+   - This shows all important documentation "branches" (folder trees)
+   - Navigate from there to find specific information
+
+2. **Follow Documentation Branches:**
+   - Central docs are organized by topic (Anthropic ecosystem, Google ecosystem, patterns, projects, etc.)
+   - Each branch has its own README explaining what's inside
+   - Use the branch structure to find relevant docs
+
+3. **Check for Existing Patterns:**
+   - Look in `docs/patterns/` for design patterns
+   - Check `templates/` for reusable templates
+   - Review `docs/projects/` for similar project examples
+
+4. **Avoid Duplication:**
+   - Search existing docs before creating new ones
+   - Update existing docs rather than creating duplicates
+   - Reference central docs instead of copying content
+
+---
+
+## Documentation Branches (from Central README)
+
+### Core Standards
+- `STANDARDS.md` - Documentation quality standards
+- `STRUCTURE.md` - Directory layout guide
+- `CONTRIBUTING.md` - How to contribute
+
+### Anthropic Ecosystem (`docs/anthropic-ecosystem/`)
+- MCP Protocol, FastMCP, MCPB, Claude Desktop, Glama
+
+### Google Ecosystem (`docs/google-ecosystem/`)
+- Gemini 3, Antigravity IDE, Nano Banana Pro, DeepMind, TPU infrastructure
+
+### Patterns (`docs/patterns/`)
+- Design patterns for MCP servers and development
+
+### Projects (`docs/projects/`)
+- myai, veogen, mywienerlinien, autohotkey
+
+### Monitoring (`monitoring/`)
+- Prometheus/Grafana/Loki stack
+
+### Templates (`templates/`)
+- Reusable templates and scripts
+
+---
+
+## Quick Reference
+
+**Central Docs Location:** `D:\Dev\repos\mcp-central-docs\`
+
+**Start Here:** `D:\Dev\repos\mcp-central-docs\README.md`
+
+**When in doubt:** Read the central README and navigate from there.
+
+## Session Context
+
+Before starting work in this repo, load tool awareness for gimp-mcp:
+
+- 18 portmanteau tools: gimp_file, gimp_transform, gimp_color, gimp_filter, gimp_layer, gimp_analysis, gimp_batch, gimp_system, gimp_pdb (universal PDB proxy for ~1000 procedures), gimp_workspace, gimp_channel, gimp_animation, gimp_paths, gimp_parasites, gimp_gmic, gimp_gegl, gimp_color_management, gimp_snapshot.
+- Transports: stdio (Claude Desktop, `uv run python -m gimp_mcp.main`) + HTTP/SSE backend on :10773, frontend on :10772, live GIMP bridge on :10824.
+- Without the GIMP bridge plugin all tools fall back to headless CLI (`gimp-console-3.exe`).
+- Key files: src/gimp_mcp/main.py (tool registration), src/gimp_mcp/http_app.py (REST), src/gimp_mcp/bridge_wrapper.py (live TCP bridge), skills/gimp-expert/SKILL.md (agent guidance).
+- Gates: `uv run ruff check src/`, `uv run pytest tests/ -q`, frontend `tsc --noEmit` + `biome ci`.
